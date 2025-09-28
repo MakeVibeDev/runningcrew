@@ -72,3 +72,21 @@ sequenceDiagram
 - **1차 릴리즈:** NAVER CLOVA OCR → 한글 기반 러닝 기록 이미지(앱/워치 캡처)의 인식률이 가장 높음. 템플릿 기반으로 거리/시간 필드의 위치를 선지정하고 API 응답에서 `inferText`를 파싱.
 - **확장 대비:** OCR 호출 모듈을 Provider strategy 패턴으로 설계하여 Google Vision/AWS Textract로 대체 가능하도록 추상화 (`OCRProvider` 인터페이스 → `clova`, `gvision`, `textract`).
 - **비용 관리:** 월 1만장 이하라면 CLOVA 비용이 다소 높으나, 한글 인식 정확도로 QA 비용 절감 기대. 2차로 글로벌 확장 시 Google Vision을 병렬 도입.
+
+## 9. 권장 파이프라인
+1. **YOLOv8 기반 영역 분리**
+   - 커스텀 클래스: `stat_card`, `metric_block`, `map`, `feed` 등.
+   - 입력 이미지에서 지도/피드 등 비필요 영역 제거 후 통계 카드 ROI만 추출.
+2. **OCR 처리 전략**
+   - 템플릿 적용 가능한 앱(코로스/가민): CLOVA Template OCR 호출.
+   - 가변 레이아웃(스트라바 등): CLOVA General OCR → 정규식 후처리.
+   - 실패/미지원 케이스: Google Vision Document Text로 재시도.
+3. **후처리**
+   - 거리, 시간, 페이스, 심박 등을 표준 단위(km, 초)로 변환.
+   - 신뢰도/값 범위 검증 후 `record_ocr_results`에 저장.
+
+## 10. 다음 단계
+- [ ] 샘플 50장 이상 라벨링하여 YOLOv8 학습 데이터 구축.
+- [ ] CLOVA Template OCR 도메인 생성 및 필드 매핑 정의.
+- [ ] Edge Function에서 YOLO 분기 → OCR 호출 → 결과 저장 POC 구현.
+- [ ] Fallback Provider(Google Vision) 모듈화 및 신뢰도 비교 로깅.
