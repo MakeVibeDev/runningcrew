@@ -27,6 +27,7 @@ const mockYoloPreview = [
 ];
 
 const mockOcrResult = [
+  { label: "활동 날짜", value: "2025.09.27" },
   { label: "거리", value: "17.58 km" },
   { label: "시간", value: "1:41:50" },
   { label: "평균 페이스", value: "5'48\" /km" },
