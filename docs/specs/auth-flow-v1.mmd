@@ -1,0 +1,25 @@
+sequenceDiagram
+    autonumber
+    participant User as 사용자
+    participant App as Next.js 프런트
+    participant SupaAuth as Supabase Auth
+    participant Naver as 네이버 OAuth
+
+    User->>App: 로그인 버튼 클릭 (Naver)
+    App->>SupaAuth: /auth/v1/authorize?provider=naver (redirect)
+    SupaAuth->>Naver: OAuth authorize 요청 (client_id, redirect_uri, scope)
+    Naver->>User: 동의 화면 표시
+    User->>Naver: 권한 동의
+    Naver-->>SupaAuth: Authorization code 전달(redirect_uri)
+    SupaAuth->>Naver: Token 교환 (code + client_secret)
+    Naver-->>SupaAuth: Access/Refresh 토큰 + 프로필 정보
+    SupaAuth->>SupaAuth: 사용자 매칭/생성 후 세션 발급
+    SupaAuth-->>App: 세션(access_token, refresh_token) 포함 redirect
+    App->>App: Supabase Client로 세션 저장, 쿠키/로컬스토리지 관리
+    App->>SupaAuth: /auth/v1/user 호출로 프로필 확인
+    SupaAuth-->>App: 사용자 정보 응답
+    App->>App: `profiles` 테이블 fetch 후 로컬 상태 초기화
+
+    Note over App,SupaAuth: 실패 시 흐름
+    SupaAuth-->>App: 오류 redirect (error, error_description)
+    App->>App: 에러 토스트 표시, 로그 기록, 재시도 버튼 노출
