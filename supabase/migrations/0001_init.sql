@@ -89,51 +89,51 @@ alter table public.record_ocr_results enable row level security;
 alter table public.missions enable row level security;
 alter table public.records enable row level security;
 
-create policy if not exists "Profiles are self-viewable" on public.profiles
+create policy "Profiles are self-viewable" on public.profiles
   for select
   using (auth.uid() = id);
 
-create policy if not exists "Profiles are self-updatable" on public.profiles
+create policy "Profiles are self-updatable" on public.profiles
   for update
   using (auth.uid() = id)
   with check (auth.uid() = id);
 
-create policy if not exists "Crews are publicly readable" on public.crews
+create policy "Crews are publicly readable" on public.crews
   for select
   using (true);
 
-create policy if not exists "Crew owner manage" on public.crews
+create policy "Crew owner manage" on public.crews
   for all
   using (auth.uid() = owner_id)
   with check (auth.uid() = owner_id);
 
-create policy if not exists "OCR results visible to owner" on public.record_ocr_results
+create policy "OCR results visible to owner" on public.record_ocr_results
   for select
   using (auth.uid() = profile_id or auth.role() = 'service_role');
 
-create policy if not exists "OCR results updatable by owner" on public.record_ocr_results
+create policy "OCR results updatable by owner" on public.record_ocr_results
   for update
   using (auth.uid() = profile_id or auth.role() = 'service_role')
   with check (auth.uid() = profile_id or auth.role() = 'service_role');
 
-create policy if not exists "OCR results insert via Edge" on public.record_ocr_results
+create policy "OCR results insert via Edge" on public.record_ocr_results
   for insert
   with check (auth.uid() = profile_id or auth.role() = 'service_role');
 
-create policy if not exists "Missions are publicly readable" on public.missions
+create policy "Missions are publicly readable" on public.missions
   for select
   using (true);
 
-create policy if not exists "Crew owner manage missions" on public.missions
+create policy "Crew owner manage missions" on public.missions
   for all
   using (auth.uid() = (select owner_id from public.crews where id = missions.crew_id))
   with check (auth.uid() = (select owner_id from public.crews where id = missions.crew_id));
 
-create policy if not exists "Records visible to owner or public" on public.records
+create policy "Records visible to owner or public" on public.records
   for select
   using (auth.uid() = profile_id or visibility = 'public');
 
-create policy if not exists "Records manageable by owner" on public.records
+create policy "Records manageable by owner" on public.records
   for all
   using (auth.uid() = profile_id)
   with check (auth.uid() = profile_id);
