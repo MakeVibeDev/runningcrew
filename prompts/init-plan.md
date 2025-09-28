@@ -1,7 +1,7 @@
 # 초기 개발 로드맵
 
 ## Phase 0: 프로젝트 환경 및 기반 설정
-- [ ] Next.js + TypeScript 프로젝트 설정 검수 (Turbopack, App Router 구조 유지)
+- [x] Next.js + TypeScript 프로젝트 설정 검수 (Turbopack, App Router 구조 유지)
 - [x] Supabase 프로젝트 개설 및 `supabase/config.toml`, `.env.local` 템플릿 정비 (URL, anon/service 키)
 - [x] Postgres 스키마 초안 수립과 마이그레이션 파이프라인(Supabase CLI) 도입
 - [x] Supabase Storage 버킷(`crew-assets`, `records-raw`) 생성 및 접근 정책 적용
@@ -17,6 +17,7 @@
 - [ ] 회원 가입/로그인/로그아웃 UI 구축 및 Supabase Client 훅 정리
 - [ ] 크루 가입 신청 테이블(`crew_join_requests`) 설계 및 신청 흐름 구현
 - [ ] 회원 대시보드 기본 틀 구축 (기록 요약 placeholder + Supabase 쿼리 훅)
+- [ ] 공용 네비게이션/레이아웃에 Supabase 세션 상태 연동
 
 ## Phase 2: 회원 대시보드 경험 강화
 - [ ] 기록 요약용 뷰/스토어(`records_view`) 설계로 거리·시간·페이스 집계 제공
@@ -31,6 +32,8 @@
 - [ ] 기록 폼 UI에서 OCR 자동 채움 → 사용자 검증/수정 → `records.ocr_result_id` 연결 로직 구현
 - [ ] 공개 범위(public/private) 로직 및 통계 제외 규칙을 RLS/뷰로 적용
 - [ ] 기본 관리자 알림(로그/슬랙 Webhook 등)으로 OCR 실패 모니터링
+- [ ] YOLOv8 학습 데이터 라벨링 및 모델 학습 파이프라인 구축
+- [ ] 업로드 페이지에 실제 업로드/검증 동선 연결 (Storage + Edge Function)
 
 ## Phase 4: 크루 관리 백오피스
 - [ ] 크루 테이블 및 권한 모델(`crews`, `crew_members`) 설계, 관리자 롤 플래그 지정
