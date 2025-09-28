@@ -2,9 +2,9 @@
 
 ## Phase 0: 프로젝트 환경 및 기반 설정
 - [ ] Next.js + TypeScript 프로젝트 설정 검수 (Turbopack, App Router 구조 유지)
-- [ ] Supabase 프로젝트 개설 및 `supabase/config.toml`, `.env.local` 템플릿 정비 (URL, anon/service 키)
-- [ ] Postgres 스키마 초안 수립과 마이그레이션 파이프라인(Supabase CLI) 도입
-- [ ] Supabase Storage 버킷(`records-raw`) 생성 및 퍼블릭/프라이빗 권한 정책 정리
+- [x] Supabase 프로젝트 개설 및 `supabase/config.toml`, `.env.local` 템플릿 정비 (URL, anon/service 키)
+- [x] Postgres 스키마 초안 수립과 마이그레이션 파이프라인(Supabase CLI) 도입
+- [x] Supabase Storage 버킷(`crew-assets`, `records-raw`) 생성 및 접근 정책 적용
 - [ ] OCR Provider 후보 비용/정확도 비교표 작성 (Clova vs Vision vs Textract)
 - [ ] 공통 레이아웃, 헤더/푸터, 글로벌 상태 관리 선택(Recoil / Zustand / Server Actions 등) 명확화
 - [ ] 디자인 시스템 초안 수립 및 `globals.css` 토큰 정비 (다크/라이트 모드 고려)

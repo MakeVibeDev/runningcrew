@@ -3,16 +3,16 @@
 ## 1. 버킷 목록
 | 버킷 | 용도 | 접근 수준 | 예시 경로 |
 | --- | --- | --- | --- |
-| `crew-assets` | 크루 로고/배지 이미지 | Authenticated read, 서비스 키 write | `crew-assets/{crewId}/logo.png` |
+| `crew-assets` | 크루 로고/배지 이미지 | Public read, 서비스 키/Edge write | `crew-assets/{crewId}/logo.png` |
 | `records-raw` | 기록 업로드 원본 이미지 | Private, Edge Function write/read | `records-raw/{profileId}/{uuid}.jpg` |
 
 ## 2. 접근 정책
 ### crew-assets
 ```sql
-create policy "Crew assets readable by auth users"
+create policy "Crew assets readable by anyone"
 on storage.objects for select
 using (
-  bucket_id = 'crew-assets' and auth.role() = 'authenticated'
+  bucket_id = 'crew-assets'
 );
 
 create policy "Crew assets manageable by service role"
@@ -21,7 +21,8 @@ using (
   bucket_id = 'crew-assets' and auth.role() = 'service_role'
 );
 ```
-- 로고 업로드는 서비스 롤(Edge Function 또는 서버 클라이언트)이 signed URL 생성 후 수행.
+- 버킷은 Public으로 생성해 비로그인 사용자도 이미지를 볼 수 있게 한다.
+- 업로드는 서비스 롤(Edge Function 또는 서버 클라이언트)이 signed URL 생성 후 수행.
 - 클라이언트에서 signed URL로 PUT → 업로드 완료 후 `logo_image_url`에 경로 저장.
 
 ### records-raw
