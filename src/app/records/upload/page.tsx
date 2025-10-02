@@ -120,9 +120,7 @@ export default function RecordUploadPage() {
   const [distance, setDistance] = useState<string>("");
   const [durationSeconds, setDurationSeconds] = useState<string>("");
   const [durationInput, setDurationInput] = useState<string>("");
-  const [durationInputValid, setDurationInputValid] = useState<boolean>(true);
   const [paceInput, setPaceInput] = useState<string>("");
-  const [paceInputValid, setPaceInputValid] = useState<boolean>(true);
   const [paceSecondsPerKm, setPaceSecondsPerKm] = useState<string>("");
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [notes, setNotes] = useState<string>("");
@@ -226,13 +224,11 @@ export default function RecordUploadPage() {
   function handleDurationBlur() {
     const parsed = parseDurationInput(durationInput);
     if (parsed === null) {
-      setDurationInputValid(false);
       setDurationSeconds("");
       setPaceSecondsPerKm("");
       setPaceInput("");
       return;
     }
-    setDurationInputValid(true);
     setDurationSeconds(parsed.toString());
     setDurationInput(formatSecondsToHhMmSs(parsed));
   }
@@ -244,11 +240,9 @@ export default function RecordUploadPage() {
   function handlePaceBlur() {
     const parsed = parsePaceInput(paceInput);
     if (parsed === null) {
-      setPaceInputValid(false);
       setPaceSecondsPerKm("");
       return;
     }
-    setPaceInputValid(true);
     setPaceSecondsPerKm(parsed.toString());
     setPaceInput(formatSecondsToPace(parsed));
   }

@@ -61,6 +61,23 @@ type MissionRow = {
   mission_participants: Array<{ profile_id: string | null; status: string | null }> | null;
 };
 
+type MissionRecordRow = {
+  id: string;
+  recorded_at: string;
+  distance_km: number;
+  duration_seconds: number;
+  pace_seconds_per_km: number;
+  visibility: string;
+  created_at: string;
+  mission: {
+    id: string;
+    title: string;
+    crew: {
+      name: string;
+    } | null;
+  } | null;
+};
+
 type JoinedMissionRow = {
   mission: {
     id: string;
@@ -375,7 +392,7 @@ export async function fetchUserRecentRecords(profileId: string, limit = 5) {
     paceSecondsPerKm: record.pace_seconds_per_km,
     visibility: record.visibility,
     createdAt: record.created_at,
-    mission: (record as any).mission,
+    mission: record.mission,
   }));
 }
 

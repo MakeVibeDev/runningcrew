@@ -465,7 +465,9 @@ export default function Home() {
                                 {formatDate(record.recordedAt)}
                               </td>
                               <td className="px-4 py-3 text-sm text-muted-foreground">
-                                {(record.mission as any)?.title ?? "미션 정보 없음"}
+                                {record.mission && typeof record.mission === 'object' && 'title' in record.mission
+                                  ? record.mission.title
+                                  : "미션 정보 없음"}
                               </td>
                               <td className="px-4 py-3 text-sm font-medium">
                                 {record.distanceKm.toFixed(2)} km
