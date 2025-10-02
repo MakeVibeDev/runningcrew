@@ -1,0 +1,12 @@
+# *
+User-agent: *
+Allow: /
+
+# Disallow private routes
+Disallow: /api/
+
+# Host
+Host: ${NEXT_PUBLIC_SITE_URL}
+
+# Sitemaps
+Sitemap: ${NEXT_PUBLIC_SITE_URL}/sitemap.xml
