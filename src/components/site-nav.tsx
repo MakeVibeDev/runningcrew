@@ -44,7 +44,6 @@ export function SiteNav() {
             alt="RunningCrew"
             width={200}
             height={40}
-            priority
           />
         </Link>
         <div className="flex items-center gap-4">

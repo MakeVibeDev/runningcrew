@@ -89,7 +89,7 @@ export default async function MissionsPage() {
                           href={`/records/upload?missionId=${mission.id}`}
                           className="rounded-full border border-border px-4 py-1 font-semibold text-foreground hover:bg-muted"
                         >
-                          기록 업로드
+                          기록 등록
                         </Link>
                       </div>
                       {crewInfo ? (
