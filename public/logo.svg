@@ -1,0 +1,9 @@
+<svg width="370" height="80" viewBox="0 0 370 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 햄버거 메뉴 아이콘 -->
+  <rect x="28" y="30" width="24" height="3" rx="1.5" fill="black"/>
+  <rect x="40" y="38.5" width="12" height="3" rx="1.5" fill="black"/>
+  <rect x="28" y="47" width="24" height="3" rx="1.5" fill="black"/>
+
+  <!-- RunningCrew 텍스트 -->
+  <text x="100" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="black">RunningCrew</text>
+</svg>

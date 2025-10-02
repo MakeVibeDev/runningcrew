@@ -1,0 +1,3 @@
+file_name,device,app,theme,language,capture_mode,sensitive_masked,notes
+example_001.jpg,Galaxy Watch 6,NRC,dark,ko,screenshot,false,주간 러닝 기록
+example_002.jpg,Garmin Fenix 7,Garmin Connect,light,en,photo,true,이름/얼굴 모자이크 처리

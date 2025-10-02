@@ -27,20 +27,41 @@ using (
 
 ### records-raw
 ```sql
-create policy "Records raw readable by service role"
-on storage.objects for select
-using (
-  bucket_id = 'records-raw' and auth.role() = 'service_role'
-);
-
 create policy "Records raw inserted by authenticated users"
 on storage.objects for insert
 with check (
-  bucket_id = 'records-raw' and auth.uid()::text = split_part(name, '/', 1)
+  bucket_id = 'records-raw'
+  and auth.role() = 'authenticated'
+  and auth.uid()::text = split_part(name, '/', 1)
+);
+
+create policy "Records raw update by owner"
+on storage.objects for update
+using (
+  bucket_id = 'records-raw' and auth.uid() = owner
+)
+with check (
+  bucket_id = 'records-raw'
+  and auth.uid() = owner
+  and auth.uid()::text = split_part(name, '/', 1)
+);
+
+create policy "Records raw delete by owner"
+on storage.objects for delete
+using (
+  bucket_id = 'records-raw' and auth.uid() = owner
+);
+
+create policy "Records raw readable by owner or service role"
+on storage.objects for select
+using (
+  bucket_id = 'records-raw'
+  and (auth.uid() = owner or auth.role() = 'service_role')
 );
 ```
-- 업로드 시 파일명 규칙: `{profileId}/{missionId}/{uuid}.jpg`.
-- 읽기는 기본적으로 차단, Edge Function이 서비스 롤로 접근하여 OCR 수행.
+- 업로드 시 파일명 규칙: `{profileId}/{timestamp}_{원본파일명}`. 첫 세그먼트는 반드시 `profileId`와 동일해야 하며, 정책에서 이를 검증한다.
+- 참가자가 직접 이미지를 교체할 수 있도록 update/delete는 오브젝트 소유자에게만 허용한다.
+- Edge Function은 서비스 롤로 signed URL을 발급하고, 일반 사용자는 자신의 파일만 조회 가능하다.
 
 ## 3. 버킷 생성 절차
 ```bash

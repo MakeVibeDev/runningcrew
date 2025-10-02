@@ -1,0 +1,37 @@
+# 형식: category,theme,lang,url
+# galaxy_watch,light,ko,https://example.com/image1.jpg
+# apple_watch,dark,en,https://example.com/image2.jpg
+
+# 형식: category,theme,lang,url
+# 공개적으로 사용 가능한 이미지 URL들 (교육/연구 목적)
+
+# Samsung Health - Google Play Store 스크린샷
+samsung_health,light,ko,https://play-lh.googleusercontent.com/4eB0m3q_UZXz_X5hnLb6qZPvLQ5KQ7j7zCzZrqP3ZL8EfwxjQXYYYw2EUGG8yidIpMU=w2560-h1440-rw
+samsung_health,light,ko,https://play-lh.googleusercontent.com/NVcF6QMQjkT5F0Xh5TsUTpSBIA3hqHYxB-5pSMaT7Lw7EQRvlMRm7YznWJHfVdpYyw=w2560-h1440-rw
+samsung_health,dark,ko,https://play-lh.googleusercontent.com/EvGoe3Q0NSnMtxgS1VwCde4KHkH7h3aFfRj4YoxqNvAKxMUuoe1Z_I0ct3KvSDdFNPE=w2560-h1440-rw
+
+# Strava - Google Play Store 스크린샷
+strava,dark,en,https://play-lh.googleusercontent.com/NK2BdilLCjcZL0nFJHTMr_Zf8C-n2TDM5WxkFCPa0BYs3jfPYC5bzj0PxqKlybiR1cOU=w2560-h1440-rw
+strava,light,en,https://play-lh.googleusercontent.com/TrI5mSpREFLF8JhvZ8XKH5frPMTn0JhVoS6C7fZ-CqH1n-1WNidUYMnrXU0FOothVXw=w2560-h1440-rw
+
+# Nike Run Club - Google Play Store
+nrc,light,en,https://play-lh.googleusercontent.com/dIOpqI9rNtT4qeGCfMlFoP8r-FX-vsI_p0PvE4Eq0r0WU7FeWurl4Fq8vNl6XgRgFw=w2560-h1440-rw
+nrc,dark,en,https://play-lh.googleusercontent.com/Kj3Ev_tR1SxcXFOY5SfQZBgLvgKNBFp7XooKvCByBRgX50vsBYIbCK_ezlGBYdRokw=w2560-h1440-rw
+
+# Garmin Connect - Google Play Store
+garmin,light,en,https://play-lh.googleusercontent.com/wB2rZPdC0r-6H6YJBIdGOfLSO42_4gAnKtzQw1aAHsqmV5p_E0Z4j2S2kzUy0qnVAw=w2560-h1440-rw
+garmin,light,en,https://play-lh.googleusercontent.com/nBQutBpmP6hNJmQ8N7rU9K_aYPQqg7CCm_PqHibqJPWw3h-FMdRgonsS1tHSEGCjBiI=w2560-h1440-rw
+
+# Apple Watch 관련 (Apple 공식)
+apple_watch,light,en,https://www.apple.com/v/watch/bg/images/overview/fitness-plus/tile_fitness_plus__f3fvmxvu2r2a_large.jpg
+apple_watch,dark,en,https://www.apple.com/newsroom/images/product/os/watchos/Apple-Watch-watchOS7_PROD-screenshot_06222020_inline.jpg.large.jpg
+
+# 추가 Samsung Galaxy Watch
+galaxy_watch,light,ko,https://image.samsung.com/kdp/goods/2021/08/11/3a72bb48-ace9-4ae6-933f-9090bc039022.png
+galaxy_watch,dark,ko,https://image.samsung.com/kdp/goods/2021/08/11/f8e7b8f8-f4f9-4d89-b6ec-43e91f94cd5e.png
+
+# Fitbit (추가 옵션)
+garmin,light,en,https://play-lh.googleusercontent.com/B_5pAQQA6O-nS8JR7LsjYAwkM_wMVENR6h2V6sKDFHqcX5doZqQ9YLMmLUQ9Ti3Fqg=w2560-h1440-rw
+
+# 주의: 위 URL들은 공개적으로 접근 가능한 앱스토어 스크린샷입니다.
+# 교육/연구 목적으로만 사용하시고, 상업적 사용 시 별도 허가를 받으세요.

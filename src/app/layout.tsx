@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { SiteNav } from "@/components/site-nav";
+import { SupabaseProvider } from "@/components/providers/supabase-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,8 +30,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-background text-foreground antialiased`}
       >
-        <SiteNav />
-        <div className="pb-10">{children}</div>
+        <SupabaseProvider>
+          <SiteNav />
+          <div className="pb-10">{children}</div>
+        </SupabaseProvider>
       </body>
     </html>
   );

@@ -1,196 +1,708 @@
-import Link from "next/link";
+"use client";
 
-const mockMissions = [
-  {
-    id: "mission-1",
-    name: "9월 가을 빌드업",
-    crew: "잠실 새벽 크루",
-    period: "09.01 - 09.30",
-  },
-  {
-    id: "mission-2",
-    name: "탄천 인터벌 챌린지",
-    crew: "분당 스프린터즈",
-    period: "09.23 - 10.06",
-  },
-];
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
-const mockYoloPreview = [
-  {
-    label: "stat_card",
-    description: "거리/시간/페이스 등이 들어있는 메인 카드",
-  },
-  {
-    label: "map",
-    description: "지도 영역 (OCR 대상 제외)",
-  },
-];
+import { KakaoLoginButton } from "@/components/ui/oauth-button";
+import { useSupabase } from "@/components/providers/supabase-provider";
 
-const mockOcrResult = [
-  { label: "활동 날짜", value: "2025.09.27" },
-  { label: "거리", value: "17.58 km" },
-  { label: "시간", value: "1:41:50" },
-  { label: "평균 페이스", value: "5'48\" /km" },
-  { label: "평균 심박", value: "161 bpm" },
-];
+const MAX_IMAGE_MB = 5;
+const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"] as const;
 
-export default function UploadRecord() {
-  return (
-    <div className="min-h-screen bg-muted/40 pb-20">
-      <div className="border-b border-border/60 bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <div>
-            <p className="text-sm text-muted-foreground">기록 업로드</p>
-            <h1 className="text-2xl font-semibold">OCR 플로우 미리보기</h1>
-          </div>
-          <Link
-            href="/"
-            className="rounded-full border border-border px-4 py-2 text-sm hover:bg-muted"
-          >
-            대시보드로 돌아가기
-          </Link>
+function formatToDatetimeLocal(isoString: string) {
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) {
+    return new Date().toISOString().slice(0, 16);
+  }
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60 * 1000);
+  return local.toISOString().slice(0, 16);
+}
+
+function formatSecondsToPace(value: number | string) {
+  const seconds = typeof value === "string" ? parseInt(value, 10) : value;
+  if (!Number.isFinite(seconds) || seconds <= 0) return "";
+  const mins = Math.floor(seconds / 60)
+    .toString()
+    .padStart(1, "0");
+  const secs = Math.round(seconds % 60)
+    .toString()
+    .padStart(2, "0");
+  return `${mins}:${secs}`;
+}
+
+function parsePaceInput(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parts = trimmed.split(":");
+  if (parts.length !== 2) return null;
+  const [minStr, secStr] = parts;
+  if (!/^[0-9]+$/.test(minStr) || !/^[0-9]{2}$/.test(secStr)) return null;
+  const minutes = parseInt(minStr, 10);
+  const seconds = parseInt(secStr, 10);
+  if (Number.isNaN(minutes) || Number.isNaN(seconds)) return null;
+  return minutes * 60 + seconds;
+}
+
+function formatSecondsToHhMmSs(totalSeconds: number | string) {
+  const seconds = typeof totalSeconds === "string" ? parseInt(totalSeconds, 10) : totalSeconds;
+  if (!Number.isFinite(seconds) || seconds < 0) return "";
+  const hrs = Math.floor(seconds / 3600)
+    .toString()
+    .padStart(2, "0");
+  const mins = Math.floor((seconds % 3600) / 60)
+    .toString()
+    .padStart(2, "0");
+  const secs = Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, "0");
+  return `${hrs}:${mins}:${secs}`;
+}
+
+function parseDurationInput(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parts = trimmed.split(":");
+  if (parts.length > 3) return null;
+
+  // Allow partial input during typing
+  if (parts.some((part) => !/^[0-9]*$/.test(part))) return null;
+
+  // Pad parts to 2 digits for parsing
+  const paddedParts = parts.map((part) => part.padStart(2, "0"));
+  const [h, m, s] =
+    paddedParts.length === 3
+      ? paddedParts
+      : paddedParts.length === 2
+      ? ["00", paddedParts[0], paddedParts[1]]
+      : ["00", "00", paddedParts[0]];
+
+  const hours = parseInt(h, 10);
+  const minutes = parseInt(m, 10);
+  const seconds = parseInt(s, 10);
+  if ([hours, minutes, seconds].some((n) => Number.isNaN(n))) return null;
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
+type JoinedMission = {
+  id: string;
+  title: string;
+  crewName: string;
+  crewSlug: string;
+};
+
+type OcrResponse = {
+  success: boolean;
+  data?: {
+    id: string;
+    storagePath: string;
+    distanceKm: number | null;
+    durationSeconds: number | null;
+    recordedAt: string | null;
+    rawText: string | null;
+    confidence: number | null;
+    preprocessedImageUrl?: string | null;
+    yoloCrops?: unknown;
+  };
+  error?: string;
+};
+
+export default function RecordUploadPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedMissionId = searchParams.get("missionId");
+  const { user, client, loading, signInWithOAuth } = useSupabase();
+  const [missions, setMissions] = useState<JoinedMission[]>([]);
+  const [fetchingMissions, setFetchingMissions] = useState(false);
+  const [missionId, setMissionId] = useState<string>("");
+  const [recordedAt, setRecordedAt] = useState<string>(() => formatToDatetimeLocal(new Date().toISOString()));
+  const [distance, setDistance] = useState<string>("");
+  const [durationSeconds, setDurationSeconds] = useState<string>("");
+  const [durationInput, setDurationInput] = useState<string>("");
+  const [durationInputValid, setDurationInputValid] = useState<boolean>(true);
+  const [paceInput, setPaceInput] = useState<string>("");
+  const [paceInputValid, setPaceInputValid] = useState<boolean>(true);
+  const [paceSecondsPerKm, setPaceSecondsPerKm] = useState<string>("");
+  const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const [notes, setNotes] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [storagePath, setStoragePath] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [isSubmitting, startTransition] = useTransition();
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrResultId, setOcrResultId] = useState<string | null>(null);
+  const [ocrRawText, setOcrRawText] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    setFetchingMissions(true);
+    client
+      .from("mission_participants")
+      .select(
+        "mission:missions(id,title,crew:crews(id,name,slug))",
+      )
+      .eq("profile_id", user.id)
+      .eq("status", "joined")
+      .order("joined_at", { ascending: false })
+      .then(({ data, error: fetchError }) => {
+        if (fetchError) {
+          console.error("미션 목록을 불러오지 못했습니다.", fetchError);
+          setError("참여 중인 미션 목록을 가져오지 못했습니다.");
+          return;
+        }
+
+        const mapped = (data ?? [])
+          .map((row) => row.mission)
+          .filter((mission): mission is NonNullable<typeof mission> => Boolean(mission))
+          .map((mission) => ({
+            id: mission.id,
+            title: mission.title,
+            crewName: mission.crew?.name ?? "알 수 없는 크루",
+            crewSlug: mission.crew?.slug ?? "",
+          }));
+
+        setMissions(mapped);
+        if (mapped.length > 0) {
+          const preferred =
+            requestedMissionId && mapped.some((mission) => mission.id === requestedMissionId)
+              ? requestedMissionId
+              : mapped[0].id;
+          setMissionId(preferred);
+        } else {
+          setMissionId("");
+        }
+      })
+      .finally(() => setFetchingMissions(false));
+  }, [client, requestedMissionId, user]);
+
+  useEffect(() => {
+    if (!distance || !durationSeconds) {
+      setPaceSecondsPerKm("");
+      setPaceInput("");
+      return;
+    }
+    const distanceValue = parseFloat(distance);
+    const durationValue = parseInt(durationSeconds, 10);
+    if (!distanceValue || Number.isNaN(durationValue) || distanceValue <= 0 || durationValue <= 0) {
+      setPaceSecondsPerKm("");
+      setPaceInput("");
+      return;
+    }
+    const pace = Math.round(durationValue / distanceValue);
+    setPaceSecondsPerKm(pace.toString());
+    setPaceInput(formatSecondsToPace(pace));
+  }, [distance, durationSeconds]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
+  useEffect(() => {
+    if (!durationSeconds) {
+      return;
+    }
+    const formatted = formatSecondsToHhMmSs(durationSeconds);
+    setDurationInput((prev) => (prev === formatted ? prev : formatted));
+  }, [durationSeconds]);
+
+  useEffect(() => {
+    if (!paceSecondsPerKm) {
+      return;
+    }
+    const formatted = formatSecondsToPace(paceSecondsPerKm);
+    setPaceInput((prev) => (prev === formatted ? prev : formatted));
+  }, [paceSecondsPerKm]);
+
+  function handleDurationChange(value: string) {
+    setDurationInput(value);
+  }
+
+  function handleDurationBlur() {
+    const parsed = parseDurationInput(durationInput);
+    if (parsed === null) {
+      setDurationInputValid(false);
+      setDurationSeconds("");
+      setPaceSecondsPerKm("");
+      setPaceInput("");
+      return;
+    }
+    setDurationInputValid(true);
+    setDurationSeconds(parsed.toString());
+    setDurationInput(formatSecondsToHhMmSs(parsed));
+  }
+
+  function handlePaceChange(value: string) {
+    setPaceInput(value);
+  }
+
+  function handlePaceBlur() {
+    const parsed = parsePaceInput(paceInput);
+    if (parsed === null) {
+      setPaceInputValid(false);
+      setPaceSecondsPerKm("");
+      return;
+    }
+    setPaceInputValid(true);
+    setPaceSecondsPerKm(parsed.toString());
+    setPaceInput(formatSecondsToPace(parsed));
+  }
+
+  async function requestOcr(path: string) {
+    setOcrLoading(true);
+    try {
+      if (!user) {
+        setError("로그인 정보가 없습니다. 다시 로그인 후 시도해주세요.");
+        setOcrLoading(false);
+        return;
+      }
+
+      console.log("[OCR] Invoking Edge Function with path:", path);
+
+      const { data, error: invokeError } = await client.functions.invoke<OcrResponse>("ocr-ingest", {
+        body: {
+          profileId: user.id,
+          storagePath: path,
+          bucket: "records-raw",
+        },
+      });
+
+      console.log("[OCR] Edge Function response:", { data, error: invokeError });
+
+      if (invokeError || !data?.success || !data.data) {
+        setError(
+          data?.error ?? invokeError?.message ?? "OCR 분석에 실패했습니다. 값을 직접 입력해주세요.",
+        );
+        setOcrLoading(false);
+        return;
+      }
+
+      const { id, storagePath: resolvedPath, distanceKm, durationSeconds, recordedAt, rawText } =
+        data.data;
+      setOcrResultId(id);
+      setStoragePath(resolvedPath);
+      if (distanceKm) setDistance(distanceKm.toString());
+      if (durationSeconds) {
+        setDurationSeconds(durationSeconds.toString());
+        setDurationInput(formatSecondsToHhMmSs(durationSeconds));
+      }
+      if (recordedAt) setRecordedAt(formatToDatetimeLocal(recordedAt));
+      setOcrRawText(rawText ?? null);
+    } catch (ocrError) {
+      console.error("OCR 호출 실패", ocrError);
+      setOcrResultId(null);
+      setError("OCR 호출 중 문제가 발생했습니다. 값을 직접 입력해주세요.");
+    } finally {
+      setOcrLoading(false);
+    }
+  }
+
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+      setImagePreview(null);
+      return;
+    }
+
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type as typeof ACCEPTED_IMAGE_TYPES[number])) {
+      setError("PNG, JPG, JPEG, WEBP 형식의 이미지만 업로드할 수 있습니다.");
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
+      setError(`이미지 크기는 ${MAX_IMAGE_MB}MB 이하만 허용됩니다.`);
+      return;
+    }
+
+    if (imagePreview && imagePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
+    setError(null);
+    const objectUrl = URL.createObjectURL(file);
+    setImagePreview(objectUrl);
+    setDurationSeconds("");
+    setDurationInput("");
+    setPaceSecondsPerKm("");
+    setPaceInput("");
+    setDistance("");
+
+    if (!user) return;
+
+    setOcrResultId(null);
+
+    const path = `${user.id}/ocr-${Date.now()}_${file.name}`;
+    console.log("[Upload] Uploading to path:", path);
+
+    const { data: uploadData, error: uploadError } = await client.storage
+      .from("records-raw")
+      .upload(path, file, {
+        upsert: true,
+        contentType: file.type,
+      });
+
+    if (uploadError) {
+      console.error("[Upload] 이미지 업로드 실패", uploadError);
+      setError("이미지를 업로드하지 못했습니다. 다시 시도해주세요.");
+      return;
+    }
+
+    console.log("[Upload] Upload successful:", uploadData);
+    setStoragePath(path);
+
+    // 짧은 지연 추가 - Storage 파일이 완전히 커밋될 때까지 대기
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    await requestOcr(path);
+  };
+
+  const canSubmit = useMemo(() => {
+    return (
+      !!user &&
+      !!missionId &&
+      recordedAt.trim().length > 0 &&
+      parseFloat(distance) > 0 &&
+      parseInt(durationSeconds, 10) > 0 &&
+      parseInt(paceSecondsPerKm, 10) > 0 &&
+      !!storagePath &&
+      !isSubmitting
+    );
+  }, [user, missionId, recordedAt, distance, durationSeconds, paceSecondsPerKm, storagePath, isSubmitting]);
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canSubmit || !user || !storagePath) return;
+
+    const submit = async () => {
+      setError(null);
+      setSuccess(null);
+
+    const paceValue = parseInt(paceSecondsPerKm, 10);
+    const durationValue = parseInt(durationSeconds, 10);
+      const distanceValue = parseFloat(distance);
+
+      // datetime-local 값을 로컬 시간 그대로 저장 (타임존 오프셋 보정)
+      const recordedDate = new Date(recordedAt);
+      const recordedAtISO = new Date(
+        recordedDate.getTime() - recordedDate.getTimezoneOffset() * 60000
+      ).toISOString();
+      console.log("[Submit] recordedAt (input value):", recordedAt);
+      console.log("[Submit] recordedAtISO (will save):", recordedAtISO);
+
+      const { error: insertError } = await client
+        .from("records")
+        .insert({
+          profile_id: user.id,
+          mission_id: missionId,
+          recorded_at: recordedAtISO,
+          distance_km: distanceValue,
+          duration_seconds: durationValue,
+          pace_seconds_per_km: paceValue,
+          visibility,
+          notes: notes.trim() || null,
+          image_path: storagePath,
+          ocr_result_id: ocrResultId,
+        });
+
+      if (insertError) {
+        console.error("기록 저장 실패", insertError);
+        setError(insertError.message ?? "기록을 저장하지 못했습니다. 다시 시도해주세요.");
+        return;
+      }
+
+      setSuccess("기록이 저장되었습니다!");
+      setDistance("");
+      setDurationSeconds("");
+      setDurationInput("");
+      setPaceSecondsPerKm("");
+      setPaceInput("");
+      setNotes("");
+      setRecordedAt("");
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+      setImagePreview(null);
+      setStoragePath(null);
+      setOcrResultId(null);
+
+      setTimeout(() => {
+        router.push(`/missions/${missionId}`);
+      }, 600);
+    };
+
+    startTransition(submit);
+  };
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-6 px-6 py-14">
+        <h1 className="text-3xl font-semibold">기록 업로드</h1>
+        <p className="rounded-2xl border border-border/60 bg-muted/40 p-6 text-sm text-muted-foreground">
+          로그인 상태를 확인하는 중입니다...
+        </p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-6 px-6 py-14">
+        <h1 className="text-3xl font-semibold">기록 업로드</h1>
+        <div className="space-y-4 rounded-2xl border border-border/60 bg-muted/40 p-6 text-sm text-muted-foreground">
+          <p>기록을 업로드하려면 먼저 로그인해야 합니다.</p>
+          <KakaoLoginButton onClick={() => void signInWithOAuth("kakao")} />
         </div>
       </div>
+    );
+  }
+  return (
+    <div className="mx-auto max-w-3xl space-y-8 px-6 py-14">
+      <div className="space-y-1">
+        <h1 className="text-3xl font-semibold">기록 등록</h1>
+        <p className="text-sm text-muted-foreground">
+          참여 중인 미션을 선택하고 OCR 결과를 확인한 뒤 기록을 저장하세요.
+        </p>
+      </div>
 
-      <main className="mx-auto mt-8 grid max-w-4xl gap-6 px-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="space-y-6">
-          <article className="rounded-2xl border border-border/60 bg-background p-6 shadow-sm">
-            <h2 className="text-lg font-semibold">1. 이미지 업로드</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              실제 서비스에서는 Supabase Storage signed URL을 활용하여 원본 이미지를 업로드합니다.
+      {error ? (
+        <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </p>
+      ) : null}
+      {success ? (
+        <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+          {success}
+        </p>
+      ) : null}
+
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <section className="space-y-6 rounded-2xl border border-border/60 bg-background p-6 shadow-sm">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground" htmlFor="mission">
+              참여 중인 미션
+            </label>
+            <select
+              id="mission"
+              value={missionId}
+              onChange={(event) => setMissionId(event.target.value)}
+              disabled={fetchingMissions || missions.length === 0}
+              className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              required
+            >
+              {missions.length ? null : <option value="">참여 중인 미션이 없습니다</option>}
+              {missions.map((mission) => (
+                <option key={mission.id} value={mission.id}>
+                  {mission.title} · {mission.crewName}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              {fetchingMissions
+                ? "미션 목록을 불러오는 중입니다."
+                : missions.length
+                ? "기록 등록할 미션을 선택하세요."
+                : "미션에 참여한 뒤 다시 시도해주세요."}
             </p>
-            <div className="mt-5 flex flex-col items-center gap-3 rounded-xl border border-dashed border-border/70 bg-muted/50 p-6 text-center text-sm text-muted-foreground">
-              <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:bg-emerald-600/20 dark:text-emerald-100">
-                Step 1
-              </span>
-              <p>Drag & Drop 또는 파일 탐색기로 운동 기록 이미지를 선택하세요.</p>
-              <button className="rounded-lg bg-foreground px-4 py-2 text-xs font-semibold text-background shadow-sm hover:opacity-90">
-                이미지 선택 (목업)
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-foreground" htmlFor="record-image">
+                기록 이미지 업로드
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  document.getElementById("record-image")?.click();
+                }}
+                className="flex h-12 w-full items-center justify-center rounded-xl border border-dashed border-emerald-400 bg-emerald-50 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+              >
+                기록 이미지 선택
               </button>
-            </div>
-          </article>
-
-          <article className="rounded-2xl border border-border/60 bg-background p-6 shadow-sm">
-            <h2 className="text-lg font-semibold">2. YOLOv8 영역 분리</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              업로드된 이미지는 커스텀 YOLOv8 모델로 분류되어 OCR 대상 영역만 추출합니다.
-            </p>
-            <div className="mt-4 space-y-3">
-              {mockYoloPreview.map((item) => (
-                <div key={item.label} className="rounded-xl border border-border/60 p-4 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold">{item.label}</span>
-                    <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:bg-emerald-600/20 dark:text-emerald-100">
-                      예시 바운딩 박스
-                    </span>
+              <input
+                id="record-image"
+                type="file"
+                accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                onChange={handleImageChange}
+                className="hidden"
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                PNG/JPG/JPEG/WEBP, 최대 {MAX_IMAGE_MB}MB. 업로드 후 자동 분석이 시작
+              </p>
+              <div className="relative mt-2 aspect-[3/4] w-full overflow-hidden rounded-xl border border-border/60 bg-muted">
+                {imagePreview ? (
+                  <Image
+                    src={imagePreview}
+                    alt="기록 이미지 미리보기"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 320px"
+                    priority
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                    아직 업로드한 이미지가 없습니다.
                   </div>
-                  <p className="mt-2 text-muted-foreground">{item.description}</p>
-                </div>
-              ))}
-            </div>
-          </article>
-
-          <article className="rounded-2xl border border-border/60 bg-background p-6 shadow-sm">
-            <h2 className="text-lg font-semibold">3. CLOVA OCR</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              템플릿 기반 혹은 General 모드로 인식한 결과를 아래와 같이 파싱해 제공합니다.
-            </p>
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
-              {mockOcrResult.map((item) => (
-                <div key={item.label} className="rounded-xl border border-border/60 p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground/70">
-                    {item.label}
-                  </p>
-                  <p className="mt-2 text-base font-semibold text-foreground">
-                    {item.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </article>
-        </section>
-
-        <section className="space-y-6">
-          <article className="rounded-2xl border border-border/60 bg-background p-6 shadow-sm">
-            <h2 className="text-lg font-semibold">4. 기록 메타 정보</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              OCR로 추출한 내용과 함께 사용자가 직접 확인 및 수정합니다.
-            </p>
-            <form className="mt-4 space-y-4">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">
-                  미션 선택
-                </label>
-                <select className="mt-1 w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                  <option value="">미션을 선택하세요</option>
-                  {mockMissions.map((mission) => (
-                    <option key={mission.id} value={mission.id}>
-                      {mission.name} · {mission.crew}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  해당 미션에 기록을 매칭하면 통계에 자동 반영됩니다.
-                </p>
+                )}
+                {ocrLoading ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 text-sm font-medium text-muted-foreground">
+                    OCR 분석 중...
+                  </div>
+                ) : null}
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">
-                    활동 날짜
+              {ocrRawText ? (
+                <details className="mt-4 rounded-xl border border-border/60 bg-muted/40 p-4 text-xs text-muted-foreground">
+                  <summary className="cursor-pointer text-sm font-medium text-foreground">
+                    OCR 원문 보기
+                  </summary>
+                  <pre className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground">{ocrRawText}</pre>
+                </details>
+              ) : null}
+            </div>
+
+            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+              <h2 className="text-sm font-semibold text-muted-foreground">운동 데이터</h2>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-orange-600 dark:text-orange-400">
+                    초기 버전이라 OCR 정확도가 떨어집니다. 직접 수정도 가능합니다.
+                  </label>
+              <div className="space-y-4 rounded-xl border-border/60 bg-background p-4">
+                <div className="space-y-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
+                    활동 시각
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="recorded-at"
+                      type="datetime-local"
+                      value={recordedAt}
+                      onChange={(event) => setRecordedAt(event.target.value)}
+                      className="absolute opacity-0 h-0 w-0"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.getElementById("recorded-at") as HTMLInputElement | null;
+                        if (input && typeof (input as unknown as { showPicker?: () => void }).showPicker === 'function') {
+                          (input as unknown as { showPicker: () => void }).showPicker();
+                        }
+                      }}
+                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-left text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      {recordedAt ? (() => {
+                        const date = new Date(recordedAt);
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const hours = String(date.getHours()).padStart(2, '0');
+                        const minutes = String(date.getMinutes()).padStart(2, '0');
+                        const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+                        const weekday = weekdays[date.getDay()];
+                        return `${year}-${month}-${day} (${weekday}) ${hours}:${minutes}`;
+                      })() : '날짜 선택'}
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
+                      거리 (km, 숫자만 입력)
+                    </label>
+                    <input
+                      id="distance"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={distance}
+                      onChange={(event) => setDistance(event.target.value)}
+                      placeholder="예: 13.1"
+                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      required
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
+                      운동 시간 (hh:mm:ss)
+                    </label>
+                    <input
+                      id="duration"
+                      type="text"
+                      value={durationInput}
+                      onChange={(event) => handleDurationChange(event.target.value)}
+                      onBlur={handleDurationBlur}
+                      placeholder="예: 01:12:34"
+                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      required
+                    />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
+                    평균 페이스 (1분/Km)
                   </label>
                   <input
-                    type="date"
-                    className="mt-1 w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    defaultValue="2025-09-27"
+                    id="pace"
+                    type="text"
+                    value={paceInput}
+                    onChange={(event) => handlePaceChange(event.target.value)}
+                    onBlur={handlePaceBlur}
+                    placeholder="예: 05:20"
+                    className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    required
+                  />
+                </div>  
+              </div>
+            </div>
+           
+          </div>
+        </section>
+        <div className="space-y-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
+                      공개 설정
+                    </label>
+                    <select
+                      id="visibility"
+                      value={visibility}
+                      onChange={(event) =>
+                        setVisibility(event.target.value === "private" ? "private" : "public")
+                      }
+                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="public">전체 공개 (통계 반영)</option>
+                      <option value="private">비공개 (통계 제외)</option>
+                    </select>
+                  </div>
+        <div className="space-y-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
+                    메모 (선택)
+                  </label>
+                  <textarea
+                    id="notes"
+                    value={notes}
+                    onChange={(event) => setNotes(event.target.value)}
+                    rows={4}
+                    className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    maxLength={500}
                   />
                 </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">
-                    공개 설정
-                  </label>
-                  <select className="mt-1 w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    <option value="public">전체 공개</option>
-                    <option value="private">개인용 (통계 제외)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-border/60 bg-muted/40 p-4 text-xs text-muted-foreground">
-                <p className="font-medium text-foreground/80">OCR 매핑 규칙</p>
-                <ul className="mt-2 space-y-1">
-                  <li>• 거리 → km 단위로 변환</li>
-                  <li>• 시간 → 초 단위 저장, 페이스 자동 계산</li>
-                  <li>• 심박/칼로리 등 선택 입력 값은 추후 필터용 필드로 확장</li>
-                </ul>
-              </div>
-
-              <button
-                type="button"
-                className="w-full rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-sm hover:opacity-90"
-              >
-                저장 (모의)
-              </button>
-              <button
-                type="button"
-                className="w-full rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
-              >
-                OCR 결과만 저장
-              </button>
-            </form>
-          </article>
-
-          <article className="rounded-2xl border border-border/60 bg-background p-6 shadow-sm">
-            <h2 className="text-lg font-semibold">릴리즈 체크리스트</h2>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li>☑ YOLOv8 학습 데이터셋 수집 (샘플 50장 이상)</li>
-              <li>☑ CLOVA Template OCR 설정 & API 키 발급</li>
-              <li>☐ Edge Function에서 YOLO → OCR → Supabase 저장 흐름 구현</li>
-              <li>☐ 프론트에서 업로드 진행 상태 + 결과 검증 UI 추가</li>
-            </ul>
-          </article>
-        </section>
-      </main>
+        <div>
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className="w-full rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSubmitting ? "💾 저장 중..." : "✅ 기록 등록"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

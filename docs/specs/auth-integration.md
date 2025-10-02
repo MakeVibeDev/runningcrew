@@ -1,14 +1,15 @@
 # Naver OAuth + Supabase Auth 통합 가이드 (v1)
 
 ## 1. 준비 사항
-- Supabase 프로젝트에서 Naver 커스텀 OAuth Provider 활성화 (`Authentication > Providers > Add`).
-- Naver Developers 콘솔에 Redirect URI 등록: `https://<PROJECT>.supabase.co/auth/v1/callback` 및 로컬 개발용 `http://localhost:3000/api/auth/v1/callback`.
-- `.env.local`에 Supabase URL, anon/service 키, Naver Client ID/Secret 저장.
+- Supabase 프로젝트에서 **Kakao OAuth Provider** 활성화 (`Authentication > Providers > Kakao`).
+- Kakao Developers 콘솔에 Redirect URI 등록: `https://<PROJECT>.supabase.co/auth/v1/callback` 및 로컬 개발용 `http://localhost:3000/auth/callback`.
+- `.env.local`에 Supabase URL, anon/service 키를 저장하고 Kakao REST API 키/Secret은 Supabase 대시보드에 입력.
+- (향후) Naver 커스텀 Provider는 Self-host 또는 별도 Auth 계층 도입 후 추가 예정.
 
 ## 2. Next.js 앱 설정
 1. `@supabase/supabase-js`로 클라이언트 생성: `/lib/supabaseBrowser.ts`.
-2. 로그인 버튼에서 `supabase.auth.signInWithOAuth({ provider: 'naver', options: { redirectTo: <post-login URL> } })` 호출.
-3. 라우트 핸들러(`/app/api/auth/callback/route.ts`)로 Supabase 세션을 쿠키에 설정.
+2. 로그인 버튼에서 `supabase.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo: <post-login URL> } })` 호출.
+3. OAuth 콜백 페이지(`/app/auth/callback`)에서 `exchangeCodeForSession`으로 세션을 교환하고 홈으로 리다이렉트.
 
 ## 3. 세션 유지 로직
 - 서버 컴포넌트: `cookies()`를 이용해 Supabase 서버 클라이언트 생성.
@@ -19,7 +20,7 @@
 | 에러 시나리오 | 처리 방식 |
 | --- | --- |
 | 사용자 동의 거부 | `error=access_denied` 확인 후 안내 모달 노출 |
-| Naver 토큰 교환 실패 | Supabase 로그 확인, 사용자에게 재시도 권장 |
+| Kakao 토큰 교환 실패 | Supabase 로그 확인, 사용자에게 재시도 권장 |
 | RLS 거부 (프로필 없음) | 로그인 직후 `profiles` upsert 수행 |
 
 ## 5. 프로필 동기화

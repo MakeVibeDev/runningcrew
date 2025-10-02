@@ -1,0 +1,13 @@
+# YOLO 학습 설정 템플릿
+# 실제 사용 시 파일명을 data.yaml로 변경하고 path/train/val/test 경로를 실데이터 위치에 맞춰 수정하세요.
+
+path: ./docs/datasets/ocr_v1
+train: images/train
+val: images/val
+# test 세트를 활용할 경우 주석을 해제하고 경로를 지정하세요.
+# test: images/test
+
+names:
+  0: stat_card
+  1: metrics
+  2: map

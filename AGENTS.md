@@ -17,3 +17,6 @@ Commit messages should be brief, present-tense imperatives (e.g., `Add crew list
 
 ## Environment & Tooling Notes
 Target the active LTS release of Node.js (>=18) to match Next 15 support. Configure your editor with ESLint and Tailwind intellisense to catch violations early. Avoid committing generated `.next/` or `node_modules/` artifacts; the existing `.gitignore` already excludes them.
+
+## communication language
+한글

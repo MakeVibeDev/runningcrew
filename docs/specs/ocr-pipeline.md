@@ -12,6 +12,22 @@
    - `record_ocr_results` 테이블: 업로드 경로 기준으로 OCR 결과 저장.
    - `records` 테이블: 최종 제출 시 `ocr_result_id`로 결과 참조, 거리/시간 확정.
 
+## 2-1. 환경 변수 및 시크릿 구성 (초안)
+| 키 | 비고 |
+| --- | --- |
+| `OCR_PROVIDER` | 현재는 `clova` 고정. 추후 provider 스위치 확장을 대비해 Strategy 패턴에서 사용. |
+| `CLOVA_OCR_INVOKE_URL` | NAVER CLOVA OCR 엔드포인트. 템플릿/일반 모델에 따라 URL 분리 가능. |
+| `CLOVA_OCR_SECRET_KEY` | CLOVA OCR 인증 시 사용하는 `X-OCR-SECRET` 값. |
+| `CLOVA_OCR_TEMPLATE_ID` | 템플릿 OCR 사용 시 필요. 일반 모델 사용 시 비워두고 코드에서 조건 분기. |
+| `OCR_RESULT_CONFIDENCE_FLOOR` | 신뢰도 필터링 하한 (예: `0.4`). 실패 시 폼에 수동 입력 안내. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Edge Function이 DB에 결과를 upsert하기 위해 필요. 기존 시크릿을 재활용. |
+| `SUPABASE_URL` | Supabase 프로젝트 REST 엔드포인트. |
+| `OCR_STORAGE_BUCKET` | 기본값 `records-raw`. 버킷 변경 시에도 코드 수정 없이 대응. |
+| `YOLO_ENDPOINT` | YOLO 전처리 API 엔드포인트. 설정 시 OCR 전에 관심 영역을 잘라냅니다. |
+| `YOLO_API_KEY` | YOLO API 호출에 필요한 인증 토큰(선택). |
+
+> 위 키들은 Supabase CLI의 `supabase secrets set`으로 Functions 환경에 등록한다. 로컬 개발 시에는 `.env.local`와 `supabase/functions/ocr-ingest/.env`에 동일 키를 정의해 Edge Function 로컬 실행과 Next.js 개발 서버 모두에서 접근 가능하도록 한다.
+
 ## 3. 플로우
 ```mermaid
 sequenceDiagram
@@ -19,18 +35,20 @@ sequenceDiagram
     participant App as Next.js 앱
     participant Storage as Supabase Storage
     participant Edge as Edge Function
-    participant OCR as 외부 OCR API
+    participant OCR as CLOVA OCR API
     participant DB as Supabase DB
 
-    App->>Storage: 이미지 업로드 (signed URL)
-    Storage-->>Edge: Object Created 이벤트(webhook)
-    Edge->>OCR: 이미지 URL 전달, OCR 요청
-    OCR-->>Edge: 텍스트 + 박스 응답
-    Edge->>Edge: 정규식/룰 기반 파싱 (거리/시간/날짜)
-    Edge->>DB: `record_ocr_results` upsert
-    Edge-->>App: Supabase Channel로 결과 publish
-    App->>App: 결과 수신 후 폼 필드 자동 채움
-    App->>DB: `records` insert (`ocr_result_id` 포함)
+    App->>Storage: 이미지 업로드 (`records-raw/{userId}/...`)
+    App->>Edge: `profileId`, `storagePath`로 OCR 요청
+    Edge->>Storage: Signed URL 발급 (Service Role)
+    Edge->>Edge: YOLO 엔드포인트 호출, 통계 카드 영역 URL 확보
+    Edge->>OCR: YOLO 결과(또는 원본) Signed URL 전달, OCR 실행
+    OCR-->>Edge: 텍스트 + confidence 응답
+    Edge->>Edge: 정규식 기반 파싱 (거리/시간/날짜)
+    Edge->>DB: `record_ocr_results` upsert (`storage_path` 고유)
+    Edge-->>App: 파싱 결과 + `ocr_result_id` 응답
+    App->>App: 폼 필드 채우기, 사용자가 검증/수정
+    App->>DB: `records` insert (`ocr_result_id`, `image_path`=storagePath)
 ```
 
 ## 4. 파싱 로직
@@ -49,7 +67,7 @@ sequenceDiagram
 
 ## 7. TODO
 - [x] OCR Provider 최종 선택 및 비용 산출.
-- [ ] Edge Function 프로토타입 작성 (`supabase/functions/ocr-ingest/index.ts`).
+- [x] Edge Function 프로토타입 작성 (`supabase/functions/ocr-ingest/index.ts`).
 - [ ] 정규식 파서 단위 테스트 추가.
 - [ ] 프런트 채널 구독 로직 구현 (`supabase.channel('record-ocr')`).
 
@@ -88,5 +106,6 @@ sequenceDiagram
 ## 10. 다음 단계
 - [ ] 샘플 50장 이상 라벨링하여 YOLOv8 학습 데이터 구축.
 - [ ] CLOVA Template OCR 도메인 생성 및 필드 매핑 정의.
-- [ ] Edge Function에서 YOLO 분기 → OCR 호출 → 결과 저장 POC 구현.
+- [x] Edge Function에서 CLOVA OCR 호출 흐름을 구현하고 `record_ocr_results` upsert.
+- [x] Edge Function에서 YOLO 분기 → OCR 호출 → 결과 저장 POC 구현.
 - [ ] Fallback Provider(Google Vision) 모듈화 및 신뢰도 비교 로깅.

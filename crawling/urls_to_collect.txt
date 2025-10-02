@@ -1,0 +1,30 @@
+# 형식: category,theme,lang,url
+# 테스트된 작동하는 URL들
+
+# Unsplash (무료 이미지)
+samsung_health,light,en,https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=1200
+apple_watch,light,en,https://images.unsplash.com/photo-1544117519-31a4b719223d?w=1200
+garmin,light,en,https://images.unsplash.com/photo-1557438159-51eec7a6c9e8?w=1200
+
+# Pexels (무료 이미지)
+apple_watch,dark,en,https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg
+samsung_health,light,ko,https://images.pexels.com/photos/267394/pexels-photo-267394.jpeg
+
+# Pixabay (무료 이미지)
+strava,light,en,https://cdn.pixabay.com/photo/2015/01/09/02/45/fitness-594143_1280.jpg
+nrc,light,en,https://cdn.pixabay.com/photo/2017/08/07/14/02/man-2604149_1280.jpg
+# 형식: category,theme,lang,url
+# 테스트된 작동하는 URL들
+
+# Unsplash (무료 이미지)
+samsung_health,light,en,https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=1200
+apple_watch,light,en,https://images.unsplash.com/photo-1544117519-31a4b719223d?w=1200
+garmin,light,en,https://images.unsplash.com/photo-1557438159-51eec7a6c9e8?w=1200
+
+# Pexels (무료 이미지)
+apple_watch,dark,en,https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg
+samsung_health,light,ko,https://images.pexels.com/photos/267394/pexels-photo-267394.jpeg
+
+# Pixabay (무료 이미지)
+strava,light,en,https://cdn.pixabay.com/photo/2015/01/09/02/45/fitness-594143_1280.jpg
+nrc,light,en,https://cdn.pixabay.com/photo/2017/08/07/14/02/man-2604149_1280.jpg
