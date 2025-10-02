@@ -64,12 +64,20 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
-    other: {
-      "naver-site-verification": process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION,
-    },
-  },
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION
+    ? {
+        verification: {
+          ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION && {
+            google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+          }),
+          ...(process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION && {
+            other: {
+              "naver-site-verification": process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION,
+            },
+          }),
+        },
+      }
+    : {}),
 };
 
 export default function RootLayout({
