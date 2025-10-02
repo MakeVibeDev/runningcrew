@@ -161,11 +161,13 @@ export default function CreateCrewPage() {
           (metadata?.avatar_url as string | undefined) ||
           null;
 
-        const { error: profileError } = await client.from("profiles").upsert({
-          id: user.id,
-          display_name: displayName,
-          avatar_url: avatarUrl,
-        });
+        const { error: profileError } = await client
+          .from("profiles")
+          .upsert({
+            id: user.id,
+            display_name: displayName,
+            avatar_url: avatarUrl,
+          } as never);
 
         if (profileError) {
           console.error("프로필 생성 실패", profileError);
@@ -207,22 +209,24 @@ export default function CreateCrewPage() {
           activity_region: region.trim(),
           description: description.trim() || null,
           logo_image_url: uploadedLogoUrl,
-        })
+        } as never)
         .select("id, slug")
         .single();
 
-      if (error) {
+      if (error || !crew) {
         console.error("크루 생성 실패", error);
         setFormState("error");
-        setMessage(error.message ?? "크루 생성 중 문제가 발생했습니다.");
+        setMessage(error?.message ?? "크루 생성 중 문제가 발생했습니다.");
         return;
       }
 
-      const { error: membershipError } = await client.from("crew_members").upsert({
-        crew_id: crew.id,
-        profile_id: user.id,
-        role: "owner",
-      });
+      const { error: membershipError } = await client
+        .from("crew_members")
+        .upsert({
+          crew_id: (crew as { id: string; slug: string }).id,
+          profile_id: user.id,
+          role: "owner",
+        } as never);
 
       if (membershipError) {
         console.error("크루 멤버십 생성 실패", membershipError);
@@ -236,7 +240,7 @@ export default function CreateCrewPage() {
       setLogoPreview(null);
       setLogoError(null);
       startTransition(() => {
-        router.replace(`/crews/${crew.slug}`);
+        router.replace(`/crews/${(crew as { id: string; slug: string }).slug}`);
       });
     },
     [client, description, logoFile, logoPreview, name, profile, refreshProfile, region, router, slug, slugState, user, validate],

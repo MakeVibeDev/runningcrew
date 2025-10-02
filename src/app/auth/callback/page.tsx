@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { client, refreshProfile } = useSupabase();
   const [message, setMessage] = useState("인증 처리 중입니다...");
 
   useEffect(() => {
-    const queryCode = searchParams.get("code");
-    const errorDescription = searchParams.get("error_description");
+    const queryCode = searchParams?.get("code");
+    const errorDescription = searchParams?.get("error_description");
 
     const hash = typeof window !== "undefined" ? window.location.hash : "";
     const hashParams = new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash);
@@ -51,11 +51,13 @@ export default function AuthCallbackPage() {
         (metadata?.avatar_url as string | undefined) ||
         null;
 
-      const { error: upsertError } = await client.from("profiles").upsert({
-        id: user.id,
-        display_name: displayName,
-        avatar_url: avatarUrl,
-      });
+      const { error: upsertError } = await client
+        .from("profiles")
+        .upsert({
+          id: user.id,
+          display_name: displayName,
+          avatar_url: avatarUrl,
+        } as never);
 
       if (upsertError) {
         console.error("프로필 동기화 실패", upsertError);
@@ -73,7 +75,7 @@ export default function AuthCallbackPage() {
 
     if (code) {
       client.auth
-        .exchangeCodeForSession({ code })
+        .exchangeCodeForSession(code)
         .then(({ error }) => {
           if (error) {
             setMessage(`세션 교환에 실패했습니다: ${error.message}`);
@@ -126,5 +128,20 @@ export default function AuthCallbackPage() {
         <p className="mt-3 text-sm text-muted-foreground">{message}</p>
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-muted/50 px-6">
+        <div className="max-w-md rounded-2xl border border-border/60 bg-background p-6 text-center shadow-sm">
+          <h1 className="text-lg font-semibold">RunningCrew 로그인</h1>
+          <p className="mt-3 text-sm text-muted-foreground">인증 처리 중입니다...</p>
+        </div>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   );
 }

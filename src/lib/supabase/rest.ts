@@ -121,7 +121,7 @@ type MissionDetailRow = {
   }> | null;
 };
 
-type MissionRecordRow = {
+type MissionDetailRecordRow = {
   id: string;
   recorded_at: string;
   distance_km: number;
@@ -301,7 +301,7 @@ export async function fetchMissionById(missionId: string) {
 
 export async function fetchMissionRecords(missionId: string, limit = 5) {
   const encoded = encodeURIComponent(missionId);
-  const data = await supabaseRest<MissionRecordRow[]>(
+  const data = await supabaseRest<MissionDetailRecordRow[]>(
     `records?mission_id=eq.${encoded}&visibility=eq.public&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,profile:profiles(id,display_name,avatar_url)&order=created_at.desc&limit=${limit}`,
   );
 

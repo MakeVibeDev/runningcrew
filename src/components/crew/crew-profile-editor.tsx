@@ -128,7 +128,7 @@ export function CrewProfileEditor({ crewId, ownerId, defaultRegion, defaultLogoU
         .update({
           activity_region: region.trim(),
           logo_image_url: newLogoUrl,
-        })
+        } as never)
         .eq("id", crewId);
 
       if (updateError) {

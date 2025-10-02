@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { Suspense, useEffect, useMemo, useState, useTransition } from "react";
 
 import { KakaoLoginButton } from "@/components/ui/oauth-button";
 import { useSupabase } from "@/components/providers/supabase-provider";
@@ -108,10 +108,10 @@ type OcrResponse = {
   error?: string;
 };
 
-export default function RecordUploadPage() {
+function RecordUploadPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const requestedMissionId = searchParams.get("missionId");
+  const requestedMissionId = searchParams?.get("missionId");
   const { user, client, loading, signInWithOAuth } = useSupabase();
   const [missions, setMissions] = useState<JoinedMission[]>([]);
   const [fetchingMissions, setFetchingMissions] = useState(false);
@@ -136,7 +136,7 @@ export default function RecordUploadPage() {
   useEffect(() => {
     if (!user) return;
     setFetchingMissions(true);
-    client
+    void client
       .from("mission_participants")
       .select(
         "mission:missions(id,title,crew:crews(id,name,slug))",
@@ -148,11 +148,12 @@ export default function RecordUploadPage() {
         if (fetchError) {
           console.error("미션 목록을 불러오지 못했습니다.", fetchError);
           setError("참여 중인 미션 목록을 가져오지 못했습니다.");
+          setFetchingMissions(false);
           return;
         }
 
         const mapped = (data ?? [])
-          .map((row) => row.mission)
+          .map((row) => (row as {mission: {id: string; title: string; crew: {name: string; slug: string} | null} | null}).mission)
           .filter((mission): mission is NonNullable<typeof mission> => Boolean(mission))
           .map((mission) => ({
             id: mission.id,
@@ -171,8 +172,8 @@ export default function RecordUploadPage() {
         } else {
           setMissionId("");
         }
-      })
-      .finally(() => setFetchingMissions(false));
+        setFetchingMissions(false);
+      });
   }, [client, requestedMissionId, user]);
 
   useEffect(() => {
@@ -404,7 +405,7 @@ export default function RecordUploadPage() {
           notes: notes.trim() || null,
           image_path: storagePath,
           ocr_result_id: ocrResultId,
-        });
+        } as never);
 
       if (insertError) {
         console.error("기록 저장 실패", insertError);
@@ -698,5 +699,13 @@ export default function RecordUploadPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function RecordUploadPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-4xl p-6">로딩 중...</div>}>
+      <RecordUploadPageContent />
+    </Suspense>
   );
 }

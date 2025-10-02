@@ -62,7 +62,7 @@ export function MissionEditor({ mission }: { mission: MissionEditable }) {
           start_date: startDate,
           end_date: endDate,
           target_distance_km: targetDistance ? Number(targetDistance) : null,
-        })
+        } as never)
         .eq("id", mission.id)
         .eq("crew_id", mission.crewId);
 

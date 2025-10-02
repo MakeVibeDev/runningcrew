@@ -156,8 +156,8 @@ export function NaverSingleMarkerMap({
     map.setCenter(position);
     map.setZoom(zoom);
     marker?.setPosition(position);
-    if (markerTitle) {
-      marker?.setTitle(markerTitle);
+    if (markerTitle && marker?.setTitle) {
+      marker.setTitle(markerTitle);
     }
     setMapReady(true);
 

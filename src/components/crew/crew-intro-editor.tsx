@@ -31,12 +31,12 @@ export function CrewIntroEditor({ crewId, ownerId, defaultDescription, defaultIn
     setError(null);
 
     startTransition(() => {
-      client
+      void client
         .from("crews")
         .update({
           description: description.trim() || null,
           intro: intro.trim() || null,
-        })
+        } as never)
         .eq("id", crewId)
         .then(({ error: updateError }) => {
           if (updateError) {

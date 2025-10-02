@@ -95,7 +95,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       signInWithOAuth: async (provider: Provider | string) => {
         setLoading(true);
         const { error } = await client.auth.signInWithOAuth({
-          provider,
+          provider: provider as Provider,
           options: {
             redirectTo:
               typeof window === "undefined" ? undefined : `${window.location.origin}/auth/callback`,

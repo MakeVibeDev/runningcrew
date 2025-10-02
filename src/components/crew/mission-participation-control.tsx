@@ -53,7 +53,7 @@ export function MissionParticipationControl({
       if (!active) return;
 
       setIsMember(Boolean(memberRow));
-      setIsParticipant(participantRow?.status === PARTICIPANT_STATUS_JOINED);
+      setIsParticipant((participantRow as {status: string} | null)?.status === PARTICIPANT_STATUS_JOINED);
       setLoading(false);
     };
 
@@ -83,7 +83,7 @@ export function MissionParticipationControl({
             status: PARTICIPANT_STATUS_JOINED,
             joined_at: new Date().toISOString(),
             left_at: null,
-          },
+          } as never,
           { onConflict: "mission_id,profile_id" },
         );
 
@@ -111,7 +111,7 @@ export function MissionParticipationControl({
         .update({
           status: "left",
           left_at: new Date().toISOString(),
-        })
+        } as never)
         .eq("mission_id", missionId)
         .eq("profile_id", user.id);
 

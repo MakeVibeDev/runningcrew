@@ -28,7 +28,7 @@ export default function MissionCreatePage() {
   useEffect(() => {
     if (!user) return;
     setFetchingCrews(true);
-    client
+    void client
       .from("crews")
       .select("id,name")
       .eq("owner_id", user.id)
@@ -40,11 +40,11 @@ export default function MissionCreatePage() {
         } else {
           setCrews(data ?? []);
           if ((data?.length ?? 0) > 0) {
-            setForm((prev) => ({ ...prev, crewId: data?.[0]?.id ?? "" }));
+            setForm((prev) => ({ ...prev, crewId: (data?.[0] as { id: string } | undefined)?.id ?? "" }));
           }
         }
-      })
-      .finally(() => setFetchingCrews(false));
+        setFetchingCrews(false);
+      });
   }, [client, user]);
 
   const canSubmit = useMemo(() => {
@@ -70,7 +70,7 @@ export default function MissionCreatePage() {
     setSuccess(null);
 
     startTransition(() => {
-      client
+      void client
         .from("missions")
         .insert({
           crew_id: form.crewId,
@@ -79,7 +79,7 @@ export default function MissionCreatePage() {
           start_date: form.startDate,
           end_date: form.endDate,
           target_distance_km: form.targetDistance ? Number(form.targetDistance) : null,
-        })
+        } as never)
         .select("id, crew_id")
         .single()
         .then(({ data, error: insertError }) => {
