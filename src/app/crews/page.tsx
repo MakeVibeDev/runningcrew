@@ -1,8 +1,18 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchCrewList } from "@/lib/supabase/rest";
+
+export const metadata: Metadata = {
+  title: "크루 탐색",
+  description: "함께 달릴 러닝 크루를 찾아보세요. 다양한 지역과 목표를 가진 러닝 크루들이 활동하고 있습니다.",
+  openGraph: {
+    title: "크루 탐색 | RunningCrew",
+    description: "함께 달릴 러닝 크루를 찾아보세요",
+  },
+};
 
 export const revalidate = 0;
 

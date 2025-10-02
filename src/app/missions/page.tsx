@@ -1,8 +1,18 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { MissionEditor } from "@/components/crew/mission-editor";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchMissionGroups } from "@/lib/supabase/rest";
+
+export const metadata: Metadata = {
+  title: "미션 탐색",
+  description: "진행 중인 러닝 미션에 참여하세요. 크루별로 다양한 목표와 기간의 미션들이 운영되고 있습니다.",
+  openGraph: {
+    title: "미션 탐색 | RunningCrew",
+    description: "진행 중인 러닝 미션에 참여하세요",
+  },
+};
 
 export const revalidate = 0;
 
