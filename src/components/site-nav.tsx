@@ -44,6 +44,8 @@ export function SiteNav() {
             alt="RunningCrew"
             width={140}
             height={56}
+            priority
+            style={{ width: '140px', height: 'auto' }}
           />
         </Link>
         <div className="flex items-center gap-4">

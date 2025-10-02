@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npx supabase db push:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

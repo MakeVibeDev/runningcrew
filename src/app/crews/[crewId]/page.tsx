@@ -4,6 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CrewIntroEditor } from "@/components/crew/crew-intro-editor";
+import { CrewJoinButton } from "@/components/crew/crew-join-button";
+import { CrewJoinRequestsManager } from "@/components/crew/crew-join-requests-manager";
 import { CrewProfileEditor } from "@/components/crew/crew-profile-editor";
 import { MissionEditor } from "@/components/crew/mission-editor";
 import { NaverSingleMarkerMap } from "@/components/map/naver-single-marker-map";
@@ -223,6 +225,10 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
           </div>
 
           <div className="space-y-6">
+            <CrewJoinButton crewId={crew.id} ownerId={crew.owner_id} />
+
+            <CrewJoinRequestsManager crewId={crew.id} ownerId={crew.owner_id} />
+
             <Card>
               <CardHeader className="gap-2">
                 <CardTitle>모임 일정</CardTitle>
