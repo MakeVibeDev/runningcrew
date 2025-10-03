@@ -72,6 +72,8 @@ type MissionRecordRow = {
   created_at: string;
   image_path: string | null;
   notes: string | null;
+  profile_id?: string;
+  mission_id?: string;
   mission: {
     id: string;
     title: string;
@@ -395,7 +397,7 @@ export async function fetchUserParticipatingMissions(profileId: string) {
 export async function fetchUserRecentRecords(profileId: string, limit = 5) {
   const encoded = encodeURIComponent(profileId);
   const data = await supabaseRest<MissionRecordRow[]>(
-    `records?profile_id=eq.${encoded}&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,image_path,mission:missions(id,title,crew:crews(name))&order=created_at.desc&limit=${limit}`,
+    `records?profile_id=eq.${encoded}&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,image_path,notes,mission:missions(id,title,crew:crews(name))&order=created_at.desc&limit=${limit}`,
   );
 
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -408,11 +410,42 @@ export async function fetchUserRecentRecords(profileId: string, limit = 5) {
     paceSecondsPerKm: record.pace_seconds_per_km,
     visibility: record.visibility,
     createdAt: record.created_at,
+    notes: record.notes,
     imagePath: record.image_path && SUPABASE_URL
       ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${record.image_path}`
       : null,
     mission: record.mission,
   }));
+}
+
+export async function fetchRecordById(recordId: string) {
+  const encoded = encodeURIComponent(recordId);
+  const data = await supabaseRest<MissionRecordRow[]>(
+    `records?id=eq.${encoded}&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,image_path,notes,profile_id,mission_id,mission:missions(id,title,crew:crews(name))&limit=1`,
+  );
+
+  if (data.length === 0) {
+    return null;
+  }
+
+  const record = data[0];
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  return {
+    id: record.id,
+    recordedAt: record.recorded_at,
+    distanceKm: record.distance_km,
+    durationSeconds: record.duration_seconds,
+    paceSecondsPerKm: record.pace_seconds_per_km,
+    visibility: record.visibility,
+    createdAt: record.created_at,
+    notes: record.notes,
+    imagePath: record.image_path && SUPABASE_URL
+      ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${record.image_path}`
+      : null,
+    imagePathRaw: record.image_path,
+    mission: record.mission,
+  };
 }
 
 export async function fetchUserOverallStats(profileId: string) {

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 interface RecordCardProps {
   record: {
@@ -20,6 +21,8 @@ interface RecordCardProps {
     totalDurationSeconds: number;
   };
   showUserInfo?: boolean;
+  showEditLink?: boolean;
+  currentUserId?: string;
 }
 
 function formatDuration(seconds: number) {
@@ -44,7 +47,10 @@ function formatDate(dateString: string) {
   }).format(new Date(dateString));
 }
 
-export function RecordCard({ record, userStat, showUserInfo = true }: RecordCardProps) {
+export function RecordCard({ record, userStat, showUserInfo = true, showEditLink = false, currentUserId }: RecordCardProps) {
+  // 프로필 정보가 없으면 본인 기록으로 간주 (대시보드의 경우)
+  const isOwner = currentUserId && (!record.profile || record.profile.id === currentUserId);
+
   return (
     <div className="rounded-xl border border-border/60 bg-background p-4 text-sm text-muted-foreground">
       <div className="space-y-3">
@@ -128,6 +134,21 @@ export function RecordCard({ record, userStat, showUserInfo = true }: RecordCard
         {/* 3행: 1컬럼 - 메모 */}
         {record.notes && (
           <p className="text-sm text-muted-foreground line-clamp-2">{record.notes}</p>
+        )}
+
+        {/* 수정 버튼 - 본인 기록인 경우만 표시 */}
+        {showEditLink && isOwner && (
+          <div className="pt-2 border-t border-border/40">
+            <Link
+              href={`/records/${record.id}/edit`}
+              className="inline-flex items-center gap-1 text-xs font-medium text-foreground/70 hover:text-foreground"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              수정
+            </Link>
+          </div>
         )}
       </div>
     </div>

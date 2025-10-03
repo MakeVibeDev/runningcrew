@@ -467,6 +467,8 @@ export default function Home() {
                         key={record.id}
                         record={record}
                         showUserInfo={false}
+                        showEditLink={true}
+                        currentUserId={user?.id}
                       />
                     ))}
                   </div>
