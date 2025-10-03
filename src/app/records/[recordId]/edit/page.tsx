@@ -149,20 +149,22 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
         }
 
         const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const record = recordData as any;
         const formattedData = {
-          id: recordData.id,
-          recordedAt: recordData.recorded_at,
-          distanceKm: recordData.distance_km,
-          durationSeconds: recordData.duration_seconds,
-          paceSecondsPerKm: recordData.pace_seconds_per_km,
-          visibility: recordData.visibility,
-          createdAt: recordData.created_at,
-          notes: recordData.notes,
-          imagePath: recordData.image_path && SUPABASE_URL
-            ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${recordData.image_path}`
+          id: record.id,
+          recordedAt: record.recorded_at,
+          distanceKm: record.distance_km,
+          durationSeconds: record.duration_seconds,
+          paceSecondsPerKm: record.pace_seconds_per_km,
+          visibility: record.visibility,
+          createdAt: record.created_at,
+          notes: record.notes,
+          imagePath: record.image_path && SUPABASE_URL
+            ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${record.image_path}`
             : null,
-          imagePathRaw: recordData.image_path,
-          mission: recordData.mission,
+          imagePathRaw: record.image_path,
+          mission: record.mission,
         };
 
         setRecord(formattedData);

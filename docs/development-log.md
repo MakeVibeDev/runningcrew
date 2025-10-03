@@ -2397,4 +2397,360 @@ display_name: displayName.trim() || user.email?.split("@")[0] || "러너"
 
 ---
 
-마지막 업데이트: 2025-10-03
+## 14. 기록 시스템 개선 (2025-10-04)
+
+### 14.1 RecordCard 컴포넌트 생성
+
+**파일**: `src/components/record-card.tsx`
+
+**목적**:
+- 기록 카드 UI를 재사용 가능한 컴포넌트로 분리
+- 미션 상세, 대시보드 등 여러 페이지에서 일관된 디자인 유지
+
+**주요 Props**:
+```typescript
+interface RecordCardProps {
+  record: {
+    id: string;
+    distanceKm: number;
+    durationSeconds: number;
+    paceSecondsPerKm: number | null;
+    recordedAt: string;
+    notes?: string | null;
+    imagePath?: string | null;
+    visibility?: string;
+    profile?: {
+      id: string;
+      display_name: string;
+      avatar_url?: string | null;
+    } | null;
+  };
+  userStat?: {
+    totalDistanceKm: number;
+    totalDurationSeconds: number;
+  };
+  showUserInfo?: boolean;      // 프로필 정보 표시 여부
+  showEditLink?: boolean;       // 수정 버튼 표시 여부
+  currentUserId?: string;       // 소유자 판단용
+}
+```
+
+**레이아웃 구조**:
+```typescript
+// 1행: 이미지 | 프로필 + 시간
+<div className="flex gap-3">
+  <div className="h-24 w-24">{/* 이미지 */}</div>
+  <div className="flex-1 flex-col justify-between">
+    {/* 프로필 + 누적 통계 */}
+    {/* 활동 시간 */}
+  </div>
+</div>
+
+// 2행: 거리 | 시간 | 페이스
+<div className="grid grid-cols-3 gap-2 text-center">
+  {/* 거리, 시간, 페이스 */}
+</div>
+
+// 3행: 메모 (조건부)
+{record.notes && <p className="line-clamp-2">{record.notes}</p>}
+```
+
+**적용 위치**:
+- 미션 상세 페이지: 최근 공개 기록 섹션
+- 대시보드: 최근 업로드 기록 섹션
+
+### 14.2 대시보드 기록 표시 개선
+
+**파일**: `src/app/page.tsx`
+
+**변경 사항**:
+1. **RecordCard 컴포넌트 사용**:
+```typescript
+import { RecordCard } from "@/components/record-card";
+
+{recentRecords.map((record) => (
+  <RecordCard
+    key={record.id}
+    record={record}
+    showUserInfo={false}  // 본인 대시보드이므로 프로필 숨김
+    showEditLink={true}   // 수정 버튼 표시
+    currentUserId={user?.id}
+  />
+))}
+```
+
+2. **섹션 스타일 통일**:
+- Card 컴포넌트 제거
+- `border-t border-border/40` 구분선 사용
+- 입체 그림자 효과 적용
+
+### 14.3 기록 수정 페이지 개선
+
+**파일**: `src/app/records/[recordId]/edit/page.tsx`
+
+**주요 개선 사항**:
+
+1. **AlertDialog 도입**:
+   - 기존: 브라우저 기본 `alert()` 사용
+   - 신규: shadcn/ui AlertDialog 컴포넌트 사용
+   - 일관된 UI/UX 제공
+
+```typescript
+// AlertDialog 상태 관리
+const [alertOpen, setAlertOpen] = useState(false);
+const [alertTitle, setAlertTitle] = useState("");
+const [alertMessage, setAlertMessage] = useState("");
+const [alertAction, setAlertAction] = useState<(() => void) | null>(null);
+
+const showAlert = useCallback((title: string, message: string, onOk?: () => void) => {
+  setAlertTitle(title);
+  setAlertMessage(message);
+  setAlertAction(() => onOk || null);
+  setAlertOpen(true);
+}, []);
+```
+
+2. **인증 개선**:
+   - REST API (`fetchRecordById`) → Browser Supabase Client
+   - RLS 정책 적용으로 소유자만 수정 가능
+   - 인증 토큰 자동 포함
+
+```typescript
+// 기록 로드 (Browser Client 사용)
+const { getBrowserSupabaseClient } = await import("@/lib/supabase/browser-client");
+const supabase = getBrowserSupabaseClient();
+
+const { data: recordData, error } = await supabase
+  .from("records")
+  .select("id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,image_path,notes,mission:missions(id,title)")
+  .eq("id", resolvedParams.recordId)
+  .single();
+```
+
+3. **React Hook 최적화**:
+   - `showAlert` 함수에 `useCallback` 적용
+   - `useEffect` dependency 배열 정리
+   - 불필요한 re-render 방지
+
+### 14.4 비공개 기록 시스템 구현
+
+**파일**:
+- `src/app/page.tsx`
+- `src/components/record-card.tsx`
+- `supabase/migrations/20250404000000_fix_records_select_policy.sql`
+
+**기능**:
+1. **대시보드에서 비공개 기록 표시**:
+   - 로그인 사용자는 자신의 모든 기록(공개+비공개) 조회 가능
+   - Browser Client 사용으로 인증 컨텍스트 포함
+
+2. **비공개 라벨 추가**:
+```typescript
+// RecordCard 컴포넌트
+{record.visibility === 'private' && (
+  <div className="absolute left-3 top-3 z-10 rounded-full bg-muted/90 px-2 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm">
+    🔒 비공개
+  </div>
+)}
+```
+
+3. **RLS 정책 수정**:
+```sql
+-- 사용자는 자신의 모든 기록 OR 타인의 공개 기록 조회 가능
+create policy "Records visible to owner or public" on public.records
+  for select
+  using (
+    auth.uid() = profile_id  -- 본인 기록 (공개/비공개 모두)
+    or visibility = 'public'  -- 타인의 공개 기록
+  );
+```
+
+**스타일링**:
+- `z-10`: 다른 요소 위에 표시
+- `bg-muted/90`: 반투명 배경
+- `backdrop-blur-sm`: 블러 효과로 가독성 향상
+- `absolute left-3 top-3`: 카드 좌측 상단 고정
+
+### 14.5 수정 버튼 UI/UX 개선
+
+**파일**: `src/components/record-card.tsx`
+
+**변경 내역**:
+
+1. **위치 변경**:
+   - Before: 카드 하단 border 영역
+   - After: 카드 우측 상단 절대 위치
+
+2. **아이콘 변경**:
+   - Before: 텍스트 + 이모지 "⚙️"
+   - After: SVG 아이콘 (톱니바퀴 모양)
+
+```typescript
+{showEditLink && isOwner && (
+  <Link
+    href={`/records/${record.id}/edit`}
+    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+    title="수정"
+  >
+    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+      <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532..." />
+    </svg>
+  </Link>
+)}
+```
+
+**개선 효과**:
+- 더 심플하고 미니멀한 디자인
+- 카드 레이아웃 방해 최소화
+- 호버 시 색상 변경으로 인터랙션 명확화
+
+### 14.6 헤더 Sticky 스타일 적용
+
+**파일**: `src/components/site-nav.tsx`
+
+**변경 사항**:
+```typescript
+// Before
+<header className="border-b border-border/70 bg-background/95 backdrop-blur">
+
+// After
+<header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur">
+```
+
+**효과**:
+- 스크롤 시에도 헤더가 상단에 고정
+- 네비게이션 접근성 향상
+- `z-50`: 다른 요소 위에 표시
+
+### 14.7 기록 수정 페이지 접근성 개선
+
+**파일**: `src/components/record-card.tsx`
+
+**수정 버튼 접근 경로**:
+- 각 RecordCard 우측 상단 톱니바퀴 아이콘 클릭
+- `/records/[recordId]/edit` 페이지로 이동
+- 소유자만 수정 버튼 표시
+
+**코드**:
+```typescript
+const isOwner = currentUserId && (!record.profile || record.profile.id === currentUserId);
+
+{showEditLink && isOwner && (
+  <Link href={`/records/${record.id}/edit`}>
+    {/* 수정 아이콘 */}
+  </Link>
+)}
+```
+
+---
+
+## 기술적 이슈 및 해결
+
+### Issue 1: REST API 인증 문제
+
+**증상**:
+- 기록 수정 페이지에서 폼이 로드되지 않음
+- `fetchRecordById` REST API 호출 시 인증 실패
+
+**원인**:
+- REST API는 인증 컨텍스트가 없음
+- RLS 정책이 인증된 사용자만 자신의 기록 조회 허용
+
+**해결**:
+```typescript
+// Before: REST API
+const recordData = await fetchRecordById(resolvedParams.recordId);
+
+// After: Browser Supabase Client
+const { getBrowserSupabaseClient } = await import("@/lib/supabase/browser-client");
+const supabase = getBrowserSupabaseClient();
+
+const { data: recordData, error } = await supabase
+  .from("records")
+  .select("...")
+  .eq("id", resolvedParams.recordId)
+  .single();
+```
+
+### Issue 2: 비공개 기록이 대시보드에 표시되지 않음
+
+**증상**:
+- 대시보드에서 비공개 기록이 보이지 않음
+- RLS 정책이 공개 기록만 허용
+
+**원인**:
+- 기존 REST API 사용 시 인증 토큰 미포함
+- RLS 정책이 `visibility = 'public'`만 허용
+
+**해결**:
+1. **Browser Client 사용**:
+```typescript
+// src/app/page.tsx
+const { getBrowserSupabaseClient } = await import("@/lib/supabase/browser-client");
+const supabase = getBrowserSupabaseClient();
+
+const { data: recordsData, error } = await supabase
+  .from("records")
+  .select("...")
+  .eq("profile_id", user.id)
+  .order("created_at", { ascending: false })
+  .limit(5);
+```
+
+2. **RLS 정책 수정**:
+```sql
+create policy "Records visible to owner or public" on public.records
+  for select
+  using (
+    auth.uid() = profile_id  -- 본인의 모든 기록
+    or visibility = 'public'  -- 타인의 공개 기록
+  );
+```
+
+### Issue 3: 비공개 라벨이 보이지 않음
+
+**증상**:
+- `visibility` 값이 전달되지만 라벨이 렌더링되지 않음
+- 이미지와 겹쳐서 가려짐
+
+**해결**:
+```typescript
+// z-index와 backdrop-blur 추가
+<div className="absolute left-3 top-3 z-10 rounded-full bg-muted/90 px-2 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm">
+  🔒 비공개
+</div>
+```
+
+---
+
+## 커밋 로그
+
+```bash
+326314b fix: improve private record label visibility and edit page authentication
+483b01d feat: show private records in dashboard with label and fix RLS policy
+0db39b3 feat: replace browser alerts with custom AlertDialog and improve UI
+0b3c855 feat: add record edit functionality
+4b6cf88 feat: create reusable RecordCard component and update dashboard
+```
+
+---
+
+## 다음 작업 (업데이트)
+
+### 우선순위 높음
+1. **OCR 파이프라인 구현**
+2. **미션 참여 관리 개선**
+3. **알림 시스템 구축**
+4. **에러 바운더리 추가**
+
+### 기록 시스템 개선 (완료)
+- [x] RecordCard 컴포넌트 생성
+- [x] 비공개 기록 표시
+- [x] 기록 수정 페이지 개선
+- [x] AlertDialog 통합
+- [x] Sticky 헤더
+- [x] Browser Client 인증 적용
+
+---
+
+마지막 업데이트: 2025-10-04
