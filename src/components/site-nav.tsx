@@ -126,9 +126,9 @@ export function SiteNav() {
         </div>
 
         {/* Mobile - Profile + Hamburger */}
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-1 md:hidden">
           {user && (
-            <div className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
+            <Link href="/" className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
               {avatarUrl ? (
                 <Image src={avatarUrl} alt={`${displayName} avatar`} fill sizes="32px" />
               ) : (
@@ -136,7 +136,7 @@ export function SiteNav() {
                   {initials}
                 </div>
               )}
-            </div>
+            </Link>
           )}
           <button
             type="button"

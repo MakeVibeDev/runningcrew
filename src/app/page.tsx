@@ -488,15 +488,27 @@ export default function Home() {
                         <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-emerald-500/5 transition-all group-hover:scale-110" />
 
                         <div className="relative flex items-center gap-4">
-                          {/* 왼쪽: 거리 강조 */}
-                          <div className="flex h-20 w-20 flex-shrink-0 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 ring-1 ring-emerald-500/20">
-                            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                              {record.distanceKm.toFixed(1)}
+                          {/* 왼쪽: 기록 사진 또는 거리 */}
+                          {record.imagePath ? (
+                            <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl ring-1 ring-border/40">
+                              <Image
+                                src={record.imagePath}
+                                alt="기록 사진"
+                                fill
+                                className="object-cover"
+                                sizes="80px"
+                              />
                             </div>
-                            <div className="text-xs font-medium text-emerald-600/70 dark:text-emerald-400/70">
-                              km
+                          ) : (
+                            <div className="flex h-20 w-20 flex-shrink-0 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 ring-1 ring-emerald-500/20">
+                              <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                {record.distanceKm.toFixed(1)}
+                              </div>
+                              <div className="text-xs font-medium text-emerald-600/70 dark:text-emerald-400/70">
+                                km
+                              </div>
                             </div>
-                          </div>
+                          )}
 
                           {/* 오른쪽: 정보 */}
                           <div className="flex-1 space-y-2">

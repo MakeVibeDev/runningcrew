@@ -307,8 +307,10 @@ export async function fetchMissionById(missionId: string) {
 export async function fetchMissionRecords(missionId: string, limit = 5) {
   const encoded = encodeURIComponent(missionId);
   const data = await supabaseRest<MissionDetailRecordRow[]>(
-    `records?mission_id=eq.${encoded}&visibility=eq.public&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,notes,created_at,profile:profiles(id,display_name,avatar_url)&order=created_at.desc&limit=${limit}`,
+    `records?mission_id=eq.${encoded}&visibility=eq.public&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,notes,created_at,image_path,profile:profiles(id,display_name,avatar_url)&order=created_at.desc&limit=${limit}`,
   );
+
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   return data.map((record) => ({
     id: record.id,
@@ -319,6 +321,9 @@ export async function fetchMissionRecords(missionId: string, limit = 5) {
     visibility: record.visibility,
     notes: record.notes,
     createdAt: record.created_at,
+    imagePath: record.image_path && SUPABASE_URL
+      ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${record.image_path}`
+      : null,
     profile: record.profile,
   }));
 }
@@ -387,8 +392,10 @@ export async function fetchUserParticipatingMissions(profileId: string) {
 export async function fetchUserRecentRecords(profileId: string, limit = 5) {
   const encoded = encodeURIComponent(profileId);
   const data = await supabaseRest<MissionRecordRow[]>(
-    `records?profile_id=eq.${encoded}&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,mission:missions(id,title,crew:crews(name))&order=created_at.desc&limit=${limit}`,
+    `records?profile_id=eq.${encoded}&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,image_path,mission:missions(id,title,crew:crews(name))&order=created_at.desc&limit=${limit}`,
   );
+
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   return data.map((record) => ({
     id: record.id,
@@ -398,6 +405,9 @@ export async function fetchUserRecentRecords(profileId: string, limit = 5) {
     paceSecondsPerKm: record.pace_seconds_per_km,
     visibility: record.visibility,
     createdAt: record.created_at,
+    imagePath: record.image_path && SUPABASE_URL
+      ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${record.image_path}`
+      : null,
     mission: record.mission,
   }));
 }

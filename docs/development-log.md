@@ -2209,6 +2209,156 @@ export async function updateUserProfile(
 
 ---
 
+## 13. 미션 상세 페이지 UI 개선 및 모바일 UX 최적화 (2025-10-04)
+
+### 13.1 기록 카드 레이아웃 재설계
+
+**파일**: `src/app/missions/[missionId]/page.tsx`
+
+**요구사항**:
+- 기존 레이아웃: 이미지(왼쪽) + 모든 정보(오른쪽 세로 배치)
+- 신규 레이아웃: 3행 구조로 정보 계층화
+
+**구현**:
+```typescript
+// 1행: 2컬럼 - 업로드 이미지 | 프로필 + 활동시간
+<div className="flex gap-3">
+  {/* 1컬럼: 업로드 이미지 (96x96) */}
+  {record.imagePath && (
+    <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg border border-border/40">
+      <Image src={record.imagePath} alt="기록 사진" fill className="object-cover" sizes="96px" unoptimized />
+    </div>
+  )}
+
+  {/* 2컬럼: 프로필 + 활동시간 */}
+  <div className="flex flex-1 flex-col justify-between min-w-0">
+    <div className="flex items-center gap-2">
+      {/* 프로필 이미지 + 이름 + 누적 기록 */}
+    </div>
+    <p className="text-xs text-muted-foreground">
+      {formatDate(record.recordedAt)}
+    </p>
+  </div>
+</div>
+
+// 2행: 1컬럼 - 거리, 시간, 페이스 (가로 배치)
+<div className="grid grid-cols-3 gap-2 text-center">
+  <div>
+    <p className="text-[0.65rem] text-muted-foreground">거리</p>
+    <p className="text-sm font-semibold text-foreground">{record.distanceKm.toFixed(1)} KM</p>
+  </div>
+  {/* 시간, 페이스 */}
+</div>
+
+// 3행: 1컬럼 - 메모 (조건부)
+{record.notes && (
+  <p className="text-sm text-muted-foreground line-clamp-2">{record.notes}</p>
+)}
+```
+
+**개선 효과**:
+- 정보 계층 명확화: 사용자 정보 → 운동 데이터 → 메모
+- 가독성 향상: 관련 정보를 논리적으로 그룹화
+- 모바일 최적화: 세로 공간 효율적 사용
+
+### 13.2 통계 카드 스타일 변경
+
+**파일**: `src/app/missions/[missionId]/page.tsx`
+
+**변경 사항**:
+- Card 컴포넌트 → 상하단 border 스타일
+- 둥근 모서리 제거, 간결한 디자인
+
+**Before**:
+```typescript
+<Card>
+  <CardHeader>
+    <CardTitle>참여자 통계</CardTitle>
+    <CardDescription>참여자별 누적 기록을 거리순으로 보여줍니다.</CardDescription>
+  </CardHeader>
+  <CardContent className="space-y-4">
+    {/* 통계 내용 */}
+  </CardContent>
+</Card>
+```
+
+**After**:
+```typescript
+<div className="border-y border-border/60 bg-card">
+  <div className="p-6 pb-4">
+    <h3 className="text-lg font-semibold">참여자 통계</h3>
+    <p className="text-sm text-muted-foreground">참여자별 누적 기록을 거리순으로 보여줍니다.</p>
+  </div>
+  <div className="space-y-4 p-6 pt-2">
+    {/* 통계 내용 */}
+  </div>
+</div>
+```
+
+**적용 섹션**:
+- 참여자 통계
+- 최근 공개 기록
+
+**디자인 의도**:
+- 모바일에서 카드 경계가 명확하지 않은 문제 해결
+- 상하단 border로 섹션 구분 강조
+- 여백 최적화로 콘텐츠 밀도 향상
+
+### 13.3 모바일 네비게이션 UX 개선
+
+**파일**: `src/components/site-nav.tsx`
+
+**변경 사항**:
+
+1. **프로필 이미지 클릭 시 홈 이동**:
+```typescript
+// Before: 프로필 이미지가 단순 표시용
+<div className="relative h-8 w-8 overflow-hidden rounded-full">
+  {avatarUrl && <Image src={avatarUrl} ... />}
+</div>
+
+// After: Link로 감싸서 홈으로 이동
+<Link href="/" className="relative h-8 w-8 overflow-hidden rounded-full">
+  {avatarUrl && <Image src={avatarUrl} ... />}
+</Link>
+```
+
+2. **프로필 이미지와 햄버거 메뉴 간격 조정**:
+```typescript
+// Before
+<div className="flex items-center gap-2 md:hidden">
+
+// After
+<div className="flex items-center gap-1 md:hidden">
+```
+
+**UX 개선 효과**:
+- 모바일에서 빠른 대시보드 접근
+- 로고 클릭과 동일한 동선 제공
+- 좁은 화면에서 공간 최적화
+
+### 13.4 세부 스타일 개선
+
+**파일**: `src/app/missions/[missionId]/page.tsx`
+
+**변경 내역**:
+1. **페이스 표시 정리**:
+   - `/KM` → `/km` (불필요한 공백 제거)
+   - 통일된 단위 표기
+
+2. **거리 소수점 정밀도**:
+   - `.toFixed(2)` → `.toFixed(1)`
+   - 더 간결한 표시 (10.50km → 10.5km)
+
+3. **섹션 간격 조정**:
+   - `space-y-4` → `space-y-2`
+   - 모바일에서 스크롤 최소화
+
+4. **Import 정리**:
+   - 사용하지 않는 `CardDescription` 제거
+
+---
+
 ## 기술적 학습 및 패턴
 
 ### Supabase Storage 활용
