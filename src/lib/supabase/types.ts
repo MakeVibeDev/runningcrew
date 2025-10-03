@@ -26,6 +26,12 @@ export type Database = {
           crew_role?: "member" | "admin";
           bio?: string | null;
         };
+        Update: {
+          display_name?: string;
+          avatar_url?: string | null;
+          crew_role?: "member" | "admin";
+          bio?: string | null;
+        };
       };
       crews: {
         Row: {
@@ -54,6 +60,17 @@ export type Database = {
           location_lat?: number | null;
           location_lng?: number | null;
         };
+        Update: {
+          owner_id?: string;
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          intro?: string | null;
+          logo_image_url?: string | null;
+          activity_region?: string;
+          location_lat?: number | null;
+          location_lng?: number | null;
+        };
       };
       crew_members: {
         Row: {
@@ -66,6 +83,9 @@ export type Database = {
         Insert: {
           crew_id: string;
           profile_id: string;
+          role?: "owner" | "admin" | "member";
+        };
+        Update: {
           role?: "owner" | "admin" | "member";
         };
       };
@@ -90,6 +110,14 @@ export type Database = {
           end_date: string;
           target_distance_km?: number | null;
         };
+        Update: {
+          crew_id?: string;
+          title?: string;
+          description?: string | null;
+          start_date?: string;
+          end_date?: string;
+          target_distance_km?: number | null;
+        };
       };
       record_ocr_results: {
         Row: {
@@ -108,6 +136,15 @@ export type Database = {
           id?: string;
           profile_id: string;
           storage_path: string;
+          raw_text?: string | null;
+          distance_km?: number | null;
+          duration_seconds?: number | null;
+          recorded_at?: string | null;
+          confidence?: number | null;
+        };
+        Update: {
+          profile_id?: string;
+          storage_path?: string;
           raw_text?: string | null;
           distance_km?: number | null;
           duration_seconds?: number | null;
@@ -144,6 +181,18 @@ export type Database = {
           notes?: string | null;
           image_path?: string | null;
         };
+        Update: {
+          profile_id?: string;
+          mission_id?: string;
+          ocr_result_id?: string | null;
+          recorded_at?: string;
+          distance_km?: number;
+          duration_seconds?: number;
+          pace_seconds_per_km?: number | null;
+          visibility?: "public" | "private";
+          notes?: string | null;
+          image_path?: string | null;
+        };
       };
       mission_participants: {
         Row: {
@@ -160,6 +209,13 @@ export type Database = {
           id?: string;
           mission_id: string;
           profile_id: string;
+          status?: "joined" | "left";
+          joined_at?: string;
+          left_at?: string | null;
+        };
+        Update: {
+          mission_id?: string;
+          profile_id?: string;
           status?: "joined" | "left";
           joined_at?: string;
           left_at?: string | null;

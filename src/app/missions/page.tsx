@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { MissionEditor } from "@/components/crew/mission-editor";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchMissionGroups } from "@/lib/supabase/rest";
 
 export const metadata: Metadata = {
@@ -20,39 +19,39 @@ export default async function MissionsPage() {
   const missionGroups = await fetchMissionGroups();
 
   return (
-    <div className="min-h-screen bg-muted/40 pb-16">
+    <div className="min-h-screen bg-muted/30 pb-16">
       <div className="border-b border-border/60 bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
           <div>
             <p className="text-sm text-muted-foreground">미션 센터</p>
             <h1 className="text-3xl font-semibold">참여 가능 미션</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Supabase에 등록된 크루 미션 정보를 먼저 확인해보세요.
+              등록된 크루 미션 정보를 먼저 확인해보세요.
             </p>
           </div>
           <Link
             href="/"
             className="rounded-full border border-border px-4 py-2 text-sm hover:bg-muted"
           >
-            대시보드로 돌아가기
+            대시보드
           </Link>
         </div>
       </div>
 
-      <main className="mx-auto mt-8 grid max-w-6xl gap-6 px-6">
+      <main className="mx-auto mt-8 max-w-6xl space-y-8">
         {missionGroups.length === 0 ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>등록된 미션이 없습니다</CardTitle>
-              <CardDescription>크루에서 미션을 등록하면 이곳에서 확인할 수 있습니다.</CardDescription>
-            </CardHeader>
-          </Card>
+          <div className="mx-6 rounded-2xl bg-background p-8 text-center">
+            <h2 className="text-xl font-semibold">등록된 미션이 없습니다</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              크루에서 미션을 등록하면 이곳에서 확인할 수 있습니다.
+            </p>
+          </div>
         ) : (
           missionGroups.map((group) => (
-            <Card key={group.crewSlug}>
-              <CardHeader className="gap-2">
+            <section key={group.crewSlug} className="space-y-4">
+              <div className="px-6">
                 <div className="flex items-center justify-between gap-2">
-                  <CardTitle>{group.crewName}</CardTitle>
+                  <h2 className="text-2xl font-bold">{group.crewName}</h2>
                   <Link
                     href={`/crews/${group.crewSlug}`}
                     className="text-xs font-medium text-emerald-600 hover:underline"
@@ -60,16 +59,16 @@ export default async function MissionsPage() {
                     크루 상세 보기
                   </Link>
                 </div>
-                <CardDescription>
+                <p className="mt-1 text-sm text-muted-foreground">
                   {group.crewSummary ?? "크루 소개가 곧 업데이트될 예정입니다."}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 lg:grid-cols-2">
+                </p>
+              </div>
+              <div className="grid gap-4 px-6 lg:grid-cols-2">
                 {group.missions.map((mission) => {
                   const crewInfo = mission.crew;
                   const participantCount = mission.participantsCount ?? 0;
                   return (
-                    <div key={mission.id} className="rounded-2xl border border-border/60 bg-muted/40 p-5">
+                    <div key={mission.id} className="rounded-2xl bg-background p-6 shadow-sm">
                       <div className="flex items-center justify-between gap-2">
                         <div>
                           <p className="text-xs uppercase tracking-wide text-muted-foreground/70">기간</p>
@@ -122,8 +121,8 @@ export default async function MissionsPage() {
                     </div>
                   );
                 })}
-              </CardContent>
-            </Card>
+              </div>
+            </section>
           ))
         )}
       </main>

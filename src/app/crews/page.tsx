@@ -34,7 +34,7 @@ export default async function CrewsPage() {
             href="/crews/create"
             className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background hover:opacity-90"
           >
-            + 신규 크루 생성
+            + 크루 생성
           </Link>
         </div>
       </div>
@@ -66,8 +66,8 @@ export default async function CrewsPage() {
                     className="object-contain p-4"
                   />
                 ) : (
-                  <div className="grid h-full w-full place-items-center text-sm text-muted-foreground">
-                    이미지 준비 중
+                  <div className="grid h-full w-full place-items-center px-4 text-center text-2xl font-bold text-foreground/70">
+                    {crew.name}
                   </div>
                 )}
               </Link>

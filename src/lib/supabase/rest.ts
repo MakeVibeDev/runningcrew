@@ -129,6 +129,7 @@ type MissionDetailRecordRow = {
   duration_seconds: number;
   pace_seconds_per_km: number | null;
   visibility: string;
+  notes: string | null;
   created_at: string;
   profile: {
     id: string;
@@ -306,7 +307,7 @@ export async function fetchMissionById(missionId: string) {
 export async function fetchMissionRecords(missionId: string, limit = 5) {
   const encoded = encodeURIComponent(missionId);
   const data = await supabaseRest<MissionDetailRecordRow[]>(
-    `records?mission_id=eq.${encoded}&visibility=eq.public&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,profile:profiles(id,display_name,avatar_url)&order=created_at.desc&limit=${limit}`,
+    `records?mission_id=eq.${encoded}&visibility=eq.public&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,notes,created_at,profile:profiles(id,display_name,avatar_url)&order=created_at.desc&limit=${limit}`,
   );
 
   return data.map((record) => ({
@@ -316,6 +317,7 @@ export async function fetchMissionRecords(missionId: string, limit = 5) {
     durationSeconds: record.duration_seconds,
     paceSecondsPerKm: record.pace_seconds_per_km,
     visibility: record.visibility,
+    notes: record.notes,
     createdAt: record.created_at,
     profile: record.profile,
   }));
@@ -455,4 +457,56 @@ export async function fetchUserMissionStat(missionId: string, profileId: string)
     firstActivityAt: stat.first_activity_at,
     lastActivityAt: stat.last_activity_at,
   };
+}
+
+type UserCrewRow = {
+  crew: {
+    id: string;
+    slug: string;
+    name: string;
+    logo_image_url: string | null;
+  } | null;
+};
+
+export async function fetchUserJoinedCrews(profileId: string) {
+  const encoded = encodeURIComponent(profileId);
+  const data = await supabaseRest<UserCrewRow[]>(
+    `crew_members?profile_id=eq.${encoded}&select=crew:crews(id,slug,name,logo_image_url)`,
+  );
+
+  return data
+    .filter((row) => row.crew !== null)
+    .map((row) => ({
+      id: row.crew!.id,
+      slug: row.crew!.slug,
+      name: row.crew!.name,
+      logoImageUrl: row.crew!.logo_image_url,
+    }));
+}
+
+/**
+ * 프로필 이미지 업로드
+ */
+export async function uploadProfileImage(userId: string, file: File): Promise<string> {
+  const { getBrowserSupabaseClient } = await import("@/lib/supabase/browser-client");
+  const supabase = getBrowserSupabaseClient();
+
+  // 파일 확장자 추출
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${userId}-${Date.now()}.${fileExt}`;
+  const filePath = `profile-avatars/${fileName}`;
+
+  // Storage에 업로드
+  const { error: uploadError } = await supabase.storage
+    .from("crew-assets")
+    .upload(filePath, file, { upsert: true });
+
+  if (uploadError) {
+    throw new Error(`이미지 업로드 실패: ${uploadError.message}`);
+  }
+
+  // Public URL 생성
+  const { data } = supabase.storage.from("crew-assets").getPublicUrl(filePath);
+
+  return data.publicUrl;
 }

@@ -10,10 +10,10 @@ import { KakaoLoginButton } from "@/components/ui/oauth-button";
 import { cn } from "@/lib/utils";
 
 const baseNavItems = [
-  { href: "/", label: "대시보드" },
-  { href: "/records/upload", label: "기록 등록" },
-  { href: "/missions", label: "미션" },
-  { href: "/crews", label: "크루" },
+  { href: "/", label: "대시보드", title: "Home" },
+  { href: "/records/upload", label: "기록 등록", title: "기록 등록" },
+  { href: "/missions", label: "미션", title: "미션" },
+  { href: "/crews", label: "크루", title: "크루" },
 ];
 
 export function SiteNav() {
@@ -36,6 +36,9 @@ export function SiteNav() {
 
   const avatarUrl = profile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined);
   const initials = displayName.slice(0, 1).toUpperCase();
+
+  // 현재 페이지 타이틀 찾기
+  const currentPageTitle = navItems.find((item) => item.href === pathname)?.title || "Home";
 
   return (
     <>
@@ -65,6 +68,11 @@ export function SiteNav() {
           />
         </Link>
 
+        {/* Mobile: Center - Page Title */}
+        <h1 className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold md:hidden">
+          {currentPageTitle}
+        </h1>
+
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-4 md:flex">
           <nav className="flex items-center gap-2 text-sm">
@@ -87,7 +95,7 @@ export function SiteNav() {
           <div className="flex items-center gap-3 text-sm">
             {user ? (
               <>
-                <div className="flex items-center gap-2">
+                <Link href="/profile" className="flex items-center gap-2 hover:opacity-80">
                   <div className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
                     {avatarUrl ? (
                       <Image src={avatarUrl} alt={`${displayName} avatar`} fill sizes="32px" />
@@ -98,7 +106,7 @@ export function SiteNav() {
                     )}
                   </div>
                   <span className="hidden text-muted-foreground sm:inline">{displayName}님</span>
-                </div>
+                </Link>
                 <button
                   type="button"
                   onClick={() => void signOut()}
@@ -118,7 +126,7 @@ export function SiteNav() {
         </div>
 
         {/* Mobile - Profile + Hamburger */}
-        <div className="flex items-center gap-3 md:hidden">
+        <div className="flex items-center gap-2 md:hidden">
           {user && (
             <div className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
               {avatarUrl ? (
@@ -226,7 +234,11 @@ export function SiteNav() {
               <div className="border-t border-border/70 p-4">
                 {user ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 px-2">
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted"
+                    >
                       <div className="relative h-10 w-10 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
                         {avatarUrl ? (
                           <Image src={avatarUrl} alt={`${displayName} avatar`} fill sizes="40px" />
@@ -236,8 +248,11 @@ export function SiteNav() {
                           </div>
                         )}
                       </div>
-                      <span className="text-sm font-medium">{displayName}님</span>
-                    </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{displayName}님</p>
+                        <p className="text-xs text-muted-foreground">프로필 수정</p>
+                      </div>
+                    </Link>
                     <button
                       type="button"
                       onClick={() => {

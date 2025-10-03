@@ -12,6 +12,7 @@ import {
   fetchUserOverallStats,
   fetchCrewList,
   fetchMissionList,
+  fetchUserJoinedCrews,
 } from "@/lib/supabase/rest";
 
 function formatDuration(seconds: number) {
@@ -29,10 +30,13 @@ function formatPace(paceSeconds?: number | null) {
 }
 
 function formatDate(dateString: string) {
-  return new Intl.DateTimeFormat("ko", {
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(dateString));
+  const date = new Date(dateString);
+  const year = String(date.getFullYear()).slice(-2);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}.${month}.${day} ${hours}:${minutes}`;
 }
 
 function formatDateRange(start: string, end: string) {
@@ -52,6 +56,7 @@ export default function Home() {
   const [missions, setMissions] = useState<Awaited<ReturnType<typeof fetchUserParticipatingMissions>>>([]);
   const [recentRecords, setRecentRecords] = useState<Awaited<ReturnType<typeof fetchUserRecentRecords>>>([]);
   const [stats, setStats] = useState<Awaited<ReturnType<typeof fetchUserOverallStats>> | null>(null);
+  const [joinedCrews, setJoinedCrews] = useState<Awaited<ReturnType<typeof fetchUserJoinedCrews>>>([]);
   const [publicCrews, setPublicCrews] = useState<Awaited<ReturnType<typeof fetchCrewList>>>([]);
   const [publicMissions, setPublicMissions] = useState<Awaited<ReturnType<typeof fetchMissionList>>>([]);
   const [dataLoading, setDataLoading] = useState(true);
@@ -85,11 +90,13 @@ export default function Home() {
       fetchUserParticipatingMissions(user.id),
       fetchUserRecentRecords(user.id, 5),
       fetchUserOverallStats(user.id),
+      fetchUserJoinedCrews(user.id),
     ])
-      .then(([missionsData, recordsData, statsData]) => {
+      .then(([missionsData, recordsData, statsData, crewsData]) => {
         setMissions(missionsData);
         setRecentRecords(recordsData);
         setStats(statsData);
+        setJoinedCrews(crewsData);
       })
       .catch((error) => {
         console.error("Failed to fetch dashboard data:", error);
@@ -101,7 +108,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-muted/40 pb-16">
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-6xl py-0">
         {loading || dataLoading ? (
           <section className="rounded-2xl border border-border/70 bg-card/80 p-10 text-center shadow-sm">
             <p className="text-muted-foreground">데이터를 불러오는 중...</p>
@@ -304,35 +311,55 @@ export default function Home() {
         ) : (
           <>
             {/* 통계 요약 카드 */}
-            <section className="mb-8">
-              <Card className="overflow-hidden border-border/70 bg-gradient-to-br from-emerald-50 to-background dark:from-emerald-950/20 dark:to-background">
-                <CardHeader>
-                  <div className="flex items-center gap-4">
-                    <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-border/60 bg-muted text-sm font-semibold uppercase text-muted-foreground">
-                      {profile?.avatar_url || user?.user_metadata?.avatar_url ? (
-                        <Image
-                          src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string)}
-                          alt="프로필"
-                          fill
-                          sizes="64px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="grid h-full w-full place-items-center bg-emerald-500/10 text-2xl text-emerald-700">
-                          {(profile?.display_name || user?.email || "?").charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <CardTitle className="text-2xl">
-                        {profile?.display_name || user?.email || "러너"}님의 대시보드
-                      </CardTitle>
-                      <CardDescription>전체 미션 활동 요약</CardDescription>
-                    </div>
+            <section className="m-4 ">
+              <Card className="relative overflow-hidden border-border/70">
+                {/* 블러 배경 - YouTube Music 스타일 */}
+                {(profile?.avatar_url || user?.user_metadata?.avatar_url) && (
+                  <div className="absolute inset-0">
+                    {/* 확대된 블러 배경 이미지 */}
+                    <Image
+                      src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string)}
+                      alt=""
+                      fill
+                      className="scale-[2] object-cover blur-[120px] saturate-[2.5] brightness-[1.3]"
+                      sizes="1200px"
+                      priority
+                    />
+                    {/* 그라데이션 오버레이 */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-background/30 via-background/50 to-background/70" />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                )}
+
+                {/* 컨텐츠 */}
+                <div className="relative backdrop-blur-sm">
+                  <CardHeader className="pb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-white/20 bg-muted shadow-lg ring-4 ring-black/5">
+                        {profile?.avatar_url || user?.user_metadata?.avatar_url ? (
+                          <Image
+                            src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string)}
+                            alt="프로필"
+                            fill
+                            sizes="80px"
+                            className="object-cover"
+                            priority
+                          />
+                        ) : (
+                          <div className="grid h-full w-full place-items-center bg-emerald-500/10 text-2xl text-emerald-700">
+                            {(profile?.display_name || user?.email || "?").charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl font-bold">
+                          {profile?.display_name || user?.email || "러너"}님의 대시보드
+                        </CardTitle>
+                        <CardDescription className="mt-1">전체 미션 활동 요약</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <p className="text-sm font-medium text-muted-foreground">총 기록 수</p>
                       <p className="text-4xl font-bold tracking-tight">{stats?.totalRecords ?? 0}</p>
@@ -366,163 +393,207 @@ export default function Home() {
                     </div>
                   </div>
                 </CardContent>
+                </div>
               </Card>
             </section>
 
-            <section className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>참여 중인 미션</CardTitle>
-                  <CardDescription>
+            <div>
+              <section className="space-y-4 bg-white px-4 py-4 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] border-t-3 border-border border-gray-200">
+                <div>
+                  <h2 className="text-2xl font-bold">참여 중인 미션</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
                     현재 참여하고 있는 미션 목록입니다.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {missions.length === 0 ? (
+                  </p>
+                </div>
+                {missions.length === 0 ? (
+                  <div className="rounded-2xl border border-border/40 bg-muted/30 p-8 text-center">
                     <p className="text-sm text-muted-foreground">
                       참여 중인 미션이 없습니다.
                     </p>
-                  ) : (
-                    <div className="space-y-4">
-                      {missions.map((mission) => (
-                        <Link
-                          key={mission.id}
-                          href={`/missions/${mission.id}`}
-                          className="block rounded-xl border border-border/60 bg-background/80 p-4 transition hover:bg-muted/40"
-                        >
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                {mission.crew?.name ?? "크루 정보 없음"}
-                              </p>
-                              <h3 className="text-lg font-semibold">{mission.title}</h3>
-                            </div>
-                            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-200">
-                              진행 중
-                            </span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {missions.map((mission) => (
+                      <Link
+                        key={mission.id}
+                        href={`/missions/${mission.id}`}
+                        className="block rounded-2xl border border-border/40 bg-muted/30 p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              {mission.crew?.name ?? "크루 정보 없음"}
+                            </p>
+                            <h3 className="text-lg font-semibold">{mission.title}</h3>
                           </div>
-                          <div className="mt-4 grid gap-2 text-sm text-muted-foreground md:grid-cols-2">
+                          <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-200">
+                            진행 중
+                          </span>
+                        </div>
+                        <div className="mt-4 grid gap-2 text-sm text-muted-foreground md:grid-cols-2">
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground/70">
+                              기간
+                            </p>
+                            <p>{formatDateRange(mission.startDate, mission.endDate)}</p>
+                          </div>
+                          {mission.targetDistanceKm && (
                             <div>
                               <p className="text-xs uppercase tracking-wide text-muted-foreground/70">
-                                기간
+                                목표
                               </p>
-                              <p>{formatDateRange(mission.startDate, mission.endDate)}</p>
+                              <p>{mission.targetDistanceKm} km</p>
                             </div>
-                            {mission.targetDistanceKm && (
-                              <div>
-                                <p className="text-xs uppercase tracking-wide text-muted-foreground/70">
-                                  목표
-                                </p>
-                                <p>{mission.targetDistanceKm} km</p>
-                              </div>
-                            )}
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>최근 업로드 기록</CardTitle>
-                      <CardDescription>
-                        최근 등록한 러닝 기록입니다.
-                      </CardDescription>
-                    </div>
-                    <Link
-                      href="/records/upload"
-                      className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background hover:opacity-90"
-                    >
-                      기록 등록
-                    </Link>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  {recentRecords.length === 0 ? (
+                )}
+              </section>
+
+              <section className="space-y-4 bg-white px-4 py-4 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] border-t-3 border-border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">최근 업로드 기록</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      최근 등록한 러닝 기록입니다.
+                    </p>
+                  </div>
+                  <Link
+                    href="/records/upload"
+                    className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background hover:opacity-90"
+                  >
+                    기록 등록
+                  </Link>
+                </div>
+                {recentRecords.length === 0 ? (
+                  <div className="rounded-2xl border border-border/40 bg-background p-8 text-center shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                     <p className="text-sm text-muted-foreground">
                       아직 등록한 기록이 없습니다.
                     </p>
-                  ) : (
-                    <div className="overflow-hidden rounded-xl border border-border/60">
-                      <table className="w-full text-left text-sm">
-                        <thead className="bg-muted/60 text-xs uppercase text-muted-foreground">
-                          <tr>
-                            <th className="px-4 py-3">날짜</th>
-                            <th className="px-4 py-3">미션</th>
-                            <th className="px-4 py-3">거리</th>
-                            <th className="px-4 py-3">페이스</th>
-                            <th className="px-4 py-3">시간</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {recentRecords.map((record) => (
-                            <tr key={record.id} className="border-t border-border/60">
-                              <td className="px-4 py-3 text-sm font-medium text-foreground">
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {recentRecords.map((record) => (
+                      <div
+                        key={record.id}
+                        className="group relative overflow-hidden rounded-2xl border border-border/40 bg-background p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                      >
+                        {/* 배경 장식 */}
+                        <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-emerald-500/5 transition-all group-hover:scale-110" />
+
+                        <div className="relative flex items-center gap-4">
+                          {/* 왼쪽: 거리 강조 */}
+                          <div className="flex h-20 w-20 flex-shrink-0 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 ring-1 ring-emerald-500/20">
+                            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                              {record.distanceKm.toFixed(1)}
+                            </div>
+                            <div className="text-xs font-medium text-emerald-600/70 dark:text-emerald-400/70">
+                              km
+                            </div>
+                          </div>
+
+                          {/* 오른쪽: 정보 */}
+                          <div className="flex-1 space-y-2">
+                            {/* 첫 번째 줄: 날짜와 미션명 */}
+                            <div className="flex flex-col gap-1">
+                              <span className="text-xs text-muted-foreground">
                                 {formatDate(record.recordedAt)}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-muted-foreground">
+                              </span>
+                              <span className="text-sm font-medium text-foreground">
                                 {record.mission && typeof record.mission === 'object' && 'title' in record.mission
                                   ? record.mission.title
                                   : "미션 정보 없음"}
-                              </td>
-                              <td className="px-4 py-3 text-sm font-medium">
-                                {record.distanceKm.toFixed(2)} km
-                              </td>
-                              <td className="px-4 py-3 text-sm">
-                                {formatPace(record.paceSecondsPerKm)} /km
-                              </td>
-                              <td className="px-4 py-3 text-sm">
-                                {formatDuration(record.durationSeconds)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                              </span>
+                            </div>
+
+                            {/* 두 번째 줄: 페이스, 시간 */}
+                            <div className="flex gap-4 text-sm">
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">⏱️</span>
+                                <span className="font-semibold">{formatPace(record.paceSecondsPerKm)}</span>
+                                <span className="text-xs text-muted-foreground">/km</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">🕐</span>
+                                <span className="font-semibold">{formatDuration(record.durationSeconds)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <section className="grid gap-0 bg-white shadow-[0_1px_0_0_rgba(0,0,0,0.1)] md:grid-cols-2 border-t-3 border-border border-gray-200">
+                <div className="space-y-4 px-4 py-4 md:border-r md:border-border/40">
+                  <div>
+                    <h2 className="text-xl font-bold">크루 탐색</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      새로운 러닝 크루를 찾아보세요.
+                    </p>
+                  </div>
+                  {joinedCrews.length > 0 && (
+                    <div>
+                      <p className="mb-3 text-sm font-medium text-muted-foreground">가입한 크루</p>
+                      <div className="flex flex-wrap gap-3">
+                        {joinedCrews.map((crew) => (
+                          <Link
+                            key={crew.id}
+                            href={`/crews/${crew.slug}`}
+                            className="group flex flex-col items-center gap-2"
+                            title={crew.name}
+                          >
+                            <div className="relative h-16 w-16 overflow-hidden rounded-xl border-2 border-border/60 bg-muted transition-all group-hover:scale-105 group-hover:border-foreground/40">
+                              {crew.logoImageUrl ? (
+                                <Image
+                                  src={crew.logoImageUrl}
+                                  alt={crew.name}
+                                  fill
+                                  className="object-cover"
+                                  sizes="64px"
+                                />
+                              ) : (
+                                <div className="grid h-full w-full place-items-center text-lg font-bold text-muted-foreground">
+                                  {crew.name.substring(0, 2)}
+                                </div>
+                              )}
+                            </div>
+                            <span className="w-16 truncate text-center text-xs text-muted-foreground">
+                              {crew.name}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </section>
-
-            <section className="mt-8 grid gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>크루 탐색</CardTitle>
-                  <CardDescription>
-                    새로운 러닝 크루를 찾아보세요.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
                   <Link
                     href="/crews"
                     className="block rounded-lg border border-border px-4 py-3 text-center text-sm font-medium hover:bg-muted"
                   >
                     크루 목록 보기
                   </Link>
-                </CardContent>
-              </Card>
+                </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>미션 탐색</CardTitle>
-                  <CardDescription>
-                    진행 중인 미션을 확인하세요.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
+                <div className="space-y-4 px-4 py-4 border-t-3 border-border border-gray-200">
+                  <div>
+                    <h2 className="text-xl font-bold">미션 탐색</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      진행 중인 미션을 확인하세요.
+                    </p>
+                  </div>
                   <Link
                     href="/missions"
                     className="block rounded-lg border border-border px-4 py-3 text-center text-sm font-medium hover:bg-muted"
                   >
                     미션 목록 보기
                   </Link>
-                </CardContent>
-              </Card>
-            </section>
+                </div>
+              </section>
+            </div>
           </>
         )}
       </main>

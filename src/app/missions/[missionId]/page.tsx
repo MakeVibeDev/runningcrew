@@ -260,22 +260,22 @@ export default async function MissionDetailPage({
                       className="rounded-xl border border-border/60 bg-background p-4 text-sm text-muted-foreground"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-border/60 bg-muted">
+                        <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full border-2 border-border/60 bg-muted">
                           {record.profile?.avatar_url ? (
                             <Image
                               src={record.profile.avatar_url}
                               alt={record.profile.display_name ?? "프로필"}
                               fill
                               className="object-cover"
-                              sizes="48px"
+                              sizes="40px"
                             />
                           ) : (
-                            <div className="grid h-full w-full place-items-center text-lg font-semibold text-muted-foreground">
+                            <div className="grid h-full w-full place-items-center text-base font-semibold text-muted-foreground">
                               {record.profile?.display_name?.charAt(0)?.toUpperCase() ?? "?"}
                             </div>
                           )}
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <p className="font-medium text-foreground">
                             {record.profile?.display_name ?? "익명"}
                           </p>
@@ -286,7 +286,14 @@ export default async function MissionDetailPage({
                           )}
                         </div>
                       </div>
-                      <div className="mt-3 grid grid-cols-4 gap-2 text-center text-xs uppercase tracking-wide text-muted-foreground/70">
+
+                      {record.notes && (
+                        <p className="mt-3 text-sm text-foreground line-clamp-2">
+                          {record.notes}
+                        </p>
+                      )}
+
+                      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs uppercase tracking-wide text-muted-foreground/70">
                         <div>
                           <p className="text-[0.65rem]">거리</p>
                           <p className="text-base font-semibold text-foreground">
@@ -305,12 +312,12 @@ export default async function MissionDetailPage({
                             {formatPace(record.paceSecondsPerKm)} /KM
                           </p>
                         </div>
-                        <div>
-                          <p className="text-[0.65rem]">활동 시각</p>
-                          <p className="text-sm font-semibold text-foreground">
-                            {formatDate(record.recordedAt)}
-                          </p>
-                        </div>
+                      </div>
+
+                      <div className="mt-2 border-t border-border/30 pt-2 text-center">
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(record.recordedAt)}
+                        </p>
                       </div>
                     </div>
                   );

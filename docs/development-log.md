@@ -1912,4 +1912,339 @@ import { CrewJoinRequestsManager } from "@/components/crew/crew-join-requests-ma
 
 ---
 
-마지막 업데이트: 2025-10-02
+## 12. UI/UX 개선 및 프로필 관리 시스템 (2025-10-03)
+
+### 12.1 대시보드 개인 프로필 배경 효과
+
+**파일**: `src/app/page.tsx`
+
+**요구사항**:
+- YouTube Music 플레이어처럼 프로필 이미지를 배경으로 활용
+- 확대 + 블러 효과로 시각적 깊이감 추가
+
+**구현**:
+```typescript
+<Card className="relative overflow-hidden border-border/70">
+  {/* 블러 배경 - YouTube Music 스타일 */}
+  {(profile?.avatar_url || user?.user_metadata?.avatar_url) && (
+    <div className="absolute inset-0">
+      {/* 확대된 블러 배경 이미지 */}
+      <Image
+        src={profile?.avatar_url || user?.user_metadata?.avatar_url}
+        alt=""
+        fill
+        className="scale-[2] object-cover blur-[120px] saturate-[2.5] brightness-[1.3]"
+        sizes="1200px"
+        priority
+      />
+      {/* 그라데이션 오버레이 */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background/30 via-background/50 to-background/70" />
+    </div>
+  )}
+
+  {/* 컨텐츠 */}
+  <div className="relative backdrop-blur-sm">
+    {/* 프로필 및 통계 */}
+  </div>
+</Card>
+```
+
+**효과 파라미터**:
+- `scale-[2]`: 배경 이미지 2배 확대
+- `blur-[120px]`: 강력한 블러 효과
+- `saturate-[2.5]`: 채도 증가로 색상 강조
+- `brightness-[1.3]`: 밝기 조정
+- `backdrop-blur-sm`: 컨텐츠 영역 추가 블러
+
+### 12.2 모바일 네비게이션 개선
+
+**파일**: `src/components/site-nav.tsx`
+
+**변경 사항**:
+
+1. **페이지 타이틀 추가**:
+```typescript
+const baseNavItems = [
+  { href: "/", label: "대시보드", title: "Home" },
+  { href: "/records/upload", label: "기록 등록", title: "기록 등록" },
+  { href: "/missions", label: "미션", title: "미션" },
+  { href: "/crews", label: "크루", title: "크루" },
+];
+
+// 현재 페이지 타이틀 표시 (모바일)
+const currentPageTitle = navItems.find((item) => item.href === pathname)?.title || "Home";
+
+<h1 className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold md:hidden">
+  {currentPageTitle}
+</h1>
+```
+
+2. **프로필/햄버거 메뉴 간격 조정**:
+```typescript
+<div className="flex items-center gap-2 md:hidden">
+  {/* gap-3 → gap-2로 변경 */}
+```
+
+3. **프로필 링크 추가** (데스크톱/모바일):
+```typescript
+// 데스크톱
+<Link href="/profile" className="flex items-center gap-2 hover:opacity-80">
+  <div className="relative h-8 w-8 overflow-hidden rounded-full">
+    {/* 프로필 이미지 */}
+  </div>
+  <span>{displayName}님</span>
+</Link>
+
+// 모바일 메뉴
+<Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+  <div className="flex items-center gap-3">
+    {/* 프로필 이미지 */}
+    <div className="flex-1">
+      <p className="text-sm font-medium">{displayName}님</p>
+      <p className="text-xs text-muted-foreground">프로필 보기</p>
+    </div>
+  </div>
+</Link>
+```
+
+### 12.3 프로필 관리 시스템 구현
+
+#### 12.3.1 프로필 설정 페이지
+
+**파일**: `src/app/profile/page.tsx`
+
+**주요 기능**:
+1. **프로필 이미지 업로드**:
+   - 파일 크기 제한: 5MB
+   - 지원 형식: JPG, PNG
+   - 실시간 미리보기
+   - Supabase Storage(`crew-assets` 버킷) 활용
+
+2. **닉네임 변경**:
+   - 최대 50자
+   - NOT NULL 제약 준수 (빈 값 시 기본값 사용)
+   - 기본값 우선순위: 이메일 앞부분 → "러너"
+
+3. **이메일 표시** (읽기 전용):
+   - 변경 불가능 안내
+
+**코드 예시**:
+```typescript
+const handleSave = async () => {
+  const finalDisplayName = displayName.trim() || user.email?.split("@")[0] || "러너";
+
+  await updateUserProfile(user.id, {
+    display_name: finalDisplayName,
+    avatar_url: avatarUrl || profile?.avatar_url || null,
+  });
+
+  // 페이지 새로고침으로 전체 앱에 업데이트 반영
+  setTimeout(() => {
+    window.location.reload();
+  }, 1000);
+};
+```
+
+#### 12.3.2 프로필 REST API 함수
+
+**파일**: `src/lib/supabase/rest.ts`
+
+**새로 추가된 함수**:
+
+1. **프로필 이미지 업로드**:
+```typescript
+export async function uploadProfileImage(userId: string, file: File): Promise<string> {
+  const { getBrowserSupabaseClient } = await import("@/lib/supabase/browser-client");
+  const supabase = getBrowserSupabaseClient();
+
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${userId}-${Date.now()}.${fileExt}`;
+  const filePath = `profile-avatars/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("crew-assets")
+    .upload(filePath, file, { upsert: true });
+
+  if (uploadError) {
+    throw new Error(`이미지 업로드 실패: ${uploadError.message}`);
+  }
+
+  const { data } = supabase.storage.from("crew-assets").getPublicUrl(filePath);
+  return data.publicUrl;
+}
+```
+
+2. **프로필 업데이트**:
+```typescript
+export async function updateUserProfile(
+  userId: string,
+  updates: { display_name: string; avatar_url?: string | null }
+) {
+  const { getBrowserSupabaseClient } = await import("@/lib/supabase/browser-client");
+  const supabase = getBrowserSupabaseClient();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", userId);
+
+  if (error) {
+    throw new Error(`프로필 업데이트 실패: ${error.message}`);
+  }
+}
+```
+
+**주요 결정 사항**:
+- Storage 버킷: 새로 생성하지 않고 기존 `crew-assets` 사용
+- 파일 경로: `profile-avatars/` 폴더로 구분
+- `display_name`: NOT NULL 제약으로 필수값 처리
+
+#### 12.3.3 빌드 오류 해결
+
+**Issue 1: Module not found**
+- 증상: `Can't resolve '@/lib/supabase/client'`
+- 원인: `client.ts` 파일이 없고 `browser-client.ts` 사용 중
+- 해결: `createClient` → `getBrowserSupabaseClient`로 변경
+
+**Issue 2: Storage bucket not found**
+- 증상: `Bucket not found: profiles`
+- 원인: `profiles` 버킷 미생성
+- 해결: 기존 `crew-assets` 버킷 사용
+
+**Issue 3: NOT NULL constraint violation**
+- 증상: `null value in column "display_name" violates not-null constraint`
+- 원인: `display_name`이 빈 값일 때 null 저장 시도
+- 해결: 빈 값 시 기본값 사용 (이메일 앞부분 또는 "러너")
+
+### 12.4 크루 리스트 페이지 개선
+
+**파일**: `src/app/crews/page.tsx`
+
+**변경 사항**:
+- 로고 없는 크루: "이미지 준비 중" → 크루 이름 표시
+```typescript
+{crew.logoImageUrl ? (
+  <Image src={crew.logoImageUrl} ... />
+) : (
+  <div className="grid h-full w-full place-items-center px-4 text-center text-2xl font-bold text-foreground/70">
+    {crew.name}
+  </div>
+)}
+```
+
+### 12.5 대시보드 카드 스타일 개선
+
+**파일**: `src/app/page.tsx`
+
+**요구사항**:
+- 참여 중인 미션, 최근 업로드 기록 섹션 스타일 변경
+- Card 컴포넌트 제거 → 간결한 섹션 레이아웃
+- 가로선 + 입체 효과로 구분
+
+**구현**:
+```typescript
+<section className="space-y-4 border-t border-border/40 pt-8">
+  <div>
+    <h2 className="text-2xl font-bold">참여 중인 미션</h2>
+    <p className="mt-1 text-sm text-muted-foreground">
+      현재 참여하고 있는 미션 목록입니다.
+    </p>
+  </div>
+
+  <div className="space-y-4">
+    {missions.map((mission) => (
+      <Link
+        key={mission.id}
+        href={`/missions/${mission.id}`}
+        className="block rounded-2xl border border-border/40 bg-background p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+      >
+        {/* 미션 내용 */}
+      </Link>
+    ))}
+  </div>
+</section>
+```
+
+**스타일 특징**:
+- 섹션 구분: `border-t border-border/40` + `pt-8`
+- 카드 테두리: 얇은 테두리 (`border-border/40`)
+- 입체 효과: 커스텀 그림자
+  - 기본: `shadow-[0_2px_8px_rgba(0,0,0,0.04)]`
+  - 호버: `shadow-[0_4px_12px_rgba(0,0,0,0.08)]`
+
+### 12.6 미션 페이지 스타일 개선
+
+**파일**: `src/app/missions/page.tsx`
+
+**변경 사항**:
+- Card 컴포넌트 제거 → `<section>` 사용
+- 페이지 배경색: `bg-muted/30` 추가
+- 크루별 섹션 그룹화
+- 미션 카드: 테두리 제거, `bg-background` + `shadow-sm`
+
+**구현**:
+```typescript
+<div className="min-h-screen bg-muted/30 pb-16">
+  <main className="mx-auto mt-8 max-w-6xl space-y-8">
+    {missionGroups.map((group) => (
+      <section key={group.crewSlug} className="space-y-4">
+        <div className="px-6">
+          <h2 className="text-2xl font-bold">{group.crewName}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {group.crewSummary}
+          </p>
+        </div>
+        <div className="grid gap-4 px-6 lg:grid-cols-2">
+          {group.missions.map((mission) => (
+            <div key={mission.id} className="rounded-2xl bg-background p-6 shadow-sm">
+              {/* 미션 내용 */}
+            </div>
+          ))}
+        </div>
+      </section>
+    ))}
+  </main>
+</div>
+```
+
+---
+
+## 기술적 학습 및 패턴
+
+### Supabase Storage 활용
+- 기존 버킷 재사용으로 관리 단순화
+- 폴더 구조로 용도 구분 (`profile-avatars/`, `crew-logos/` 등)
+- Public URL 생성으로 CDN 활용
+
+### NOT NULL 제약 처리 패턴
+```typescript
+// ❌ 나쁜 예: null 허용
+display_name: displayName.trim() || null
+
+// ✅ 좋은 예: 기본값 사용
+display_name: displayName.trim() || user.email?.split("@")[0] || "러너"
+```
+
+### 커스텀 그림자 활용
+- Tailwind의 기본 그림자가 너무 강한 경우
+- `shadow-[0_2px_8px_rgba(0,0,0,0.04)]` 패턴으로 미묘한 입체감
+
+---
+
+## 다음 작업 (업데이트)
+
+### 우선순위 높음
+1. **OCR 파이프라인 구현**
+2. **미션 참여 관리 개선**
+3. **기록 업로드 UX 개선**
+
+### 배포 관련 미완료
+- [ ] 카카오 OAuth Redirect URI 설정 (프로덕션)
+- [ ] Supabase URL Configuration 설정
+- [ ] Vercel 환경변수 설정
+- [ ] 에러 바운더리 추가
+- [ ] 에러 페이지 커스터마이징
+
+---
+
+마지막 업데이트: 2025-10-03
