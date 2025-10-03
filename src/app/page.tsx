@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { KakaoLoginButton } from "@/components/ui/oauth-button";
 import {
   fetchUserParticipatingMissions,
   fetchUserRecentRecords,
@@ -52,7 +53,7 @@ function formatDateRange(start: string, end: string) {
 }
 
 export default function Home() {
-  const { user, loading, profile } = useSupabase();
+  const { user, loading, profile, signInWithOAuth } = useSupabase();
   const [missions, setMissions] = useState<Awaited<ReturnType<typeof fetchUserParticipatingMissions>>>([]);
   const [recentRecords, setRecentRecords] = useState<Awaited<ReturnType<typeof fetchUserRecentRecords>>>([]);
   const [stats, setStats] = useState<Awaited<ReturnType<typeof fetchUserOverallStats>> | null>(null);
@@ -116,23 +117,26 @@ export default function Home() {
         ) : !user ? (
           <>
             {/* 랜딩 페이지 - 비로그인 사용자용 */}
-            <section className="mb-12 text-center">
+            <section className="mb-12 text-center mt-8">
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
                 함께 달리는 즐거움
               </h1>
               <p className="mt-4 text-lg text-muted-foreground sm:text-xl">
                 러닝 크루와 함께 미션을 완수하고 기록을 공유하세요
               </p>
-              <div className="mt-8 flex flex-wrap justify-center gap-4">
-                <Link
-                  href="/auth/login"
-                  className="rounded-full bg-foreground px-8 py-3 text-base font-semibold text-background shadow-sm hover:opacity-90"
-                >
+              <div className="mt-8 flex flex-col items-center gap-4">
+                <p className="text-sm text-muted-foreground">
                   카카오 계정으로 시작하기
-                </Link>
+                </p>
+                <KakaoLoginButton
+                  onClick={() => {
+                    void signInWithOAuth("kakao");
+                  }}
+                  disabled={loading}
+                />
                 <Link
                   href="/crews"
-                  className="rounded-full border border-border bg-background px-8 py-3 text-base font-semibold hover:bg-muted"
+                  className="mt-2 rounded-full border border-border bg-background px-8 py-3 text-base font-semibold hover:bg-muted"
                 >
                   크루 둘러보기
                 </Link>
