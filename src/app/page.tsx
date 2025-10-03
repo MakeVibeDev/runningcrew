@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
+import { RecordCard } from "@/components/record-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { KakaoLoginButton } from "@/components/ui/oauth-button";
 import {
@@ -28,16 +29,6 @@ function formatPace(paceSeconds?: number | null) {
   const mins = Math.floor(paceSeconds / 60);
   const secs = Math.round(paceSeconds % 60);
   return `${mins}'${secs.toString().padStart(2, "0")}"`;
-}
-
-function formatDate(dateString: string) {
-  const date = new Date(dateString);
-  const year = String(date.getFullYear()).slice(-2);
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${year}.${month}.${day} ${hours}:${minutes}`;
 }
 
 function formatDateRange(start: string, end: string) {
@@ -316,7 +307,7 @@ export default function Home() {
           <>
             {/* 통계 요약 카드 */}
             <section className="m-4">
-              <Card className="relative overflow-hidden border-border/70">
+              <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
                 {/* 블러 배경 - YouTube Music 스타일 */}
                 {(profile?.avatar_url || user?.user_metadata?.avatar_url) && (
                   <div className="absolute inset-0">
@@ -336,7 +327,7 @@ export default function Home() {
 
                 {/* 컨텐츠 */}
                 <div className="relative backdrop-blur-sm">
-                  <CardHeader className="pb-6">
+                  <div className="p-6 pb-6">
                     <div className="flex items-center gap-4">
                       <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-white/20 bg-muted shadow-lg ring-4 ring-black/5">
                         {profile?.avatar_url || user?.user_metadata?.avatar_url ? (
@@ -355,50 +346,45 @@ export default function Home() {
                         )}
                       </div>
                       <div>
-                        <CardTitle className="text-2xl font-bold">
+                        <h2 className="text-2xl font-bold">
                           {profile?.display_name || user?.email || "러너"}님의 대시보드
-                        </CardTitle>
-                        <CardDescription className="mt-1">전체 미션 활동 요약</CardDescription>
+                        </h2>
+                        <p className="mt-1 text-sm text-muted-foreground">전체 미션 활동 요약</p>
                       </div>
                     </div>
-                  </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">총 기록 수</p>
-                      <p className="text-4xl font-bold tracking-tight">{stats?.totalRecords ?? 0}</p>
-                      <p className="text-xs text-muted-foreground">전체 활동 횟수</p>
-                    </div>
+                  </div>
+                  <div className="p-6 pt-0">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">총 기록 수</p>
+                        <p className="text-4xl font-bold tracking-tight">{stats?.totalRecords ?? 0}</p>
+                      </div>
 
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">총 누적 거리</p>
-                      <p className="text-4xl font-bold tracking-tight">
-                        {stats?.totalDistanceKm.toFixed(1) ?? 0}
-                        <span className="ml-1 text-2xl font-normal text-muted-foreground">km</span>
-                      </p>
-                      <p className="text-xs text-muted-foreground">전체 미션 합산</p>
-                    </div>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">총 누적 거리</p>
+                        <p className="text-4xl font-bold tracking-tight">
+                          {stats?.totalDistanceKm.toFixed(1) ?? 0}
+                          <span className="ml-1 text-2xl font-normal text-muted-foreground">km</span>
+                        </p>
+                      </div>
 
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">총 활동 시간</p>
-                      <p className="text-4xl font-bold tracking-tight">
-                        {formatDuration(stats?.totalDurationSeconds ?? 0)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">전체 미션 합산</p>
-                    </div>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">총 활동 시간</p>
+                        <p className="text-4xl font-bold tracking-tight">
+                          {formatDuration(stats?.totalDurationSeconds ?? 0)}
+                        </p>
+                      </div>
 
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">평균 페이스</p>
-                      <p className="text-4xl font-bold tracking-tight">
-                        {stats?.avgPaceSecondsPerKm ? formatPace(stats.avgPaceSecondsPerKm) : "-"}
-                        <span className="ml-1 text-2xl font-normal text-muted-foreground">/km</span>
-                      </p>
-                      <p className="text-xs text-muted-foreground">전체 평균</p>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">평균 페이스</p>
+                        <p className="text-4xl font-bold tracking-tight">
+                          {stats?.avgPaceSecondsPerKm ? formatPace(stats.avgPaceSecondsPerKm) : "-"}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </CardContent>
                 </div>
-              </Card>
+              </div>
             </section>
 
             <div>
@@ -410,18 +396,18 @@ export default function Home() {
                   </p>
                 </div>
                 {missions.length === 0 ? (
-                  <div className="rounded-2xl border border-border/40 bg-muted/30 p-8 text-center">
+                  <div className="rounded-2xl border border-border/40 bg-muted/30 p-4 text-center">
                     <p className="text-sm text-muted-foreground">
                       참여 중인 미션이 없습니다.
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 mt-2">
                     {missions.map((mission) => (
                       <Link
                         key={mission.id}
                         href={`/missions/${mission.id}`}
-                        className="block rounded-2xl border border-border/40 bg-muted/30 p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                        className="block rounded-2xl border border-border/40 bg-muted/30 p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
                       >
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>
@@ -434,11 +420,8 @@ export default function Home() {
                             진행 중
                           </span>
                         </div>
-                        <div className="mt-4 grid gap-2 text-sm text-muted-foreground md:grid-cols-2">
+                        <div className="mt-2 grid gap-2 text-sm text-muted-foreground md:grid-cols-2">
                           <div>
-                            <p className="text-xs uppercase tracking-wide text-muted-foreground/70">
-                              기간
-                            </p>
                             <p>{formatDateRange(mission.startDate, mission.endDate)}</p>
                           </div>
                           {mission.targetDistanceKm && (
@@ -480,65 +463,11 @@ export default function Home() {
                 ) : (
                   <div className="space-y-3">
                     {recentRecords.map((record) => (
-                      <div
+                      <RecordCard
                         key={record.id}
-                        className="group relative overflow-hidden rounded-2xl border border-border/40 bg-background p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-                      >
-                        {/* 배경 장식 */}
-                        <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-emerald-500/5 transition-all group-hover:scale-110" />
-
-                        <div className="relative flex items-center gap-4">
-                          {/* 왼쪽: 기록 사진 또는 거리 */}
-                          {record.imagePath ? (
-                            <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl ring-1 ring-border/40">
-                              <Image
-                                src={record.imagePath}
-                                alt="기록 사진"
-                                fill
-                                className="object-cover"
-                                sizes="80px"
-                              />
-                            </div>
-                          ) : (
-                            <div className="flex h-20 w-20 flex-shrink-0 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 ring-1 ring-emerald-500/20">
-                              <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                                {record.distanceKm.toFixed(1)}
-                              </div>
-                              <div className="text-xs font-medium text-emerald-600/70 dark:text-emerald-400/70">
-                                km
-                              </div>
-                            </div>
-                          )}
-
-                          {/* 오른쪽: 정보 */}
-                          <div className="flex-1 space-y-2">
-                            {/* 첫 번째 줄: 날짜와 미션명 */}
-                            <div className="flex flex-col gap-1">
-                              <span className="text-xs text-muted-foreground">
-                                {formatDate(record.recordedAt)}
-                              </span>
-                              <span className="text-sm font-medium text-foreground">
-                                {record.mission && typeof record.mission === 'object' && 'title' in record.mission
-                                  ? record.mission.title
-                                  : "미션 정보 없음"}
-                              </span>
-                            </div>
-
-                            {/* 두 번째 줄: 페이스, 시간 */}
-                            <div className="flex gap-4 text-sm">
-                              <div className="flex items-center gap-1">
-                                <span className="text-muted-foreground">⏱️</span>
-                                <span className="font-semibold">{formatPace(record.paceSecondsPerKm)}</span>
-                                <span className="text-xs text-muted-foreground">/km</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <span className="text-muted-foreground">🕐</span>
-                                <span className="font-semibold">{formatDuration(record.durationSeconds)}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                        record={record}
+                        showUserInfo={false}
+                      />
                     ))}
                   </div>
                 )}

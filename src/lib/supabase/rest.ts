@@ -70,6 +70,8 @@ type MissionRecordRow = {
   pace_seconds_per_km: number;
   visibility: string;
   created_at: string;
+  image_path: string | null;
+  notes: string | null;
   mission: {
     id: string;
     title: string;
@@ -131,6 +133,7 @@ type MissionDetailRecordRow = {
   visibility: string;
   notes: string | null;
   created_at: string;
+  image_path: string | null;
   profile: {
     id: string;
     display_name: string;

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { MissionParticipationControl } from "@/components/crew/mission-participation-control";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RecordCard } from "@/components/record-card";
 import { fetchMissionById, fetchMissionRecords, fetchMissionStats } from "@/lib/supabase/rest";
 
 export const revalidate = 0;
@@ -26,13 +26,6 @@ function formatPace(paceSeconds?: number | null) {
   const mins = Math.floor(paceSeconds / 60);
   const secs = Math.round(paceSeconds % 60);
   return `${mins}'${secs.toString().padStart(2, "0")}"`;
-}
-
-function formatDate(dateString: string) {
-  return new Intl.DateTimeFormat("ko", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(dateString));
 }
 
 export default async function MissionDetailPage({
@@ -261,88 +254,12 @@ export default async function MissionDetailPage({
                 recentRecords.map((record) => {
                   const userStat = stats.find((s) => s.profileId === record.profile?.id);
                   return (
-                    <div
+                    <RecordCard
                       key={record.id}
-                      className="rounded-xl border border-border/60 bg-background p-2 text-sm text-muted-foreground"
-                    >
-                      <div className="space-y-3">
-                        {/* 1행: 2컬럼 - 업로드 이미지 | 프로필, 활동시간 */}
-                        <div className="flex gap-3">
-                          {/* 1컬럼: 업로드 이미지 */}
-                          {record.imagePath && (
-                            <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg border border-border/40">
-                              <Image
-                                src={record.imagePath}
-                                alt="기록 사진"
-                                fill
-                                className="object-cover"
-                                sizes="96px"
-                                unoptimized
-                              />
-                            </div>
-                          )}
-
-                          {/* 2컬럼: 프로필, 활동시간 */}
-                          <div className="flex flex-1 flex-col justify-between min-w-0">
-                            <div className="flex items-center gap-2">
-                              <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
-                                {record.profile?.avatar_url ? (
-                                  <Image
-                                    src={record.profile.avatar_url}
-                                    alt={record.profile.display_name ?? "프로필"}
-                                    fill
-                                    className="object-cover"
-                                    sizes="32px"
-                                  />
-                                ) : (
-                                  <div className="grid h-full w-full place-items-center text-xs font-semibold text-muted-foreground">
-                                    {record.profile?.display_name?.charAt(0)?.toUpperCase() ?? "?"}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">
-                                  {record.profile?.display_name ?? "익명"}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  누적: {userStat?.totalDistanceKm.toFixed(1)}km · {userStat && formatDuration(userStat.totalDurationSeconds)}
-                                </p>
-                              </div>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              {formatDate(record.recordedAt)}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* 2행: 1컬럼 - 거리, 시간, 페이스 */}
-                        <div className="grid grid-cols-3 gap-2 text-center">
-                          <div>
-                            <p className="text-[0.65rem] text-muted-foreground">거리</p>
-                            <p className="text-sm font-semibold text-foreground">
-                              {record.distanceKm.toFixed(1)} KM
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[0.65rem] text-muted-foreground">시간</p>
-                            <p className="text-sm font-semibold text-foreground">
-                              {formatDuration(record.durationSeconds)}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[0.65rem] text-muted-foreground">페이스</p>
-                            <p className="text-sm font-semibold text-foreground">
-                              {formatPace(record.paceSecondsPerKm)}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* 3행: 1컬럼 - 메모 */}
-                        {record.notes && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">{record.notes}</p>
-                        )}
-                      </div>
-                    </div>
+                      record={record}
+                      userStat={userStat}
+                      showUserInfo={true}
+                    />
                   );
                 })
               )}
