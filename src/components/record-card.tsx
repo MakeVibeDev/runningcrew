@@ -52,7 +52,20 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
   const isOwner = currentUserId && (!record.profile || record.profile.id === currentUserId);
 
   return (
-    <div className="rounded-xl border border-border/60 bg-background p-4 text-sm text-muted-foreground">
+    <div className="relative rounded-xl border border-border/60 bg-background p-4 text-sm text-muted-foreground">
+      {/* 수정 버튼 - 우측 상단 */}
+      {showEditLink && isOwner && (
+        <Link
+          href={`/records/${record.id}/edit`}
+          className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+          title="수정"
+        >
+          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+          </svg>
+        </Link>
+      )}
+
       <div className="space-y-3">
         {/* 1행: 2컬럼 - 업로드 이미지 | 프로필, 활동시간 */}
         <div className="flex gap-3">
@@ -134,21 +147,6 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
         {/* 3행: 1컬럼 - 메모 */}
         {record.notes && (
           <p className="text-sm text-muted-foreground line-clamp-2">{record.notes}</p>
-        )}
-
-        {/* 수정 버튼 - 본인 기록인 경우만 표시 */}
-        {showEditLink && isOwner && (
-          <div className="pt-2 border-t border-border/40">
-            <Link
-              href={`/records/${record.id}/edit`}
-              className="inline-flex items-center gap-1 text-xs font-medium text-foreground/70 hover:text-foreground"
-            >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              수정
-            </Link>
-          </div>
         )}
       </div>
     </div>

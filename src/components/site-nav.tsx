@@ -42,8 +42,8 @@ export function SiteNav() {
 
   return (
     <>
-      <header className="border-b border-border/70 bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
         {/* Left side - Logo */}
         <Link href="/" className="flex items-center">
           {/* Desktop: Full logo with text */}

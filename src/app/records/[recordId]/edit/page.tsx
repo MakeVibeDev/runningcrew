@@ -5,6 +5,15 @@ import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { fetchRecordById } from "@/lib/supabase/rest";
 
 const MAX_IMAGE_MB = 5;
@@ -91,6 +100,19 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  // Alert 상태
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertAction, setAlertAction] = useState<(() => void) | null>(null);
+
+  const showAlert = (title: string, message: string, onOk?: () => void) => {
+    setAlertTitle(title);
+    setAlertMessage(message);
+    setAlertAction(() => onOk || null);
+    setAlertOpen(true);
+  };
+
   useEffect(() => {
     if (!user) {
       router.push("/");
@@ -101,8 +123,7 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
       try {
         const data = await fetchRecordById(resolvedParams.recordId);
         if (!data) {
-          alert("기록을 찾을 수 없습니다.");
-          router.push("/");
+          showAlert("오류", "기록을 찾을 수 없습니다.", () => router.push("/"));
           return;
         }
 
@@ -118,8 +139,7 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
         }
       } catch (error) {
         console.error("Failed to load record:", error);
-        alert("기록을 불러오는데 실패했습니다.");
-        router.push("/");
+        showAlert("오류", "기록을 불러오는데 실패했습니다.", () => router.push("/"));
       } finally {
         setLoading(false);
       }
@@ -133,12 +153,12 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
     if (!file) return;
 
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type as typeof ACCEPTED_IMAGE_TYPES[number])) {
-      alert("PNG, JPEG, JPG, WEBP 형식만 지원합니다.");
+      showAlert("오류", "PNG, JPEG, JPG, WEBP 형식만 지원합니다.");
       return;
     }
 
     if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
-      alert(`이미지 크기는 ${MAX_IMAGE_MB}MB 이하여야 합니다.`);
+      showAlert("오류", `이미지 크기는 ${MAX_IMAGE_MB}MB 이하여야 합니다.`);
       return;
     }
 
@@ -159,12 +179,12 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
     const paceSeconds = pace ? parsePaceInput(pace) : null;
 
     if (!distanceKm || distanceKm <= 0) {
-      alert("거리를 올바르게 입력해주세요.");
+      showAlert("오류", "거리를 올바르게 입력해주세요.");
       return;
     }
 
     if (!durationSeconds || durationSeconds <= 0) {
-      alert("활동 시간을 올바르게 입력해주세요.");
+      showAlert("오류", "활동 시간을 올바르게 입력해주세요.");
       return;
     }
 
@@ -213,11 +233,10 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
         throw new Error(`기록 수정 실패: ${updateError.message}`);
       }
 
-      alert("기록이 수정되었습니다.");
-      router.push("/");
+      showAlert("완료", "기록이 수정되었습니다.", () => router.push("/"));
     } catch (error) {
       console.error("Save error:", error);
-      alert(error instanceof Error ? error.message : "기록 수정 중 오류가 발생했습니다.");
+      showAlert("오류", error instanceof Error ? error.message : "기록 수정 중 오류가 발생했습니다.");
     } finally {
       setSaving(false);
     }
@@ -388,6 +407,28 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
           </div>
         </form>
       </main>
+
+      {/* Alert Dialog */}
+      <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{alertTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{alertMessage}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setAlertOpen(false);
+                if (alertAction) {
+                  alertAction();
+                }
+              }}
+            >
+              확인
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
