@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { SiteNav } from "@/components/site-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { SupabaseProvider } from "@/components/providers/supabase-provider";
 
 const geistSans = Geist({
@@ -107,6 +108,7 @@ export default function RootLayout({
         <SupabaseProvider>
           <SiteNav />
           <div className="pb-10">{children}</div>
+          <SiteFooter />
         </SupabaseProvider>
       </body>
     </html>

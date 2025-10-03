@@ -107,8 +107,8 @@ export default function Home() {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-muted/40 pb-16">
-      <main className="mx-auto max-w-6xl py-0">
+    <div className="min-h-screen bg-muted/40 pb-4">
+      <main className="mx-auto max-w-6xl px-2 py-0">
         {loading || dataLoading ? (
           <section className="rounded-2xl border border-border/70 bg-card/80 p-10 text-center shadow-sm">
             <p className="text-muted-foreground">데이터를 불러오는 중...</p>
@@ -311,7 +311,7 @@ export default function Home() {
         ) : (
           <>
             {/* 통계 요약 카드 */}
-            <section className="m-4 ">
+            <section className="m-4">
               <Card className="relative overflow-hidden border-border/70">
                 {/* 블러 배경 - YouTube Music 스타일 */}
                 {(profile?.avatar_url || user?.user_metadata?.avatar_url) && (
@@ -398,7 +398,7 @@ export default function Home() {
             </section>
 
             <div>
-              <section className="space-y-4 bg-white px-4 py-4 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] border-t-3 border-border border-gray-200">
+              <section className="mt-1 bg-white px-4 py-4 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] border border-gray-100">
                 <div>
                   <h2 className="text-2xl font-bold">참여 중인 미션</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -452,7 +452,7 @@ export default function Home() {
                 )}
               </section>
 
-              <section className="space-y-4 bg-white px-4 py-4 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] border-t-3 border-border border-gray-200">
+              <section className="mt-1 space-y-4 mt-1 bg-white px-4 py-4 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] border border-gray-100">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-2xl font-bold">최근 업로드 기록</h2>
@@ -528,7 +528,7 @@ export default function Home() {
                 )}
               </section>
 
-              <section className="grid gap-0 bg-white shadow-[0_1px_0_0_rgba(0,0,0,0.1)] md:grid-cols-2 border-t-3 border-border border-gray-200">
+              <section className="mt-1 grid gap-0 bg-white shadow-[0_1px_0_0_rgba(0,0,0,0.1)] md:grid-cols-2 ">
                 <div className="space-y-4 px-4 py-4 md:border-r md:border-border/40">
                   <div>
                     <h2 className="text-xl font-bold">크루 탐색</h2>
@@ -577,8 +577,10 @@ export default function Home() {
                     크루 목록 보기
                   </Link>
                 </div>
-
-                <div className="space-y-4 px-4 py-4 border-t-3 border-border border-gray-200">
+              </section>
+              
+              <section className="mt-1 grid gap-0 bg-white shadow-[0_1px_0_0_rgba(0,0,0,0.1)] md:grid-cols-2 ">
+                <div className="space-y-4 px-4 py-4 my-2">
                   <div>
                     <h2 className="text-xl font-bold">미션 탐색</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
