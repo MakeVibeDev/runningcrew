@@ -109,7 +109,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-muted/40 pb-4">
-      <main className="mx-auto max-w-6xl px-2 py-0">
+      <main className="mx-auto max-w-6xl px-0 py-0">
         {loading || dataLoading ? (
           <section className="rounded-2xl border border-border/70 bg-card/80 p-10 text-center shadow-sm">
             <p className="text-muted-foreground">데이터를 불러오는 중...</p>
@@ -117,7 +117,7 @@ export default function Home() {
         ) : !user ? (
           <>
             {/* 랜딩 페이지 - 비로그인 사용자용 */}
-            <section className="mb-12 text-center mt-8">
+            <section className="m-4 text-center">
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
                 함께 달리는 즐거움
               </h1>
@@ -144,7 +144,7 @@ export default function Home() {
             </section>
 
             {/* 주요 기능 소개 */}
-            <section className="mb-12 grid gap-6 md:grid-cols-3">
+            <section className="m-4 grid gap-6 md:grid-cols-3">
               <Card>
                 <CardHeader>
                   <div className="mb-2 text-4xl">🏃</div>
