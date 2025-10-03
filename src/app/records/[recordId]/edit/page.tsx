@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
 import {
@@ -14,7 +14,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { fetchRecordById } from "@/lib/supabase/rest";
 
 const MAX_IMAGE_MB = 5;
 const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"] as const;
@@ -87,7 +86,19 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
   const { user } = useSupabase();
   const router = useRouter();
 
-  const [record, setRecord] = useState<Awaited<ReturnType<typeof fetchRecordById>>>(null);
+  const [record, setRecord] = useState<{
+    id: string;
+    recordedAt: string;
+    distanceKm: number;
+    durationSeconds: number;
+    paceSecondsPerKm: number | null;
+    visibility: string;
+    createdAt: string;
+    notes: string | null;
+    imagePath: string | null;
+    imagePathRaw: string | null;
+    mission: { id: string; title: string } | null;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -106,12 +117,12 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
   const [alertMessage, setAlertMessage] = useState("");
   const [alertAction, setAlertAction] = useState<(() => void) | null>(null);
 
-  const showAlert = (title: string, message: string, onOk?: () => void) => {
+  const showAlert = useCallback((title: string, message: string, onOk?: () => void) => {
     setAlertTitle(title);
     setAlertMessage(message);
     setAlertAction(() => onOk || null);
     setAlertOpen(true);
-  };
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -121,21 +132,48 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
 
     async function loadRecord() {
       try {
-        const data = await fetchRecordById(resolvedParams.recordId);
-        if (!data) {
+        // 브라우저 클라이언트로 직접 조회 (RLS 적용)
+        const { getBrowserSupabaseClient } = await import("@/lib/supabase/browser-client");
+        const supabase = getBrowserSupabaseClient();
+
+        const { data: recordData, error } = await supabase
+          .from("records")
+          .select("id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,image_path,notes,mission:missions(id,title)")
+          .eq("id", resolvedParams.recordId)
+          .single();
+
+        if (error || !recordData) {
+          console.error("Failed to load record:", error);
           showAlert("오류", "기록을 찾을 수 없습니다.", () => router.push("/"));
           return;
         }
 
-        setRecord(data);
-        setDistance(data.distanceKm.toString());
-        setDuration(formatSecondsToHhMmSs(data.durationSeconds));
-        setPace(data.paceSecondsPerKm ? formatSecondsToPace(data.paceSecondsPerKm) : "");
-        setRecordedAt(formatToDatetimeLocal(data.recordedAt));
-        setNotes(data.notes || "");
-        setVisibility(data.visibility as "public" | "private");
-        if (data.imagePath) {
-          setImagePreview(data.imagePath);
+        const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const formattedData = {
+          id: recordData.id,
+          recordedAt: recordData.recorded_at,
+          distanceKm: recordData.distance_km,
+          durationSeconds: recordData.duration_seconds,
+          paceSecondsPerKm: recordData.pace_seconds_per_km,
+          visibility: recordData.visibility,
+          createdAt: recordData.created_at,
+          notes: recordData.notes,
+          imagePath: recordData.image_path && SUPABASE_URL
+            ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${recordData.image_path}`
+            : null,
+          imagePathRaw: recordData.image_path,
+          mission: recordData.mission,
+        };
+
+        setRecord(formattedData);
+        setDistance(formattedData.distanceKm.toString());
+        setDuration(formatSecondsToHhMmSs(formattedData.durationSeconds));
+        setPace(formattedData.paceSecondsPerKm ? formatSecondsToPace(formattedData.paceSecondsPerKm) : "");
+        setRecordedAt(formatToDatetimeLocal(formattedData.recordedAt));
+        setNotes(formattedData.notes || "");
+        setVisibility(formattedData.visibility as "public" | "private");
+        if (formattedData.imagePath) {
+          setImagePreview(formattedData.imagePath);
         }
       } catch (error) {
         console.error("Failed to load record:", error);
@@ -146,7 +184,7 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
     }
 
     void loadRecord();
-  }, [user, resolvedParams.recordId, router]);
+  }, [user, resolvedParams.recordId, router, showAlert]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

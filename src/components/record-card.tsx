@@ -69,7 +69,7 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
 
       {/* 비공개 라벨 - 좌측 상단 */}
       {record.visibility === 'private' && (
-        <div className="absolute left-3 top-3 rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+        <div className="absolute left-3 top-3 z-10 rounded-full bg-muted/90 px-2 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm">
           🔒 비공개
         </div>
       )}
