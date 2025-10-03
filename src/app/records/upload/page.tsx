@@ -127,6 +127,12 @@ function RecordUploadPageContent() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [storagePath, setStoragePath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hideGuide, setHideGuide] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("hideRecordUploadGuide") === "true";
+    }
+    return false;
+  });
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, startTransition] = useTransition();
   const [ocrLoading, setOcrLoading] = useState(false);
@@ -460,11 +466,68 @@ function RecordUploadPageContent() {
   }
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-0 py-8">
-      <div className="space-y-1 px-4">
+      <div className="space-y-4 px-4">
         <h1 className="text-3xl font-semibold">기록 등록</h1>
         <p className="text-sm text-muted-foreground">
           참여 중인 미션을 선택하고 OCR 결과를 확인한 뒤 기록을 저장하세요.
         </p>
+
+        {/* 안내 사항 */}
+        {!hideGuide && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <div className="flex flex-col items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-4 text-center">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
+                  1
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  크루의 미션 참여
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-4 text-center">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
+                  2
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  기록 캡쳐 이미지 등록
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-4 text-center">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
+                  3
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  OCR 결과 확인 및 수정
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-4 text-center">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
+                  4
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  기록 등록
+                </p>
+              </div>
+            </div>
+
+            <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={hideGuide}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setHideGuide(checked);
+                  localStorage.setItem("hideRecordUploadGuide", String(checked));
+                }}
+                className="h-4 w-4 rounded border-border text-emerald-500 focus:ring-emerald-500"
+              />
+              다시 보지 않기
+            </label>
+          </div>
+        )}
       </div>
 
       {error ? (
