@@ -1618,4 +1618,298 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 ---
 
+## 11. 크루 가입 시스템 구현
+
+### 11.1 개요
+**요구사항**:
+- 크루 상세 페이지에서 가입 신청 가능
+- 크루 리더가 가입 신청 승인/거절
+- 승인 시 자동으로 멤버 추가
+- 리더에게 대기 중인 신청 알림
+
+### 11.2 데이터베이스 설계
+**파일**: `supabase/migrations/20250402000000_crew_join_requests.sql`
+
+**테이블 구조**:
+```sql
+create table if not exists public.crew_join_requests (
+  id uuid primary key default gen_random_uuid(),
+  crew_id uuid not null references public.crews (id) on delete cascade,
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  message text, -- Optional message from applicant
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  reviewed_at timestamptz,
+  reviewed_by uuid references public.profiles (id),
+
+  -- Prevent duplicate pending requests
+  unique (crew_id, profile_id, status)
+);
+```
+
+**RLS 정책**:
+1. **사용자**: 자신의 신청 조회/생성/취소 가능
+2. **크루 리더/관리자**: 크루의 모든 신청 조회/승인/거절 가능
+3. **가입 제한**: 이미 멤버인 경우 신청 불가
+
+**자동화 트리거**:
+```sql
+create or replace function handle_approved_join_request()
+returns trigger as $$
+begin
+  -- Only process when status changes to 'approved'
+  if new.status = 'approved' and (old.status is null or old.status != 'approved') then
+    -- Add user to crew_members
+    insert into public.crew_members (crew_id, profile_id, role)
+    values (new.crew_id, new.profile_id, 'member')
+    on conflict (crew_id, profile_id) do nothing;
+
+    -- Set reviewed metadata
+    new.reviewed_at = now();
+    new.reviewed_by = auth.uid();
+  end if;
+
+  return new;
+end;
+$$ language plpgsql security definer;
+```
+
+**특징**:
+- 승인 시 자동으로 `crew_members` 테이블에 멤버 추가
+- 승인/거절 시 `reviewed_at`, `reviewed_by` 자동 기록
+- `security definer`로 트리거 실행 시 권한 보장
+
+### 11.3 크루 가입 버튼 컴포넌트
+**파일**: `src/components/crew/crew-join-button.tsx`
+
+**주요 기능**:
+1. **사용자 상태 감지**:
+   - 로그인 여부 확인
+   - 크루 소유자 여부
+   - 이미 멤버인지 확인
+   - 대기 중인 신청이 있는지 확인
+
+2. **상태별 UI**:
+   ```typescript
+   type JoinStatus = "not_member" | "pending" | "member" | "owner" | "loading";
+   ```
+
+   - `not_member`: 가입 신청 폼 표시
+   - `pending`: 신청 대기 중 표시 + 취소 버튼
+   - `member`: "크루 멤버입니다" 표시
+   - `owner`: "내가 운영하는 크루입니다" 표시
+   - `loading`: 로딩 중
+
+3. **가입 신청 기능**:
+   - 선택적 메시지 입력 (최대 200자)
+   - 신청 후 상태 자동 갱신
+   - `router.refresh()`로 서버 상태 동기화
+
+**코드 예시**:
+```typescript
+const handleJoinRequest = async () => {
+  if (!user) {
+    alert("로그인이 필요합니다.");
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    const { error } = await client
+      .from("crew_join_requests")
+      .insert({
+        crew_id: crewId,
+        profile_id: user.id,
+        message: message.trim() || null,
+      } as never);
+
+    if (error) {
+      console.error("가입 신청 실패:", error);
+      alert("가입 신청에 실패했습니다. 다시 시도해주세요.");
+      return;
+    }
+
+    alert("가입 신청이 완료되었습니다. 크루 리더의 승인을 기다려주세요.");
+    setStatus("pending");
+    setMessage("");
+    router.refresh();
+  } catch (error) {
+    console.error("가입 신청 오류:", error);
+    alert("오류가 발생했습니다.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+```
+
+### 11.4 가입 신청 관리 컴포넌트
+**파일**: `src/components/crew/crew-join-requests-manager.tsx`
+
+**주요 기능**:
+1. **권한 확인**:
+   - 크루 리더/관리자만 접근 가능
+   - 일반 사용자에게는 렌더링하지 않음
+
+2. **신청 목록 조회**:
+   ```typescript
+   const { data, error } = await client
+     .from("crew_join_requests")
+     .select(`
+       id,
+       profile_id,
+       message,
+       created_at,
+       profile:profiles (
+         display_name,
+         avatar_url
+       )
+     `)
+     .eq("crew_id", crewId)
+     .eq("status", "pending")
+     .order("created_at", { ascending: true });
+   ```
+
+3. **승인/거절 처리**:
+   - 승인: status를 'approved'로 변경 → 트리거가 자동으로 멤버 추가
+   - 거절: status를 'rejected'로 변경
+   - 처리 후 목록에서 자동 제거
+
+4. **UI 요소**:
+   - 신청 개수 뱃지 표시
+   - 신청자 프로필 사진 및 이름
+   - 신청 메시지 (있는 경우)
+   - 승인/거절 버튼
+   - 처리 중 로딩 상태
+
+**코드 예시**:
+```typescript
+const handleApprove = async (requestId: string) => {
+  if (!confirm("이 사용자의 가입을 승인하시겠습니까?")) return;
+
+  setProcessingId(requestId);
+
+  try {
+    // Update request status to 'approved'
+    // The trigger will automatically add the user to crew_members
+    const { error } = await client
+      .from("crew_join_requests")
+      .update({
+        status: "approved",
+      } as never)
+      .eq("id", requestId);
+
+    if (error) {
+      console.error("승인 실패:", error);
+      alert("승인에 실패했습니다. 다시 시도해주세요.");
+      setProcessingId(null);
+      return;
+    }
+
+    alert("가입이 승인되었습니다!");
+    setRequests((prev) => prev.filter((req) => req.id !== requestId));
+    router.refresh();
+  } catch (error) {
+    console.error("승인 오류:", error);
+    alert("오류가 발생했습니다.");
+  } finally {
+    setProcessingId(null);
+  }
+};
+```
+
+### 11.5 크루 상세 페이지 통합
+**파일**: `src/app/crews/[crewId]/page.tsx`
+
+**변경 사항**:
+```typescript
+import { CrewJoinButton } from "@/components/crew/crew-join-button";
+import { CrewJoinRequestsManager } from "@/components/crew/crew-join-requests-manager";
+
+// ...
+
+<div className="space-y-6">
+  <CrewJoinButton crewId={crew.id} ownerId={crew.owner_id} />
+
+  <CrewJoinRequestsManager crewId={crew.id} ownerId={crew.owner_id} />
+
+  {/* 기존 카드들... */}
+</div>
+```
+
+**배치**:
+- 우측 사이드바 상단에 가입 버튼 배치
+- 가입 버튼 바로 아래에 신청 관리 카드 배치 (리더만 표시)
+
+### 11.6 사용자 플로우
+
+#### 일반 사용자 (크루 가입)
+1. 크루 상세 페이지 접속
+2. "가입 신청하기" 버튼 클릭
+3. 선택적으로 메시지 작성 (예: "매주 주말 함께 달리고 싶습니다!")
+4. "가입 신청하기" 버튼 클릭
+5. "가입 신청이 완료되었습니다" 알림
+6. 상태가 "가입 신청 대기 중"으로 변경
+7. 크루 리더의 승인 대기
+
+#### 크루 리더 (신청 관리)
+1. 크루 상세 페이지 접속
+2. "가입 신청 관리" 카드에 뱃지로 신청 개수 표시
+3. 신청자 목록 확인 (프로필, 이름, 메시지, 신청 날짜)
+4. 각 신청에 대해:
+   - "승인" 클릭 → 자동으로 멤버 추가
+   - "거절" 클릭 → 신청 거절
+5. 처리된 신청은 목록에서 자동 제거
+
+### 11.7 기술적 특징
+
+**보안**:
+- RLS 정책으로 권한 철저히 제어
+- 이미 멤버인 경우 신청 불가 (DB 레벨)
+- 크루 리더/관리자만 신청 조회/처리 가능
+
+**UX 개선**:
+- 실시간 상태 업데이트 (`router.refresh()`)
+- 처리 중 로딩 상태 표시
+- 명확한 상태별 UI (색상, 아이콘, 메시지)
+- 신청 개수 뱃지로 알림 효과
+
+**데이터 무결성**:
+- `unique (crew_id, profile_id, status)` 제약으로 중복 신청 방지
+- 트리거로 승인 시 자동 멤버 추가
+- `on conflict do nothing`으로 중복 멤버 추가 방지
+
+**확장성**:
+- `reviewed_by` 필드로 누가 승인/거절했는지 추적
+- `message` 필드로 신청자 의사 전달
+- 추후 알림 시스템 통합 가능
+
+---
+
+## 배포 체크리스트 (업데이트)
+
+배포 전 확인 사항:
+- [x] 환경 변수 설정 확인 (`.env.local`)
+- [x] Supabase 마이그레이션 실행 완료
+- [x] RLS 정책 활성화 확인
+- [x] Storage 버킷 생성 및 정책 설정
+- [x] 이미지 최적화 설정
+- [ ] 에러 바운더리 추가
+- [x] SEO 메타데이터 설정
+- [x] 로딩 상태 처리
+- [ ] 에러 페이지 커스터마이징
+- [x] Favicon 적용
+- [x] OG 이미지 설정
+- [x] robots.txt 생성
+- [x] sitemap.xml 동적 생성
+- [x] 크루 가입 시스템 구현
+- [ ] **카카오 OAuth Redirect URI 설정 (프로덕션)**
+- [ ] **Supabase URL Configuration 설정 (프로덕션)**
+- [ ] **Vercel 환경변수 설정**
+- [ ] Google Search Console 인증
+- [ ] 네이버 서치어드바이저 인증
+
+---
+
 마지막 업데이트: 2025-10-02

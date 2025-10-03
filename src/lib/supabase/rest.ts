@@ -31,6 +31,7 @@ type CrewDetailRow = {
   owner_id: string;
   location_lat: number | null;
   location_lng: number | null;
+  crew_members: { profile_id: string }[] | null;
   missions: Array<{
     id: string;
     title: string;
@@ -185,13 +186,16 @@ export async function fetchCrewList() {
 
 export async function fetchCrewBySlug(slug: string) {
   const data = await supabaseRest<CrewDetailRow[]>(
-    `crews?slug=eq.${slug}&select=id,slug,name,activity_region,description,intro,logo_image_url,owner_id,location_lat,location_lng,missions(id,title,description,start_date,end_date,target_distance_km,crew_id,mission_participants(status,profile_id))`,
+    `crews?slug=eq.${slug}&select=id,slug,name,activity_region,description,intro,logo_image_url,owner_id,location_lat,location_lng,crew_members(profile_id),missions(id,title,description,start_date,end_date,target_distance_km,crew_id,mission_participants(status,profile_id))`,
   );
   const row = data[0];
   if (!row) return null;
 
+  const memberCount = row.crew_members?.length ?? 0;
+
   return {
     ...row,
+    member_count: memberCount,
     missions: row.missions?.map((mission) => ({
       ...mission,
       participants_count:

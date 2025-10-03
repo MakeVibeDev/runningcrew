@@ -46,7 +46,7 @@ export function CrewJoinRequestsManager({ crewId, ownerId }: CrewJoinRequestsMan
           profile_id,
           message,
           created_at,
-          profile:profiles (
+          profile:profiles!profile_id (
             display_name,
             avatar_url
           )

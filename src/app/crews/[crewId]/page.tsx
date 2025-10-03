@@ -86,10 +86,14 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
                 </div>
               </div>
 
-              <dl className="grid gap-4 rounded-2xl border border-border/60 bg-muted/30 p-5 text-sm sm:grid-cols-3">
+              <dl className="grid gap-4 rounded-2xl border border-border/60 bg-muted/30 p-5 text-sm sm:grid-cols-4">
                 <div>
                   <dt className="text-xs uppercase tracking-wide text-muted-foreground/70">활동 지역</dt>
                   <dd className="mt-1 text-base font-semibold text-foreground">{crew.activity_region}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-muted-foreground/70">크루 멤버</dt>
+                  <dd className="mt-1 text-base font-semibold text-foreground">{crew.member_count}명</dd>
                 </div>
                 <div>
                   <dt className="text-xs uppercase tracking-wide text-muted-foreground/70">소개 상태</dt>
