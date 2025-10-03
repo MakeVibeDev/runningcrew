@@ -78,24 +78,61 @@ export default function Home() {
 
     // 로그인 사용자용 데이터 로드
     setDataLoading(true);
-    Promise.all([
-      fetchUserParticipatingMissions(user.id),
-      fetchUserRecentRecords(user.id, 5),
-      fetchUserOverallStats(user.id),
-      fetchUserJoinedCrews(user.id),
-    ])
-      .then(([missionsData, recordsData, statsData, crewsData]) => {
+
+    async function loadUserData() {
+      if (!user) return;
+
+      try {
+        const [missionsData, statsData, crewsData] = await Promise.all([
+          fetchUserParticipatingMissions(user.id),
+          fetchUserOverallStats(user.id),
+          fetchUserJoinedCrews(user.id),
+        ]);
+
+        // 브라우저 클라이언트로 직접 기록 조회 (RLS 적용)
+        const { getBrowserSupabaseClient } = await import("@/lib/supabase/browser-client");
+        const supabase = getBrowserSupabaseClient();
+
+        const { data: recordsData, error } = await supabase
+          .from("records")
+          .select("id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,image_path,notes,mission:missions(id,title,crew:crews(name))")
+          .eq("profile_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(5);
+
+        if (error) {
+          throw error;
+        }
+
+        const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const formattedRecords = (recordsData || []).map((record: any) => ({
+          id: record.id,
+          recordedAt: record.recorded_at,
+          distanceKm: record.distance_km,
+          durationSeconds: record.duration_seconds,
+          paceSecondsPerKm: record.pace_seconds_per_km,
+          visibility: record.visibility,
+          createdAt: record.created_at,
+          notes: record.notes,
+          imagePath: record.image_path && SUPABASE_URL
+            ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${record.image_path}`
+            : null,
+          mission: record.mission,
+        }));
+
         setMissions(missionsData);
-        setRecentRecords(recordsData);
+        setRecentRecords(formattedRecords);
         setStats(statsData);
         setJoinedCrews(crewsData);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
-      })
-      .finally(() => {
+      } finally {
         setDataLoading(false);
-      });
+      }
+    }
+
+    void loadUserData();
   }, [user]);
 
   return (
