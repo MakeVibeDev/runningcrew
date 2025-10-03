@@ -459,7 +459,7 @@ function RecordUploadPageContent() {
     );
   }
   return (
-    <div className="mx-auto max-w-3xl space-y-8 px-0 py-14">
+    <div className="mx-auto max-w-3xl space-y-8 px-0 py-8">
       <div className="space-y-1 px-4">
         <h1 className="text-3xl font-semibold">기록 등록</h1>
         <p className="text-sm text-muted-foreground">
