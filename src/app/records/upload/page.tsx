@@ -438,7 +438,7 @@ function RecordUploadPageContent() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl space-y-6 px-6 py-14">
+      <div className="mx-auto max-w-3xl space-y-6 px-4 py-14">
         <h1 className="text-3xl font-semibold">기록 업로드</h1>
         <p className="rounded-2xl border border-border/60 bg-muted/40 p-6 text-sm text-muted-foreground">
           로그인 상태를 확인하는 중입니다...
@@ -449,7 +449,7 @@ function RecordUploadPageContent() {
 
   if (!user) {
     return (
-      <div className="mx-auto max-w-3xl space-y-6 px-6 py-14">
+      <div className="mx-auto max-w-3xl space-y-6 px-4 py-14">
         <h1 className="text-3xl font-semibold">기록 업로드</h1>
         <div className="space-y-4 rounded-2xl border border-border/60 bg-muted/40 p-6 text-sm text-muted-foreground">
           <p>기록을 업로드하려면 먼저 로그인해야 합니다.</p>
@@ -459,8 +459,8 @@ function RecordUploadPageContent() {
     );
   }
   return (
-    <div className="mx-auto max-w-3xl space-y-8 px-6 py-14">
-      <div className="space-y-1">
+    <div className="mx-auto max-w-3xl space-y-8 px-0 py-14">
+      <div className="space-y-1 px-4">
         <h1 className="text-3xl font-semibold">기록 등록</h1>
         <p className="text-sm text-muted-foreground">
           참여 중인 미션을 선택하고 OCR 결과를 확인한 뒤 기록을 저장하세요.
@@ -479,7 +479,7 @@ function RecordUploadPageContent() {
       ) : null}
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        <section className="space-y-6 rounded-2xl border border-border/60 bg-background p-6 shadow-sm">
+        <section className="space-y-6  border border-border/60 bg-background p-6 shadow-sm">
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground" htmlFor="mission">
               참여 중인 미션
@@ -566,14 +566,14 @@ function RecordUploadPageContent() {
             </div>
 
             <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
-              <h2 className="text-sm font-semibold text-muted-foreground">운동 데이터</h2>
+              <h2 className="text-mm font-semibold text-muted-foreground">운동 데이터</h2>
               <label className="block text-xs font-semibold uppercase tracking-wide text-orange-600 dark:text-orange-400">
-                    초기 버전이라 OCR 정확도가 떨어집니다. 직접 수정도 가능합니다.
+                    초기 버전이라 OCR 정확도가 떨어집니다. 직접 확인 & 수정해 주세요👍
                   </label>
-              <div className="space-y-4 rounded-xl border-border/60 bg-background p-4">
+              <div className="space-y-4 border-border/60 bg-background pt-4">
                 <div className="space-y-2">
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
-                    활동 시각
+                    활동 시각<span className="px-2 text-orange-600 dark:text-orange-400">실제 활동 시간</span>
                   </label>
                   <div className="relative">
                     <input
@@ -659,7 +659,7 @@ function RecordUploadPageContent() {
            
           </div>
         </section>
-        <div className="space-y-2">
+        <div className="space-y-2 px-4">
                     <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
                       공개 설정
                     </label>
@@ -675,7 +675,7 @@ function RecordUploadPageContent() {
                       <option value="private">비공개 (통계 제외)</option>
                     </select>
                   </div>
-        <div className="space-y-2">
+        <div className="space-y-2 px-4">
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
                     메모 (선택)
                   </label>
@@ -688,11 +688,11 @@ function RecordUploadPageContent() {
                     maxLength={500}
                   />
                 </div>
-        <div>
+        <div className="px-4">
           <button
             type="submit"
             disabled={!canSubmit}
-            className="w-full rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-full bg-foreground px-5 py-4 text-sm font-semibold text-background shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? "💾 저장 중..." : "✅ 기록 등록"}
           </button>
