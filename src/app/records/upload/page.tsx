@@ -477,7 +477,7 @@ function RecordUploadPageContent() {
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <div className="flex flex-col items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-4 text-center">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white">
                   1
                 </div>
                 <p className="text-xs font-medium text-muted-foreground">
@@ -486,7 +486,7 @@ function RecordUploadPageContent() {
               </div>
 
               <div className="flex flex-col items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-4 text-center">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white">
                   2
                 </div>
                 <p className="text-xs font-medium text-muted-foreground">
@@ -495,7 +495,7 @@ function RecordUploadPageContent() {
               </div>
 
               <div className="flex flex-col items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-4 text-center">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white">
                   3
                 </div>
                 <p className="text-xs font-medium text-muted-foreground">
@@ -504,7 +504,7 @@ function RecordUploadPageContent() {
               </div>
 
               <div className="flex flex-col items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-4 text-center">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white">
                   4
                 </div>
                 <p className="text-xs font-medium text-muted-foreground">
@@ -522,7 +522,7 @@ function RecordUploadPageContent() {
                   setHideGuide(checked);
                   localStorage.setItem("hideRecordUploadGuide", String(checked));
                 }}
-                className="h-4 w-4 rounded border-border text-emerald-500 focus:ring-emerald-500"
+                className="h-4 w-4 rounded border-border text-orange-500 focus:ring-orange-500"
               />
               다시 보지 않기
             </label>
@@ -536,7 +536,7 @@ function RecordUploadPageContent() {
         </p>
       ) : null}
       {success ? (
-        <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+        <p className="rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-700">
           {success}
         </p>
       ) : null}
@@ -552,7 +552,7 @@ function RecordUploadPageContent() {
               value={missionId}
               onChange={(event) => setMissionId(event.target.value)}
               disabled={fetchingMissions || missions.length === 0}
-              className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
               required
             >
               {missions.length ? null : <option value="">참여 중인 미션이 없습니다</option>}
@@ -581,7 +581,7 @@ function RecordUploadPageContent() {
                 onClick={() => {
                   document.getElementById("record-image")?.click();
                 }}
-                className="flex h-12 w-full items-center justify-center rounded-xl border border-dashed border-emerald-400 bg-emerald-50 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                className="flex h-12 w-full items-center justify-center rounded-xl border border-dashed border-orange-400 bg-orange-50 text-sm font-semibold text-orange-700 transition hover:bg-orange-100"
               >
                 기록 이미지 선택
               </button>
@@ -655,7 +655,7 @@ function RecordUploadPageContent() {
                           (input as unknown as { showPicker: () => void }).showPicker();
                         }
                       }}
-                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-left text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-left text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500"
                     >
                       {recordedAt ? (() => {
                         const date = new Date(recordedAt);
@@ -683,7 +683,7 @@ function RecordUploadPageContent() {
                       value={distance}
                       onChange={(event) => setDistance(event.target.value)}
                       placeholder="예: 13.1"
-                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500"
                       required
                     />
                 </div>
@@ -698,7 +698,7 @@ function RecordUploadPageContent() {
                       onChange={(event) => handleDurationChange(event.target.value)}
                       onBlur={handleDurationBlur}
                       placeholder="예: 01:12:34"
-                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500"
                       required
                     />
                 </div>
@@ -713,7 +713,7 @@ function RecordUploadPageContent() {
                     onChange={(event) => handlePaceChange(event.target.value)}
                     onBlur={handlePaceBlur}
                     placeholder="예: 05:20"
-                    className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500"
                     required
                   />
                 </div>  
@@ -732,7 +732,7 @@ function RecordUploadPageContent() {
                       onChange={(event) =>
                         setVisibility(event.target.value === "private" ? "private" : "public")
                       }
-                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                     >
                       <option value="public">전체 공개 (통계 반영)</option>
                       <option value="private">비공개 (통계 제외)</option>
@@ -747,7 +747,7 @@ function RecordUploadPageContent() {
                     value={notes}
                     onChange={(event) => setNotes(event.target.value)}
                     rows={4}
-                    className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                     maxLength={500}
                   />
                 </div>

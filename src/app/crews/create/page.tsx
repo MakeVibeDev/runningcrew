@@ -304,7 +304,7 @@ const canSubmit = useMemo(
               <input
                 id="crew-name"
                 type="text"
-                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 placeholder="예: 잠실 새벽 크루"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
@@ -327,7 +327,7 @@ const canSubmit = useMemo(
                 <input
                   id="crew-slug"
                   type="text"
-                  className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                   value={slug}
                   onChange={(event) => setSlug(generateSlug(event.target.value))}
                   required
@@ -336,7 +336,7 @@ const canSubmit = useMemo(
               </div>
               <p
                 className={cn("text-xs", {
-                  "text-emerald-600": slugState === "available",
+                  "text-orange-600": slugState === "available",
                   "text-amber-600": slugState === "checking",
                   "text-rose-500": slugState === "unavailable",
                   "text-muted-foreground": slugState === "idle",
@@ -356,7 +356,7 @@ const canSubmit = useMemo(
               <input
                 id="crew-region"
                 type="text"
-                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 placeholder="예: 서울 송파구 잠실동"
                 value={region}
                 onChange={(event) => setRegion(event.target.value)}
@@ -378,7 +378,7 @@ const canSubmit = useMemo(
               <textarea
                 id="crew-description"
                 rows={4}
-                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 placeholder="크루 운영 방식, 모임 빈도, 주요 목표 등을 간단히 적어주세요."
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
@@ -397,7 +397,7 @@ const canSubmit = useMemo(
                 type="file"
                 accept={ACCEPTED_LOGO_TYPES.join(",")}
                 onChange={handleLogoChange}
-                className="w-full rounded-xl border border-dashed border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-dashed border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
               <p className="text-xs text-muted-foreground">
                 PNG/JPG/JPEG/WEBP, 최대 {MAX_LOGO_MB}MB 권장. 정사각형 이미지를 사용하면 카드에 잘 맞습니다.
@@ -424,7 +424,7 @@ const canSubmit = useMemo(
               "rounded-2xl border px-4 py-3 text-sm",
               formState === "error"
                 ? "border-rose-300 bg-rose-100/50 text-rose-600"
-                : "border-emerald-300 bg-emerald-100/40 text-emerald-700",
+                : "border-emerald-300 bg-orange-100/40 text-orange-700",
             )}
           >
             {message}

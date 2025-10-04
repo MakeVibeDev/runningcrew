@@ -168,8 +168,8 @@ export function CrewJoinButton({ crewId, ownerId }: CrewJoinButtonProps) {
 
   if (status === "owner") {
     return (
-      <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-6 text-center">
-        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+      <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-6 text-center">
+        <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
           내가 운영하는 크루입니다
         </p>
       </div>

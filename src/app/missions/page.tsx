@@ -54,7 +54,7 @@ export default async function MissionsPage() {
                   <h2 className="text-2xl font-bold">{group.crewName}</h2>
                   <Link
                     href={`/crews/${group.crewSlug}`}
-                    className="text-xs font-medium text-emerald-600 hover:underline"
+                    className="text-xs font-medium text-orange-600 hover:underline"
                   >
                     크루 상세 보기
                   </Link>

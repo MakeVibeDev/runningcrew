@@ -147,7 +147,7 @@ export default function MissionCreatePage() {
                 name="crewId"
                 value={form.crewId}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 disabled={isFetchingCrews}
               >
                 {crews.length === 0 ? (
@@ -173,7 +173,7 @@ export default function MissionCreatePage() {
                 id="title"
                 name="title"
                 type="text"
-                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 placeholder="예: 10월 장거리 빌드업"
                 value={form.title}
                 onChange={handleChange}
@@ -189,7 +189,7 @@ export default function MissionCreatePage() {
                 id="description"
                 name="description"
                 rows={4}
-                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 placeholder="미션 목표, 참여 조건 등을 간단히 적어주세요."
                 value={form.description}
                 onChange={handleChange}
@@ -205,7 +205,7 @@ export default function MissionCreatePage() {
                   id="startDate"
                   name="startDate"
                   type="date"
-                  className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                   value={form.startDate}
                   onChange={handleChange}
                   required
@@ -219,7 +219,7 @@ export default function MissionCreatePage() {
                   id="endDate"
                   name="endDate"
                   type="date"
-                  className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                   value={form.endDate}
                   onChange={handleChange}
                   required
@@ -237,7 +237,7 @@ export default function MissionCreatePage() {
                 type="number"
                 min="0"
                 step="0.1"
-                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 placeholder="예: 150"
                 value={form.targetDistance}
                 onChange={handleChange}
@@ -252,7 +252,7 @@ export default function MissionCreatePage() {
           </div>
         ) : null}
         {success ? (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-100/40 px-4 py-3 text-sm text-emerald-700">
+          <div className="rounded-2xl border border-orange-200 bg-orange-100/40 px-4 py-3 text-sm text-orange-700">
             {success}
           </div>
         ) : null}

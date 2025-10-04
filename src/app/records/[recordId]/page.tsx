@@ -326,11 +326,11 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl space-y-4 px-4 py-6">
+      <main className="mx-auto max-w-3xl space-y-2 px-0 py-2">
         {/* Record Card */}
-        <div className="rounded-xl border border-border/60 bg-background p-6">
+        <div className="border border-border/60 bg-background p-4">
           {/* User Info */}
-          <div className="mb-4 flex items-center gap-3">
+          <div className="mb-2 flex items-center gap-3">
             <Link
               href={`/profile/${record.profile.id}`}
               className="relative h-12 w-12 overflow-hidden rounded-full border border-border/60 bg-muted"
@@ -361,7 +361,7 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
           {record.mission && (
             <Link
               href={`/missions/${record.mission.id}`}
-              className="mb-4 inline-block rounded-lg bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+              className="mb-4 inline-block rounded-lg bg-orange-50 px-3 py-1 text-sm font-medium text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-400 dark:hover:bg-orange-950/50"
             >
               📍 {record.mission.title}
             </Link>
@@ -444,7 +444,7 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
         </div>
 
         {/* Comments Section */}
-        <div className="rounded-xl border border-border/60 bg-background p-6">
+        <div className="rounded-xl border border-border/60 bg-background p-4">
           <h3 className="mb-4 text-lg font-semibold">댓글 {record.commentsCount}개</h3>
 
           {/* Comment Form */}
@@ -454,7 +454,7 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
                 value={commentContent}
                 onChange={(e) => setCommentContent(e.target.value)}
                 placeholder="댓글을 입력하세요..."
-                className="w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 rows={3}
                 maxLength={500}
               />
@@ -463,7 +463,7 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
                 <button
                   type="submit"
                   disabled={!commentContent.trim() || isSubmitting}
-                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isSubmitting ? "작성 중..." : "댓글 작성"}
                 </button>
@@ -538,14 +538,14 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
                       <textarea
                         value={editingContent}
                         onChange={(e) => setEditingContent(e.target.value)}
-                        className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                         rows={3}
                         maxLength={500}
                       />
                       <div className="mt-2 flex gap-2">
                         <button
                           onClick={() => handleCommentEdit(comment.id)}
-                          className="rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700"
+                          className="rounded bg-orange-600 px-3 py-1 text-xs font-medium text-white hover:bg-orange-700"
                         >
                           저장
                         </button>

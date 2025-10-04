@@ -38,7 +38,7 @@ export function UserGreeting() {
         {avatarUrl ? (
           <Image src={avatarUrl} alt={`${displayName} avatar`} fill sizes="40px" />
         ) : (
-          <div className="grid h-full w-full place-items-center bg-emerald-500/10 text-emerald-700">
+          <div className="grid h-full w-full place-items-center bg-orange-500/10 text-orange-700">
             {initials}
           </div>
         )}

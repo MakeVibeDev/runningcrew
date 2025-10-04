@@ -131,7 +131,7 @@ export function MissionEditor({ mission }: { mission: MissionEditable }) {
               type="text"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
               required
             />
           </div>
@@ -146,7 +146,7 @@ export function MissionEditor({ mission }: { mission: MissionEditable }) {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="참여 조건, 목표 등을 간단히 적어주세요."
-              className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>
 
@@ -160,7 +160,7 @@ export function MissionEditor({ mission }: { mission: MissionEditable }) {
                 type="date"
                 value={startDate}
                 onChange={(event) => setStartDate(event.target.value)}
-                className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 required
               />
             </div>
@@ -173,7 +173,7 @@ export function MissionEditor({ mission }: { mission: MissionEditable }) {
                 type="date"
                 value={endDate}
                 onChange={(event) => setEndDate(event.target.value)}
-                className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 required
               />
             </div>
@@ -193,7 +193,7 @@ export function MissionEditor({ mission }: { mission: MissionEditable }) {
               step={DEFAULT_DISTANCE_STEP}
               value={targetDistance}
               onChange={(event) => setTargetDistance(event.target.value)}
-              className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
               placeholder="예: 150"
             />
           </div>
@@ -204,7 +204,7 @@ export function MissionEditor({ mission }: { mission: MissionEditable }) {
             </p>
           ) : null}
           {message ? (
-            <p className="rounded-xl border border-emerald-200 bg-emerald-100/40 px-3 py-2 text-xs text-emerald-700">
+            <p className="rounded-xl border border-orange-200 bg-orange-100/40 px-3 py-2 text-xs text-orange-700">
               {message}
             </p>
           ) : null}

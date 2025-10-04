@@ -133,7 +133,7 @@ export default function ProfilePage() {
                       sizes="96px"
                     />
                   ) : (
-                    <div className="grid h-full w-full place-items-center bg-emerald-500/10 text-2xl font-bold text-emerald-700">
+                    <div className="grid h-full w-full place-items-center bg-orange-500/10 text-2xl font-bold text-orange-700">
                       {currentDisplayName.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -199,7 +199,7 @@ export default function ProfilePage() {
               <div
                 className={`rounded-lg px-4 py-3 text-sm ${
                   message.type === "success"
-                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    ? "bg-orange-500/10 text-orange-600 dark:text-orange-400"
                     : "bg-red-500/10 text-red-600 dark:text-red-400"
                 }`}
               >

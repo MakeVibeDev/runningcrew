@@ -57,7 +57,7 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
         </div>
       </div>
 
-      <main className="mx-auto mt-8 flex max-w-5xl flex-col gap-6 px-6">
+      <main className="mx-auto mt-8 flex max-w-5xl flex-col gap-6 px-0">
         <section className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
           <div className="flex flex-col gap-6 lg:flex-row">
             <div className="flex flex-1 flex-col gap-5">

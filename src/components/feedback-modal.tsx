@@ -133,12 +133,12 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
 
         {/* Success Message */}
         {success ? (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center dark:border-emerald-800 dark:bg-emerald-950/30">
+          <div className="rounded-xl border border-orange-200 bg-orange-50 p-6 text-center dark:border-orange-800 dark:bg-orange-950/30">
             <div className="mb-2 text-4xl">✅</div>
-            <p className="font-semibold text-emerald-700 dark:text-emerald-400">
+            <p className="font-semibold text-orange-700 dark:text-orange-400">
               피드백이 전송되었습니다!
             </p>
-            <p className="mt-1 text-sm text-emerald-600 dark:text-emerald-500">
+            <p className="mt-1 text-sm text-orange-600 dark:text-orange-500">
               소중한 의견 감사합니다.
             </p>
           </div>
@@ -188,7 +188,7 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
                     ? "발견하신 버그를 자세히 설명해주세요.\n예) 어떤 상황에서 발생했나요? 재현 방법은?"
                     : "개선하면 좋을 점을 알려주세요.\n예) 어떤 기능이 필요한가요? 불편한 점은?"
                 }
-                className="w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 maxLength={1000}
                 autoComplete="off"
                 autoCorrect="off"
@@ -212,7 +212,7 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             <button
               type="submit"
               disabled={isPending || !content.trim()}
-              className="w-full rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg bg-orange-600 px-4 py-3 font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? "전송 중..." : "피드백 전송"}
             </button>

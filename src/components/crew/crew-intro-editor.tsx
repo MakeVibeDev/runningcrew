@@ -64,7 +64,7 @@ export function CrewIntroEditor({ crewId, ownerId, defaultDescription, defaultIn
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           placeholder="크루 운영 방식, 핵심 키워드를 간단히 적어주세요."
-          className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
       </div>
 
@@ -78,7 +78,7 @@ export function CrewIntroEditor({ crewId, ownerId, defaultDescription, defaultIn
           value={intro}
           onChange={(event) => setIntro(event.target.value)}
           placeholder={"예)\n- 주간/야간 모임 시간\n- 주요 코스\n- 가입 조건"}
-          className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
         <p className="text-xs text-muted-foreground">줄바꿈은 자동으로 단락으로 변환됩니다.</p>
       </div>
@@ -89,7 +89,7 @@ export function CrewIntroEditor({ crewId, ownerId, defaultDescription, defaultIn
         </p>
       ) : null}
       {message ? (
-        <p className="rounded-xl border border-emerald-200 bg-emerald-100/40 px-3 py-2 text-sm text-emerald-700">
+        <p className="rounded-xl border border-orange-200 bg-orange-100/40 px-3 py-2 text-sm text-orange-700">
           {message}
         </p>
       ) : null}

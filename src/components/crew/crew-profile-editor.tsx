@@ -204,7 +204,7 @@ export function CrewProfileEditor({ crewId, ownerId, defaultRegion, defaultLogoU
               type="file"
               accept={ACCEPTED_TYPES.join(",")}
               onChange={handleFileChange}
-              className="w-full rounded-xl border border-dashed border-border/60 bg-background px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full rounded-xl border border-dashed border-border/60 bg-background px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>PNG/JPG/WEBP · 최대 {MAX_FILE_MB}MB</span>
@@ -212,7 +212,7 @@ export function CrewProfileEditor({ crewId, ownerId, defaultRegion, defaultLogoU
                 <button
                   type="button"
                   onClick={handleRemoveLogo}
-                  className="text-emerald-600 hover:underline"
+                  className="text-orange-600 hover:underline"
                 >
                   로고 제거
                 </button>
@@ -231,7 +231,7 @@ export function CrewProfileEditor({ crewId, ownerId, defaultRegion, defaultLogoU
               type="text"
               value={region}
               onChange={(event) => setRegion(event.target.value)}
-              className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full rounded-xl border border-border/60 bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
               placeholder="예: 서울 송파구 잠실동"
               required
             />
@@ -246,7 +246,7 @@ export function CrewProfileEditor({ crewId, ownerId, defaultRegion, defaultLogoU
             </p>
           ) : null}
           {message ? (
-            <p className="rounded-xl border border-emerald-200 bg-emerald-100/40 px-3 py-2 text-xs text-emerald-700">
+            <p className="rounded-xl border border-orange-200 bg-orange-100/40 px-3 py-2 text-xs text-orange-700">
               {message}
             </p>
           ) : null}
