@@ -93,18 +93,17 @@ export async function getRecordLikesCount(
   recordId: string
 ): Promise<number> {
   try {
-    const { data, error } = await supabase
-      .from("records")
-      .select("likes_count")
-      .eq("id", recordId)
-      .single();
+    const { count, error } = await supabase
+      .from("record_likes")
+      .select("*", { count: "exact", head: true })
+      .eq("record_id", recordId);
 
     if (error) {
       console.error("좋아요 수 조회 실패:", error);
       return 0;
     }
 
-    return data?.likes_count || 0;
+    return count || 0;
   } catch (err) {
     console.error("좋아요 수 조회 실패:", err);
     return 0;
@@ -254,18 +253,17 @@ export async function getRecordCommentsCount(
   recordId: string
 ): Promise<number> {
   try {
-    const { data, error } = await supabase
-      .from("records")
-      .select("comments_count")
-      .eq("id", recordId)
-      .single();
+    const { count, error } = await supabase
+      .from("record_comments")
+      .select("*", { count: "exact", head: true })
+      .eq("record_id", recordId);
 
     if (error) {
       console.error("댓글 수 조회 실패:", error);
       return 0;
     }
 
-    return data?.comments_count || 0;
+    return count || 0;
   } catch (err) {
     console.error("댓글 수 조회 실패:", err);
     return 0;

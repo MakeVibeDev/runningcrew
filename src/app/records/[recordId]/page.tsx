@@ -120,8 +120,8 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
             notes,
             image_path,
             visibility,
-            likes_count,
-            comments_count,
+            record_likes(count),
+            record_comments(count),
             mission:missions(id, title),
             profile:profiles(id, display_name, avatar_url)
           `
@@ -140,6 +140,9 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
 
         const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
+        const likesCount = Array.isArray(recordData.record_likes) ? recordData.record_likes.length : 0;
+        const commentsCount = Array.isArray(recordData.record_comments) ? recordData.record_comments.length : 0;
+
         setRecord({
           id: recordData.id,
           distanceKm: recordData.distance_km,
@@ -152,13 +155,13 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
               ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${recordData.image_path}`
               : null,
           visibility: recordData.visibility,
-          likesCount: recordData.likes_count || 0,
-          commentsCount: recordData.comments_count || 0,
+          likesCount,
+          commentsCount,
           mission: recordData.mission,
           profile: recordData.profile,
         });
 
-        setLikesCount(recordData.likes_count || 0);
+        setLikesCount(likesCount);
 
         // Check if user has liked
         if (user) {
