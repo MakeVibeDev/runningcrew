@@ -282,7 +282,7 @@ const canSubmit = useMemo(
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 px-6 py-14">
+    <div className="mx-auto max-w-3xl space-y-2 px-6 py-4">
       <header className="space-y-2">
         <p className="text-sm text-muted-foreground">새로운 러닝 크루 등록</p>
         <h1 className="text-3xl font-semibold">크루 생성</h1>

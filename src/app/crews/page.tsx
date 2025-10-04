@@ -27,7 +27,7 @@ export default async function CrewsPage() {
             <p className="text-sm text-muted-foreground">크루 탐색</p>
             <h1 className="text-3xl font-semibold">주요 크루 미리보기</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              실제 가입/승인 플로우는 회원 인증이 정식 도입된 뒤 제공될 예정입니다.
+              실제 가입은 리더가 승인되어야 합니다.
             </p>
           </div>
           <Link
