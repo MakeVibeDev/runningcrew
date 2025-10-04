@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import { ImageModal } from "@/components/ui/image-modal";
 import { useSupabase } from "@/components/providers/supabase-provider";
@@ -65,6 +66,7 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(record.likesCount || 0);
   const [isLiking, setIsLiking] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (user) {
@@ -97,10 +99,14 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
     setIsLiking(false);
   };
 
+  const handleCardClick = () => {
+    router.push(`/records/${record.id}`);
+  };
+
   return (
-    <Link
-      href={`/records/${record.id}`}
-      className="relative block rounded-xl border border-border/60 bg-background pb-4 text-sm text-muted-foreground transition hover:shadow-md"
+    <div
+      onClick={handleCardClick}
+      className="relative block cursor-pointer rounded-xl border border-border/60 bg-background pb-4 text-sm text-muted-foreground transition hover:shadow-md"
     >
       {/* 수정 버튼 - 우측 상단 */}
       {showEditLink && isOwner && (
@@ -253,7 +259,7 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
             <span className="text-sm font-medium">{likesCount}</span>
           </button>
 
-          {/* 댓글 아이콘 (상세 페이지로 이동하는 전체 링크가 이미 있으므로 아이콘만 표시) */}
+          {/* 댓글 아이콘 */}
           <div className="flex items-center gap-1 text-muted-foreground">
             <svg
               className="h-5 w-5 fill-none"
@@ -281,6 +287,6 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
           alt="기록 사진"
         />
       )}
-    </Link>
+    </div>
   );
 }
