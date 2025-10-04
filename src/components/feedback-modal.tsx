@@ -17,11 +17,32 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
   const [success, setSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  const handleClose = () => {
+    // Blur any active input before closing
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    onClose();
+  };
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
+      // Blur any focused input to prevent mobile zoom issues
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+
       document.body.style.overflow = "unset";
+
+      // Reset viewport zoom on mobile
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport) {
+        const content = viewport.getAttribute('content');
+        viewport.setAttribute('content', content || '');
+      }
+
       // Reset form when closed
       setTimeout(() => {
         setType("bug");
@@ -70,7 +91,7 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
 
         setSuccess(true);
         setTimeout(() => {
-          onClose();
+          handleClose();
         }, 1500);
       } catch (err) {
         console.error("피드백 전송 실패:", err);
@@ -84,7 +105,7 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="w-full max-w-lg rounded-2xl border border-border/60 bg-background p-6 shadow-xl"
@@ -95,7 +116,7 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
           <h2 className="text-2xl font-bold text-foreground">피드백 보내기</h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
             aria-label="닫기"
           >
@@ -169,6 +190,10 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
                 }
                 className="w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 maxLength={1000}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
                 required
               />
               <p className="text-xs text-muted-foreground">
