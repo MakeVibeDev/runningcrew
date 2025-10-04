@@ -43,7 +43,7 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
       <div className="border-b border-border/60 bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
           <div>
-            <p className="text-sm text-muted-foreground">크루 상세</p>
+            
             <h1 className="text-3xl font-semibold">{crew.name}</h1>
             <p className="mt-1 text-sm text-muted-foreground">{crew.activity_region}</p>
           </div>
@@ -137,7 +137,7 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
                 <h3 className="text-xl font-semibold">크루 소개</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{crew.description ?? "크루의 활동 방식 요약"}</p>
               </div>
-              <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+              <div className="space-y-2 text-sm leading-relaxed text-muted-foreground">
                 {introParagraphs.length > 0 ? (
                   introParagraphs.map((paragraph) => (
                     <p key={paragraph} className="text-foreground/90">
