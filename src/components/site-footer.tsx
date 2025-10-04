@@ -13,7 +13,7 @@ export function SiteFooter() {
                 rel="noopener noreferrer"
                 className="hover:text-foreground transition-colors"
               >
-                주식회사 메이크바이브
+                주식회사 메이크바이브 🚀
               </Link>
             </p>
             <p>대표이사: 안계준</p>
