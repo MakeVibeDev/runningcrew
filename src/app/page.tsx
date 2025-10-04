@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { KakaoLoginButton } from "@/components/ui/oauth-button";
 import {
   fetchCrewList,
@@ -49,7 +48,7 @@ export default function Home() {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-muted/40 pb-4">
+    <div className="min-h-screen bg-muted/40 pb-0">
       <main className="mx-auto max-w-6xl px-0 py-0">
         {loading || dataLoading ? (
           <section className="rounded-2xl border border-border/70 bg-card/80 p-10 text-center shadow-sm">
@@ -58,12 +57,15 @@ export default function Home() {
         ) : !user ? (
           <>
             {/* 랜딩 페이지 - 비로그인 사용자용 */}
-            <section className="m-4 text-center">
+            <section className="pt-6 text-center">
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
                 함께 달리는 즐거움
               </h1>
               <p className="mt-4 text-lg text-muted-foreground sm:text-xl">
                 러닝 크루와 함께 미션을 완수하고 기록을 공유하세요
+              </p>
+              <p className="mt-3 text-base text-muted-foreground">
+                러닝 크루 관리부터 기록 추적, 소셜 기능까지 - 러닝의 모든 순간을 함께합니다
               </p>
               <div className="mt-8 flex flex-col items-center gap-4">
                 <p className="text-sm text-muted-foreground">
@@ -85,46 +87,123 @@ export default function Home() {
             </section>
 
             {/* 주요 기능 소개 */}
-            <section className="m-4 grid gap-6 md:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <div className="mb-2 text-4xl">🏃</div>
-                  <CardTitle>러닝 크루</CardTitle>
-                  <CardDescription>
-                    같은 목표를 가진 러너들과 함께 달리세요
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+            <section className="m-4 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
+                <div className="mb-3 text-4xl">🏃</div>
+                <h3 className="mb-2 text-lg font-semibold">러닝 크루</h3>
+                <p className="text-sm text-muted-foreground">
+                  같은 목표를 가진 러너들과 함께 달리세요
+                </p>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <div className="mb-2 text-4xl">🎯</div>
-                  <CardTitle>미션 챌린지</CardTitle>
-                  <CardDescription>
-                    크루별 미션에 참여하고 목표를 달성하세요
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+              <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
+                <div className="mb-3 text-4xl">🎯</div>
+                <h3 className="mb-2 text-lg font-semibold">미션 챌린지</h3>
+                <p className="text-sm text-muted-foreground">
+                  크루별 미션에 참여하고 목표를 달성하세요
+                </p>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <div className="mb-2 text-4xl">📊</div>
-                  <CardTitle>기록 관리</CardTitle>
-                  <CardDescription>
-                    러닝 기록을 업로드하고 통계를 확인하세요
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+              <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
+                <div className="mb-3 text-4xl">📱</div>
+                <h3 className="mb-2 text-lg font-semibold">OCR 기록 분석</h3>
+                <p className="text-sm text-muted-foreground">
+                  앱 스크린샷을 업로드하면 자동으로 기록을 인식합니다
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
+                <div className="mb-3 text-4xl">💬</div>
+                <h3 className="mb-2 text-lg font-semibold">소셜 기능</h3>
+                <p className="text-sm text-muted-foreground">
+                  좋아요와 댓글로 함께 응원하고 격려하세요
+                </p>
+              </div>
+            </section>
+
+            {/* How It Works */}
+            <section className="m-4 mt-12 rounded-xl border border-border/70 bg-background p-8 shadow-sm">
+              <h2 className="mb-6 text-center text-2xl font-bold">시작하기</h2>
+              <div className="grid gap-6 md:grid-cols-4">
+                <div className="text-center">
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400 mx-auto">
+                    1
+                  </div>
+                  <h3 className="mb-2 font-semibold">카카오 로그인</h3>
+                  <p className="text-sm text-muted-foreground">
+                    간편하게 카카오 계정으로 시작하세요
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400 mx-auto">
+                    2
+                  </div>
+                  <h3 className="mb-2 font-semibold">크루 찾기</h3>
+                  <p className="text-sm text-muted-foreground">
+                    내 지역의 크루를 찾거나 직접 만들어보세요
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400 mx-auto">
+                    3
+                  </div>
+                  <h3 className="mb-2 font-semibold">미션 참여</h3>
+                  <p className="text-sm text-muted-foreground">
+                    크루의 미션에 참여하고 목표에 도전하세요
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400 mx-auto">
+                    4
+                  </div>
+                  <h3 className="mb-2 font-semibold">기록 업로드</h3>
+                  <p className="text-sm text-muted-foreground">
+                    러닝 앱 스크린샷을 업로드하면 OCR이 자동 분석합니다
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* Beta Notice */}
+            <section className="m-4 mt-8 rounded-xl border border-orange-200 bg-orange-50 p-6 dark:border-orange-800 dark:bg-orange-950/30">
+              <div className="flex items-start gap-4">
+                <div className="text-4xl">🚀</div>
+                <div className="flex-1">
+                  <h3 className="mb-2 text-lg font-semibold text-orange-900 dark:text-orange-200">
+                    베타 테스트 중입니다
+                  </h3>
+                  <p className="mb-3 text-sm text-orange-700 dark:text-orange-300">
+                    RunningCrew는 현재 베타 버전입니다. 서비스를 이용하시면서 불편한 점이나 개선사항이 있으시면 언제든지 알려주세요.
+                  </p>
+                  <div className="flex flex-wrap gap-3 text-sm">
+                    <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                      <span>💡</span>
+                      <span>우측 하단 피드백 버튼으로 의견 전달</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                      <span>🐛</span>
+                      <span>버그 제보 환영</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                      <span>✨</span>
+                      <span>개선 아이디어 제안</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </section>
 
             {/* 크루 & 미션 미리보기 */}
-            <section className="grid gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>인기 크루</CardTitle>
-                  <CardDescription>활발하게 활동 중인 러닝 크루들</CardDescription>
-                </CardHeader>
-                <CardContent>
+            <section className="m-4 grid gap-6 md:grid-cols-2">
+              <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold">인기 크루</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">활발하게 활동 중인 러닝 크루들</p>
+                </div>
+                <div>
                   {publicCrews.length === 0 ? (
                     <p className="text-sm text-muted-foreground">크루 목록을 불러오는 중...</p>
                   ) : (
@@ -213,15 +292,15 @@ export default function Home() {
                       </Link>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>진행 중인 미션</CardTitle>
-                  <CardDescription>지금 참여할 수 있는 미션들</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold">진행 중인 미션</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">지금 참여할 수 있는 미션들</p>
+                </div>
+                <div>
                   {publicMissions.length === 0 ? (
                     <p className="text-sm text-muted-foreground">미션 목록을 불러오는 중...</p>
                   ) : (
@@ -249,8 +328,8 @@ export default function Home() {
                       </Link>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </section>
           </>
         ) : null}
