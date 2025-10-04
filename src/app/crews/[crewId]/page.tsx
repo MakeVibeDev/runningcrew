@@ -60,8 +60,8 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
         <section className="border border-border/70 bg-background p-6 shadow-sm">
           <div className="flex flex-col gap-6 lg:flex-row">
             <div className="flex flex-1 flex-col gap-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-              <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-border/60 bg-muted">
+            <div className="flex items-start gap-4">
+              <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-muted">
                 {crew.logo_image_url ? (
                   <Image
                     src={crew.logo_image_url}
@@ -76,7 +76,7 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
                     </div>
                   )}
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-sm text-muted-foreground">{crew.activity_region}</p>
                   <h2 className="text-2xl font-semibold">{crew.name}</h2>
                   <p className="mt-2 text-sm text-muted-foreground">
@@ -130,7 +130,7 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
           </div>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
+        <section className="grid gap-2 lg:grid-cols-[1.4fr_0.8fr]">
           <div className="space-y-2">
             <div className="border border-border/70 bg-background p-6 shadow-sm">
               <div className="mb-6">
@@ -156,8 +156,8 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
               </div>
             </div>
 
-            <div className="border border-border/70 bg-background p-6 shadow-sm">
-              <div className="mb-6">
+            <div className="border border-border/70 bg-background p-4 shadow-sm">
+              <div className="mb-2">
                 <h3 className="text-xl font-semibold">진행 중 미션</h3>
                 <p className="mt-1 text-sm text-muted-foreground">등록된 미션과 진행 정보를 확인할 수 있습니다.</p>
               </div>
@@ -172,7 +172,7 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
                     return (
                       <div
                         key={mission.id}
-                        className="rounded-2xl border border-border/60 bg-muted/30 p-5"
+                        className="rounded-2xl border border-border/60 bg-muted/30 p-4"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div>
@@ -227,12 +227,12 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-2">
             <CrewJoinButton crewId={crew.id} ownerId={crew.owner_id} />
 
             <CrewJoinRequestsManager crewId={crew.id} ownerId={crew.owner_id} />
 
-            <div className="border border-border/70 bg-background p-6 shadow-sm">
+            <div className="border border-border/70 bg-background p-4 shadow-sm">
               <div className="mb-6">
                 <h3 className="text-xl font-semibold">모임 일정</h3>
                 <p className="mt-1 text-sm text-muted-foreground">상세 일정 정보는 추후 등록됩니다.</p>
@@ -242,7 +242,7 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
               </div>
             </div>
 
-            <div className="border border-border/70 bg-background p-6 shadow-sm">
+            <div className="border border-border/70 bg-background p-4 shadow-sm">
               <div className="mb-6">
                 <h3 className="text-xl font-semibold">연락처 & 링크</h3>
                 <p className="mt-1 text-sm text-muted-foreground">가입 문의 채널은 추후 업데이트됩니다.</p>
