@@ -23,9 +23,13 @@ function formatToDatetimeLocal(isoString: string) {
   if (Number.isNaN(date.getTime())) {
     return new Date().toISOString().slice(0, 16);
   }
-  const offset = date.getTimezoneOffset();
-  const local = new Date(date.getTime() - offset * 60 * 1000);
-  return local.toISOString().slice(0, 16);
+  // 로컬 시간대로 변환 (YYYY-MM-DDTHH:mm 형식)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 function formatSecondsToPace(value: number | string) {
@@ -253,6 +257,28 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
         imagePath = storagePath;
       }
 
+      // datetime-local 값을 ISO 문자열로 변환
+      // recordedAt은 "YYYY-MM-DDTHH:mm" 형식 (로컬 시간)
+      // 이를 Date 객체로 만들면 자동으로 로컬 시간대로 해석됨
+      const recordedAtDate = new Date(recordedAt);
+      const recordedAtISO = recordedAtDate.toISOString();
+
+      console.log("Date conversion:", {
+        input: recordedAt,
+        date: recordedAtDate.toString(),
+        iso: recordedAtISO,
+      });
+
+      console.log("Updating record with:", {
+        distance_km: distanceKm,
+        duration_seconds: durationSeconds,
+        pace_seconds_per_km: paceSeconds,
+        recorded_at: recordedAtISO,
+        notes: notes.trim() || null,
+        visibility,
+        image_path: imagePath,
+      });
+
       // 기록 업데이트
       /* eslint-disable @typescript-eslint/no-explicit-any */
       const { error: updateError } = await (supabase as any)
@@ -261,7 +287,7 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
           distance_km: distanceKm,
           duration_seconds: durationSeconds,
           pace_seconds_per_km: paceSeconds,
-          recorded_at: recordedAt,
+          recorded_at: recordedAtISO,
           notes: notes.trim() || null,
           visibility,
           image_path: imagePath,
@@ -273,7 +299,12 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
         throw new Error(`기록 수정 실패: ${updateError.message}`);
       }
 
-      showAlert("완료", "기록이 수정되었습니다.", () => router.push("/"));
+      console.log("Record updated successfully");
+      showAlert("완료", "기록이 수정되었습니다.", () => {
+        // 캐시를 새로고침하고 이전 페이지로 이동
+        router.refresh();
+        router.back();
+      });
     } catch (error) {
       console.error("Save error:", error);
       showAlert("오류", error instanceof Error ? error.message : "기록 수정 중 오류가 발생했습니다.");
@@ -373,16 +404,22 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
             />
           </div>
 
-          {/* 활동 시간 */}
+          {/* 활동 날짜/시간 */}
           <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
             <label htmlFor="recordedAt" className="block text-sm font-semibold">
-              활동 시간 *
+              활동 날짜 및 시간 *
             </label>
+            <p className="mt-1 text-xs text-muted-foreground">
+              러닝을 실제로 수행한 날짜와 시간을 선택하세요
+            </p>
             <input
               type="datetime-local"
               id="recordedAt"
               value={recordedAt}
-              onChange={(e) => setRecordedAt(e.target.value)}
+              onChange={(e) => {
+                console.log("Date changed:", e.target.value);
+                setRecordedAt(e.target.value);
+              }}
               className="mt-2 w-full rounded-lg border border-border bg-background px-4 py-2"
               required
             />

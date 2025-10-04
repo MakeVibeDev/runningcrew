@@ -315,12 +315,13 @@ export async function fetchMissionRecords(missionId: string, limit?: number) {
   const encoded = encodeURIComponent(missionId);
   const limitParam = limit ? `&limit=${limit}` : '';
   const data = await supabaseRest<MissionDetailRecordRow[]>(
-    `records?mission_id=eq.${encoded}&visibility=eq.public&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,notes,created_at,image_path,likes_count,comments_count,profile:profiles(id,display_name,avatar_url)&order=created_at.desc${limitParam}`,
+    `records?mission_id=eq.${encoded}&visibility=eq.public&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,notes,created_at,image_path,record_likes(count),record_comments(count),profile:profiles(id,display_name,avatar_url)&order=created_at.desc${limitParam}`,
   );
 
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-  return data.map((record) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data.map((record: any) => ({
     id: record.id,
     recordedAt: record.recorded_at,
     distanceKm: record.distance_km,
@@ -332,8 +333,8 @@ export async function fetchMissionRecords(missionId: string, limit?: number) {
     imagePath: record.image_path && SUPABASE_URL
       ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${record.image_path}`
       : null,
-    likesCount: record.likes_count || 0,
-    commentsCount: record.comments_count || 0,
+    likesCount: Array.isArray(record.record_likes) ? record.record_likes.length : 0,
+    commentsCount: Array.isArray(record.record_comments) ? record.record_comments.length : 0,
     profile: record.profile,
   }));
 }
