@@ -47,12 +47,21 @@ export function CrewJoinButton({ crewId, ownerId }: CrewJoinButtonProps) {
       }
 
       // Check if user is already a member
-      const { data: memberData } = await client
+      const { data: memberData, error: memberError } = await client
         .from("crew_members")
         .select("role")
         .eq("crew_id", crewId)
         .eq("profile_id", user.id)
-        .single();
+        .maybeSingle();
+
+      if (memberError) {
+        console.error("Failed to check member status:", memberError);
+        await reportSupabaseError(memberError, "Crew Member Status Check Failed", {
+          userId: user.id,
+          userEmail: user.email,
+          metadata: { crewId },
+        });
+      }
 
       if (memberData) {
         setStatus("member");
@@ -60,13 +69,22 @@ export function CrewJoinButton({ crewId, ownerId }: CrewJoinButtonProps) {
       }
 
       // Check if user has a pending request
-      const { data: requestData } = await client
+      const { data: requestData, error: requestError } = await client
         .from("crew_join_requests")
         .select("status")
         .eq("crew_id", crewId)
         .eq("profile_id", user.id)
         .eq("status", "pending")
-        .single();
+        .maybeSingle();
+
+      if (requestError) {
+        console.error("Failed to check join request status:", requestError);
+        await reportSupabaseError(requestError, "Crew Join Request Status Check Failed", {
+          userId: user.id,
+          userEmail: user.email,
+          metadata: { crewId },
+        });
+      }
 
       if (requestData) {
         setStatus("pending");
