@@ -14,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { reportSupabaseError } from "@/lib/error-reporter";
 
 type JoinStatus = "not_member" | "pending" | "member" | "owner" | "loading";
 
@@ -87,19 +88,38 @@ export function CrewJoinButton({ crewId, ownerId }: CrewJoinButtonProps) {
     setIsSubmitting(true);
 
     try {
-      const { error } = await client
+      const { data, error } = await client
         .from("crew_join_requests")
         .insert({
           crew_id: crewId,
           profile_id: user.id,
           message: message.trim() || null,
-        } as never);
+        } as never)
+        .select();
 
       if (error) {
         console.error("가입 신청 실패:", error);
+        console.error("Error code:", error.code);
+        console.error("Error message:", error.message);
+        console.error("Error details:", error.details);
+        console.error("Error hint:", error.hint);
+
+        // Report to Slack
+        await reportSupabaseError(error, "Crew Join Request Failed", {
+          userId: user.id,
+          userEmail: user.email,
+          userName: user.user_metadata?.name || user.email,
+          metadata: {
+            crewId,
+            messageLength: message.length,
+          },
+        });
+
         setAlertDialog("join_error");
         return;
       }
+
+      console.log("가입 신청 성공:", data);
 
       setAlertDialog("join_success");
       setStatus("pending");
@@ -107,6 +127,17 @@ export function CrewJoinButton({ crewId, ownerId }: CrewJoinButtonProps) {
       router.refresh();
     } catch (error) {
       console.error("가입 신청 오류:", error);
+
+      // Report to Slack
+      await reportSupabaseError(error, "Crew Join Request Exception", {
+        userId: user.id,
+        userEmail: user.email,
+        userName: user.user_metadata?.name || user.email,
+        metadata: {
+          crewId,
+        },
+      });
+
       setAlertDialog("generic_error");
     } finally {
       setIsSubmitting(false);
@@ -133,6 +164,17 @@ export function CrewJoinButton({ crewId, ownerId }: CrewJoinButtonProps) {
 
       if (error) {
         console.error("신청 취소 실패:", error);
+
+        // Report to Slack
+        await reportSupabaseError(error, "Crew Join Request Cancellation Failed", {
+          userId: user.id,
+          userEmail: user.email,
+          userName: user.user_metadata?.name || user.email,
+          metadata: {
+            crewId,
+          },
+        });
+
         setAlertDialog("cancel_error");
         return;
       }
@@ -142,6 +184,17 @@ export function CrewJoinButton({ crewId, ownerId }: CrewJoinButtonProps) {
       router.refresh();
     } catch (error) {
       console.error("신청 취소 오류:", error);
+
+      // Report to Slack
+      await reportSupabaseError(error, "Crew Join Request Cancellation Exception", {
+        userId: user.id,
+        userEmail: user.email,
+        userName: user.user_metadata?.name || user.email,
+        metadata: {
+          crewId,
+        },
+      });
+
       setAlertDialog("generic_error");
     } finally {
       setIsSubmitting(false);
@@ -168,7 +221,7 @@ export function CrewJoinButton({ crewId, ownerId }: CrewJoinButtonProps) {
 
   if (status === "owner") {
     return (
-      <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-6 text-center">
+      <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-4 text-center mx-4">
         <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
           내가 운영하는 크루입니다
         </p>

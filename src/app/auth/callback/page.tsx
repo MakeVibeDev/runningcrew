@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
+import { reportSupabaseError } from "@/lib/error-reporter";
 
 function AuthCallbackContent() {
   const router = useRouter();
@@ -61,6 +62,18 @@ function AuthCallbackContent() {
 
       if (upsertError) {
         console.error("프로필 동기화 실패", upsertError);
+
+        // Report to Slack
+        await reportSupabaseError(upsertError, "Profile Upsert Failed in Auth Callback", {
+          userId: user.id,
+          userEmail: user.email,
+          userName: displayName,
+          metadata: {
+            hasAvatarUrl: !!avatarUrl,
+          },
+        });
+      } else {
+        console.log("프로필 동기화 성공:", user.id, displayName);
       }
     };
 
@@ -68,8 +81,17 @@ function AuthCallbackContent() {
       setMessage("로그인에 성공했습니다. 리다이렉트 중...");
       await syncProfile();
       await refreshProfile();
+
+      // Get user ID for redirect
+      const { data: userData } = await client.auth.getUser();
+      const userId = userData.user?.id;
+
       setTimeout(() => {
-        router.replace("/");
+        if (userId) {
+          router.replace(`/profile/${userId}`);
+        } else {
+          router.replace("/");
+        }
       }, 400);
     };
 

@@ -6,6 +6,7 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { SupabaseProvider } from "@/components/providers/supabase-provider";
 import { FeedbackButton } from "@/components/feedback-button";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -106,12 +107,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-background text-foreground antialiased`}
       >
-        <SupabaseProvider>
-          <SiteNav />
-          <div className="pb-10">{children}</div>
-          <SiteFooter />
-          <FeedbackButton />
-        </SupabaseProvider>
+        <ErrorBoundary>
+          <SupabaseProvider>
+            <SiteNav />
+            <div className="pb-10">{children}</div>
+            <SiteFooter />
+            <FeedbackButton />
+          </SupabaseProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

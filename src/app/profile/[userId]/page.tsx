@@ -11,6 +11,7 @@ import {
   fetchUserOverallStats,
   fetchUserJoinedCrews,
 } from "@/lib/supabase/rest";
+import { reportSupabaseError } from "@/lib/error-reporter";
 
 function formatDuration(seconds: number) {
   const hrs = Math.floor(seconds / 3600);
@@ -74,14 +75,64 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
           .from("profiles")
           .select("id,display_name,avatar_url")
           .eq("id", resolvedParams.userId)
-          .single();
+          .maybeSingle();
 
-        if (profileError || !profileData) {
+        if (profileError) {
           console.error("Failed to load profile:", profileError);
+
+          // Report to Slack
+          await reportSupabaseError(profileError, "Profile Load Failed", {
+            userId: user?.id,
+            userEmail: user?.email,
+            userName: user?.user_metadata?.name || user?.email,
+            metadata: {
+              targetUserId: resolvedParams.userId,
+              isOwnProfile,
+            },
+          });
+
           return;
         }
 
-        setProfileUser(profileData);
+        // 프로필이 없는 경우 (신규 사용자)
+        if (!profileData) {
+          console.warn("Profile not found for user:", resolvedParams.userId);
+
+          // 본인 프로필인 경우에만 자동 생성
+          if (isOwnProfile && user) {
+            const displayName = user.user_metadata?.name || user.email?.split("@")[0] || "러너";
+            const avatarUrl = user.user_metadata?.avatar_url;
+
+            const { data: newProfile, error: createError } = await supabase
+              .from("profiles")
+              .insert({
+                id: user.id,
+                display_name: displayName,
+                avatar_url: avatarUrl,
+              } as never)
+              .select("id,display_name,avatar_url")
+              .single();
+
+            if (createError) {
+              console.error("Failed to create profile:", createError);
+
+              await reportSupabaseError(createError, "Profile Auto-Creation Failed", {
+                userId: user.id,
+                userEmail: user.email,
+                userName: user.user_metadata?.name || user.email,
+              });
+
+              return;
+            }
+
+            setProfileUser(newProfile);
+          } else {
+            // 타인의 프로필이 없는 경우
+            return;
+          }
+        } else {
+          setProfileUser(profileData);
+        }
 
         // 사용자 데이터 로드
         const [missionsData, statsData, crewsData] = await Promise.all([
@@ -107,6 +158,16 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
 
         if (recordsError) {
           console.error("Failed to load records:", recordsError);
+
+          await reportSupabaseError(recordsError, "Records Load Failed", {
+            userId: user?.id,
+            userEmail: user?.email,
+            userName: user?.user_metadata?.name || user?.email,
+            metadata: {
+              targetUserId: resolvedParams.userId,
+              isOwnProfile,
+            },
+          });
         }
 
         const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -132,13 +193,23 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
         setJoinedCrews(crewsData);
       } catch (error) {
         console.error("Failed to fetch profile data:", error);
+
+        await reportSupabaseError(error, "Profile Page Data Load Exception", {
+          userId: user?.id,
+          userEmail: user?.email,
+          userName: user?.user_metadata?.name || user?.email,
+          metadata: {
+            targetUserId: resolvedParams.userId,
+            isOwnProfile,
+          },
+        });
       } finally {
         setDataLoading(false);
       }
     }
 
     void loadProfileData();
-  }, [resolvedParams.userId, isOwnProfile]);
+  }, [resolvedParams.userId, isOwnProfile, user]);
 
   if (authLoading || dataLoading) {
     return (
