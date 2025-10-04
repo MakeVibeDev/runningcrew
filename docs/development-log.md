@@ -2754,3 +2754,186 @@ create policy "Records visible to owner or public" on public.records
 ---
 
 마지막 업데이트: 2025-10-04
+
+---
+
+## 2025-10-04 (오후) - 랜딩 페이지 개선 및 브랜딩 업데이트
+
+### 작업 개요
+베타 테스터 오픈을 위한 서비스 소개 콘텐츠 추가 및 브랜딩 개선
+
+### 1. 랜딩 페이지 서비스 소개 추가
+
+**목적**: 테스터들에게 서비스를 명확히 소개하고 사용 방법 안내
+
+**구현 내용**:
+
+#### Hero 섹션 개선
+- 서비스 소개 문구 추가: "러닝 크루 관리부터 기록 추적, 소셜 기능까지 - 러닝의 모든 순간을 함께합니다"
+- 기존 CTA 버튼 유지 (카카오 로그인, 크루 둘러보기)
+
+#### 주요 기능 섹션 확장 (3개 → 4개)
+```tsx
+// 기존 3개 기능 카드에서 4개로 확장
+<section className="m-4 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+  <div>🏃 러닝 크루</div>
+  <div>🎯 미션 챌린지</div>
+  <div>📱 OCR 기록 분석</div>  // 새로 추가
+  <div>💬 소셜 기능</div>      // 새로 추가
+</section>
+```
+
+#### "시작하기" 단계별 가이드 추가
+```tsx
+<section className="m-4 mt-12 rounded-xl border border-border/70 bg-background p-8 shadow-sm">
+  <h2>시작하기</h2>
+  <div className="grid gap-6 md:grid-cols-4">
+    <div>1. 카카오 로그인</div>
+    <div>2. 크루 찾기</div>
+    <div>3. 미션 참여</div>
+    <div>4. 기록 업로드 (OCR 자동 분석)</div>
+  </div>
+</section>
+```
+
+#### 베타 테스트 안내 섹션 추가
+```tsx
+<section className="rounded-xl border border-orange-200 bg-orange-50 p-6">
+  <h3>🚀 베타 테스트 중입니다</h3>
+  <p>RunningCrew는 현재 베타 버전입니다...</p>
+  <div>
+    💡 우측 하단 피드백 버튼으로 의견 전달
+    🐛 버그 제보 환영
+    ✨ 개선 아이디어 제안
+  </div>
+</section>
+```
+
+#### UI 일관성 개선
+- Card 컴포넌트를 div로 교체
+- 일관된 스타일링: `rounded-xl border border-border/70 bg-background p-6 shadow-sm`
+- Card import 제거
+
+**파일**: `src/app/page.tsx`
+
+---
+
+### 2. 로고에 BETA 배지 추가
+
+**구현**:
+```tsx
+<Link href={user ? `/profile/${user.id}` : "/"} className="flex items-center gap-2">
+  <Image src="/logo2.png" alt="RunningCrew" ... />
+  {/* Beta Badge */}
+  <span className="rounded-md bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-700 dark:bg-orange-950/50 dark:text-orange-400">
+    BETA
+  </span>
+</Link>
+```
+
+**특징**:
+- 브랜드 컬러(주황색) 사용
+- 다크 모드 지원
+- 데스크톱/모바일 모두 표시
+
+**파일**: `src/components/site-nav.tsx`
+
+---
+
+### 3. 서비스 로고 교체
+
+**변경 사항**:
+- 기존 로고: `/logo_text-removebg.png`, `/logo-removebg.png`
+- 새 로고: `/logo2.png` (running crew 텍스트가 있는 주황색 부채꼴 디자인)
+- 데스크톱과 모바일 모두 동일한 로고 사용
+
+**파일**:
+- `public/logo2.png` (새로 추가)
+- `src/components/site-nav.tsx` (로고 경로 변경)
+
+---
+
+### 커밋 로그
+
+```bash
+b009316 feat: enhance landing page with comprehensive service introduction
+9816d5a feat: add BETA badge to logo and update to logo2.png
+```
+
+**상세 변경사항**:
+
+1. **b009316**: 랜딩 페이지 개선
+   - 서비스 개요 tagline 추가
+   - 기능 섹션 3개 → 4개 확장 (OCR, 소셜 기능 추가)
+   - "시작하기" 4단계 가이드 추가
+   - 베타 테스트 안내 섹션 추가
+   - Card 컴포넌트를 div로 교체하여 UI 일관성 유지
+   - 모바일 반응형 2/4 컬럼 그리드 레이아웃
+
+2. **9816d5a**: 로고 및 BETA 배지
+   - logo2.png로 로고 교체
+   - 네비게이션 헤더에 BETA 배지 추가
+   - 주황색 브랜드 컬러 및 다크 모드 지원
+
+---
+
+### 기술적 세부사항
+
+**반응형 그리드**:
+```tsx
+// 기능 섹션: 모바일 2열, 데스크톱 4열
+grid gap-6 md:grid-cols-2 lg:grid-cols-4
+
+// 시작하기 섹션: 모바일 1열, 데스크톱 4열
+grid gap-6 md:grid-cols-4
+```
+
+**브랜드 컬러 통일**:
+- 주황색 계열 사용: `orange-50`, `orange-100`, `orange-600`, `orange-700`, `orange-950`
+- 다크 모드: `dark:bg-orange-950/30`, `dark:text-orange-400`
+
+**접근성**:
+- 의미 있는 heading 구조 (h1 → h2 → h3)
+- 명확한 섹션 구분
+- 충분한 색상 대비
+
+---
+
+### 테스트 체크리스트
+
+- [x] 빌드 성공 확인
+- [x] 데스크톱 레이아웃 확인
+- [x] 모바일 반응형 확인
+- [x] 다크 모드 확인
+- [x] BETA 배지 표시 확인
+- [x] 새 로고 적용 확인
+- [x] Git commit & push 완료
+
+---
+
+### 다음 작업
+
+#### 베타 오픈 준비
+1. **성능 최적화**
+   - 이미지 최적화 확인
+   - 번들 사이즈 분석
+   - Lighthouse 점수 확인
+
+2. **모니터링 설정**
+   - 에러 트래킹 (Sentry 등)
+   - 사용자 행동 분석
+   - 피드백 데이터 수집 확인
+
+3. **문서화**
+   - 사용자 가이드 작성
+   - FAQ 준비
+   - 버그 리포트 템플릿
+
+#### 기능 개선
+1. **OCR 파이프라인 구현**
+2. **알림 시스템 구축**
+3. **에러 핸들링 개선**
+
+---
+
+마지막 업데이트: 2025-10-04 (오후)
