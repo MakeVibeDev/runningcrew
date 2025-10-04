@@ -136,6 +136,8 @@ type MissionDetailRecordRow = {
   notes: string | null;
   created_at: string;
   image_path: string | null;
+  likes_count: number;
+  comments_count: number;
   profile: {
     id: string;
     display_name: string;
@@ -313,7 +315,7 @@ export async function fetchMissionRecords(missionId: string, limit?: number) {
   const encoded = encodeURIComponent(missionId);
   const limitParam = limit ? `&limit=${limit}` : '';
   const data = await supabaseRest<MissionDetailRecordRow[]>(
-    `records?mission_id=eq.${encoded}&visibility=eq.public&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,notes,created_at,image_path,profile:profiles(id,display_name,avatar_url)&order=created_at.desc${limitParam}`,
+    `records?mission_id=eq.${encoded}&visibility=eq.public&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,notes,created_at,image_path,likes_count,comments_count,profile:profiles(id,display_name,avatar_url)&order=created_at.desc${limitParam}`,
   );
 
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -330,6 +332,8 @@ export async function fetchMissionRecords(missionId: string, limit?: number) {
     imagePath: record.image_path && SUPABASE_URL
       ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${record.image_path}`
       : null,
+    likesCount: record.likes_count || 0,
+    commentsCount: record.comments_count || 0,
     profile: record.profile,
   }));
 }

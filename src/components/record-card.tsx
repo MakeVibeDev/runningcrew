@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { ImageModal } from "@/components/ui/image-modal";
+import { useSupabase } from "@/components/providers/supabase-provider";
+import { toggleRecordLike, checkRecordLike } from "@/lib/supabase/likes-comments";
 
 interface RecordCardProps {
   record: {
@@ -16,6 +18,8 @@ interface RecordCardProps {
     notes?: string | null;
     imagePath?: string | null;
     visibility?: string;
+    likesCount?: number;
+    commentsCount?: number;
     profile?: {
       id: string;
       display_name: string;
@@ -57,9 +61,44 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
   // 프로필 정보가 없으면 본인 기록으로 간주 (대시보드의 경우)
   const isOwner = currentUserId && (!record.profile || record.profile.id === currentUserId);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { user, client } = useSupabase();
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(record.likesCount || 0);
+  const [isLiking, setIsLiking] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      checkRecordLike(client, record.id, user.id).then(setIsLiked);
+    }
+  }, [client, record.id, user]);
+
+  const handleLikeToggle = async () => {
+    if (!user || isLiking) return;
+
+    setIsLiking(true);
+    const previousLiked = isLiked;
+    const previousCount = likesCount;
+
+    // Optimistic update
+    setIsLiked(!isLiked);
+    setLikesCount(isLiked ? likesCount - 1 : likesCount + 1);
+
+    const { liked, error } = await toggleRecordLike(client, record.id, user.id);
+
+    if (error) {
+      // Revert on error
+      setIsLiked(previousLiked);
+      setLikesCount(previousCount);
+      console.error("좋아요 처리 실패:", error);
+    } else {
+      setIsLiked(liked);
+    }
+
+    setIsLiking(false);
+  };
 
   return (
-    <div className="relative rounded-xl border border-border/60 bg-background p-4 text-sm text-muted-foreground">
+    <div className="relative rounded-xl border border-border/60 bg-background pb-4 text-sm text-muted-foreground">
       {/* 수정 버튼 - 우측 상단 */}
       {showEditLink && isOwner && (
         <Link
@@ -88,7 +127,7 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg border border-border/40 transition hover:ring-2 hover:ring-foreground/20"
+              className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg  border-border/40 transition hover:ring-2 hover:ring-foreground/20"
             >
               <Image
                 src={record.imagePath}
@@ -102,7 +141,7 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
           )}
 
           {/* 2컬럼: 프로필, 활동시간 */}
-          <div className="flex flex-1 flex-col justify-between min-w-0">
+          <div className="flex flex-1 flex-col justify-between min-w-0 pt-2">
             {showUserInfo && record.profile ? (
               <div className="flex items-center gap-2">
                 <Link
@@ -169,8 +208,55 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
 
         {/* 3행: 1컬럼 - 메모 */}
         {record.notes && (
-          <p className="text-sm text-muted-foreground line-clamp-2">{record.notes}</p>
+          <p className="px-4 text-sm text-muted-foreground line-clamp-2">{record.notes}</p>
         )}
+
+        {/* 4행: 좋아요/댓글 버튼 */}
+        <div className="flex items-center gap-4 border-t border-border/40 px-4 pt-3">
+          {/* 좋아요 버튼 */}
+          <button
+            type="button"
+            onClick={handleLikeToggle}
+            disabled={!user || isLiking}
+            className="flex items-center gap-1 text-muted-foreground transition hover:text-red-500 disabled:opacity-50"
+            title={user ? (isLiked ? "좋아요 취소" : "좋아요") : "로그인이 필요합니다"}
+          >
+            <svg
+              className={`h-5 w-5 ${isLiked ? "fill-red-500 text-red-500" : "fill-none"}`}
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
+            </svg>
+            <span className="text-sm font-medium">{likesCount}</span>
+          </button>
+
+          {/* 댓글 버튼 */}
+          <Link
+            href={`/records/${record.id}`}
+            className="flex items-center gap-1 text-muted-foreground transition hover:text-blue-500"
+            title="댓글 보기"
+          >
+            <svg
+              className="h-5 w-5 fill-none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+              />
+            </svg>
+            <span className="text-sm font-medium">{record.commentsCount || 0}</span>
+          </Link>
+        </div>
       </div>
 
       {/* Image Modal */}
