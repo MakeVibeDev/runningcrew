@@ -596,13 +596,13 @@ function RecordUploadPageContent() {
               <p className="text-xs text-muted-foreground">
                 PNG/JPG/JPEG/WEBP, 최대 {MAX_IMAGE_MB}MB. 업로드 후 자동 분석이 시작
               </p>
-              <div className="relative mt-2 aspect-[3/4] w-full overflow-hidden rounded-xl border border-border/60 bg-muted">
+              <div className="relative mt-2 h-48 w-full overflow-hidden rounded-xl border border-border/60 bg-muted">
                 {imagePreview ? (
                   <Image
                     src={imagePreview}
                     alt="기록 이미지 미리보기"
                     fill
-                    className="object-cover"
+                    className="object-contain"
                     sizes="(max-width: 768px) 100vw, 320px"
                     priority
                   />

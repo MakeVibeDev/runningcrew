@@ -1,5 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+
+import { ImageModal } from "@/components/ui/image-modal";
 
 interface RecordCardProps {
   record: {
@@ -51,6 +56,7 @@ function formatDate(dateString: string) {
 export function RecordCard({ record, userStat, showUserInfo = true, showEditLink = false, currentUserId }: RecordCardProps) {
   // 프로필 정보가 없으면 본인 기록으로 간주 (대시보드의 경우)
   const isOwner = currentUserId && (!record.profile || record.profile.id === currentUserId);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="relative rounded-xl border border-border/60 bg-background p-4 text-sm text-muted-foreground">
@@ -79,16 +85,20 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
         <div className="flex gap-3">
           {/* 1컬럼: 업로드 이미지 */}
           {record.imagePath && (
-            <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg border border-border/40">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg border border-border/40 transition hover:ring-2 hover:ring-foreground/20"
+            >
               <Image
                 src={record.imagePath}
                 alt="기록 사진"
                 fill
-                className="object-cover"
+                className="object-contain"
                 sizes="96px"
                 unoptimized
               />
-            </div>
+            </button>
           )}
 
           {/* 2컬럼: 프로필, 활동시간 */}
@@ -162,6 +172,16 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
           <p className="text-sm text-muted-foreground line-clamp-2">{record.notes}</p>
         )}
       </div>
+
+      {/* Image Modal */}
+      {record.imagePath && (
+        <ImageModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          imageSrc={record.imagePath}
+          alt="기록 사진"
+        />
+      )}
     </div>
   );
 }

@@ -51,7 +51,6 @@ type MissionRow = {
   start_date: string;
   end_date: string;
   target_distance_km: number | null;
-  status: string;
   crew: {
     slug: string;
     name: string;
@@ -310,10 +309,11 @@ export async function fetchMissionById(missionId: string) {
   };
 }
 
-export async function fetchMissionRecords(missionId: string, limit = 5) {
+export async function fetchMissionRecords(missionId: string, limit?: number) {
   const encoded = encodeURIComponent(missionId);
+  const limitParam = limit ? `&limit=${limit}` : '';
   const data = await supabaseRest<MissionDetailRecordRow[]>(
-    `records?mission_id=eq.${encoded}&visibility=eq.public&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,notes,created_at,image_path,profile:profiles(id,display_name,avatar_url)&order=created_at.desc&limit=${limit}`,
+    `records?mission_id=eq.${encoded}&visibility=eq.public&select=id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,notes,created_at,image_path,profile:profiles(id,display_name,avatar_url)&order=created_at.desc${limitParam}`,
   );
 
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -372,29 +372,45 @@ export async function fetchMissionStats(missionId: string) {
 export async function fetchUserParticipatingMissions(profileId: string) {
   const encoded = encodeURIComponent(profileId);
   const data = await supabaseRest<MissionRow[]>(
-    `missions?select=id,title,description,start_date,end_date,target_distance_km,status,mission_participants!inner(status,profile_id),crew:crews(id,slug,name,description,activity_region,owner_id)&mission_participants.profile_id=eq.${encoded}&mission_participants.status=eq.joined&order=start_date.desc&limit=10`,
+    `missions?select=id,title,description,start_date,end_date,target_distance_km,mission_participants!inner(status,profile_id),crew:crews(id,slug,name,description,activity_region,owner_id)&mission_participants.profile_id=eq.${encoded}&mission_participants.status=eq.joined&order=start_date.desc&limit=10`,
   );
 
-  return data.map((row) => ({
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    startDate: row.start_date,
-    endDate: row.end_date,
-    targetDistanceKm: row.target_distance_km,
-    status: row.status,
-    crewName: row.crew?.name || "",
-    crew: row.crew
-      ? {
-          id: row.crew.id,
-          slug: row.crew.slug,
-          name: row.crew.name,
-          description: row.crew.description,
-          activityRegion: row.crew.activity_region,
-          ownerId: row.crew.owner_id,
-        }
-      : null,
-  }));
+  const now = new Date();
+
+  return data.map((row) => {
+    const startDate = new Date(row.start_date);
+    const endDate = new Date(row.end_date);
+
+    let status: string;
+    if (now < startDate) {
+      status = "upcoming";
+    } else if (now > endDate) {
+      status = "completed";
+    } else {
+      status = "active";
+    }
+
+    return {
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      startDate: row.start_date,
+      endDate: row.end_date,
+      targetDistanceKm: row.target_distance_km,
+      status,
+      crewName: row.crew?.name || "",
+      crew: row.crew
+        ? {
+            id: row.crew.id,
+            slug: row.crew.slug,
+            name: row.crew.name,
+            description: row.crew.description,
+            activityRegion: row.crew.activity_region,
+            ownerId: row.crew.owner_id,
+          }
+        : null,
+    };
+  });
 }
 
 export async function fetchUserRecentRecords(profileId: string, limit = 5) {
@@ -515,26 +531,38 @@ type UserCrewRow = {
     name: string;
     logo_image_url: string | null;
     activity_region: string | null;
-    member_count: number | null;
   } | null;
 };
 
 export async function fetchUserJoinedCrews(profileId: string) {
   const encoded = encodeURIComponent(profileId);
   const data = await supabaseRest<UserCrewRow[]>(
-    `crew_members?profile_id=eq.${encoded}&select=crew:crews(id,slug,name,logo_image_url,activity_region,member_count)`,
+    `crew_members?profile_id=eq.${encoded}&select=crew:crews(id,slug,name,logo_image_url,activity_region)`,
   );
 
-  return data
-    .filter((row) => row.crew !== null)
-    .map((row) => ({
-      id: row.crew!.id,
-      slug: row.crew!.slug,
-      name: row.crew!.name,
-      logoImageUrl: row.crew!.logo_image_url,
-      activityRegion: row.crew!.activity_region || "",
-      memberCount: row.crew!.member_count || 0,
-    }));
+  // 각 크루의 멤버 수 계산
+  const crewsWithCounts = await Promise.all(
+    data
+      .filter((row) => row.crew !== null)
+      .map(async (row) => {
+        const crewId = encodeURIComponent(row.crew!.id);
+        // 크루별 멤버 수 조회
+        const memberCountData = await supabaseRest<Array<{ crew_id: string }>>(
+          `crew_members?crew_id=eq.${crewId}&select=crew_id`,
+        );
+
+        return {
+          id: row.crew!.id,
+          slug: row.crew!.slug,
+          name: row.crew!.name,
+          logoImageUrl: row.crew!.logo_image_url,
+          activityRegion: row.crew!.activity_region || "",
+          memberCount: memberCountData.length,
+        };
+      })
+  );
+
+  return crewsWithCounts;
 }
 
 /**

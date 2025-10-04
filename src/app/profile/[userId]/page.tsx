@@ -226,8 +226,12 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
                   className="block overflow-hidden rounded-2xl border border-border/40 bg-background shadow-sm transition hover:shadow-md"
                 >
                   <div className="relative h-32 w-full bg-gradient-to-br from-muted/50 to-muted">
-                    {crew.logoImageUrl && (
+                    {crew.logoImageUrl ? (
                       <Image src={crew.logoImageUrl} alt={crew.name} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center px-4 text-center text-2xl font-bold text-foreground/70">
+                        {crew.name}
+                      </div>
                     )}
                   </div>
                   <div className="p-4">

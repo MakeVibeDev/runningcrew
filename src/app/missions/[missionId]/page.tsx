@@ -138,7 +138,7 @@ export default async function MissionDetailPage({
               <CardTitle>참여자 (총 {mission.participantsCount}명 참가 중)</CardTitle>
             </CardHeader>
             <CardContent> */}
-          <div className="border-y border-border/60 bg-card">
+          {/* <div className="border-y border-border/60 bg-card">
             <div className="p-6 pb-0">
               <h3 className="text-lg font-semibold">참여자 통계</h3>
               <p className="text-sm text-muted-foreground">참여자별 누적 기록을 거리순으로 보여줍니다.</p>
@@ -178,26 +178,35 @@ export default async function MissionDetailPage({
                 </div>
               )}
             </div>
-          </div>
+          </div> */}
         </section>
 
         <section className="flex-1 space-y-2">
           <div className="border-y border-border/60 bg-card">
             <div className="p-4 pb-2">
-              <h3 className="text-lg font-semibold">참여자 통계</h3>
+              <h3 className="text-lg font-semibold">현재 순위 (누적 거리)</h3>
               <p className="text-sm text-muted-foreground">참여자별 누적 기록을 거리순으로 보여줍니다.</p>
             </div>
             <div className="space-y-4 p-4 pt-2">
               {stats.length === 0 ? (
                 <p className="text-sm text-muted-foreground">아직 통계 데이터가 없습니다.</p>
               ) : (
-                stats.map((stat) => (
+                <>
+                {stats.slice(0, 5).map((stat, index) => (
                   <div
                     key={stat.profileId}
-                    className="rounded-xl border border-border/60 bg-background p-2 text-sm text-muted-foreground"
+                    className="relative overflow-hidden rounded-xl border border-border/60 bg-background p-2 text-sm text-muted-foreground"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-border/60 bg-muted">
+                    {/* 순위 표시 - 최상단 좌측 모서리 */}
+                    <div className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-br-lg bg-foreground text-xs font-bold text-background">
+                      {index + 1}
+                    </div>
+
+                    <div className="flex items-center gap-3 pl-9 pt-1">
+                      <Link
+                        href={`/profile/${stat.profileId}`}
+                        className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-border/60 bg-muted hover:ring-2 hover:ring-foreground/20 transition"
+                      >
                         {stat.profile?.avatar_url ? (
                           <Image
                             src={stat.profile.avatar_url}
@@ -211,10 +220,12 @@ export default async function MissionDetailPage({
                             {stat.profile?.display_name?.charAt(0)?.toUpperCase() ?? "?"}
                           </div>
                         )}
-                      </div>
-                      <p className="font-medium text-foreground">
-                        {stat.profile?.display_name ?? "익명"}
-                      </p>
+                      </Link>
+                      <Link href={`/profile/${stat.profileId}`} className="hover:underline">
+                        <p className="font-medium text-foreground">
+                          {stat.profile?.display_name ?? "익명"}
+                        </p>
+                      </Link>
                     </div>
                     <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs uppercase tracking-wide text-muted-foreground/70">
                       <div>
@@ -238,6 +249,18 @@ export default async function MissionDetailPage({
                     </div>
                   </div>
                 ))
+                }
+
+                {/* 전체 순위 보기 버튼 */}
+                {stats.length > 5 && (
+                  <Link
+                    href={`/missions/${mission.id}/rankings`}
+                    className="block rounded-lg border border-border bg-background px-4 py-3 text-center text-sm font-medium hover:bg-muted"
+                  >
+                    전체 순위 보기 ({stats.length}명)
+                  </Link>
+                )}
+                </>
               )}
             </div>
           </div>
@@ -251,17 +274,29 @@ export default async function MissionDetailPage({
               {recentRecords.length === 0 ? (
                 <p className="text-sm text-muted-foreground">아직 공개 기록이 없습니다.</p>
               ) : (
-                recentRecords.map((record) => {
-                  const userStat = stats.find((s) => s.profileId === record.profile?.id);
-                  return (
-                    <RecordCard
-                      key={record.id}
-                      record={record}
-                      userStat={userStat}
-                      showUserInfo={true}
-                    />
-                  );
-                })
+                <>
+                  {recentRecords.map((record) => {
+                    const userStat = stats.find((s) => s.profileId === record.profile?.id);
+                    return (
+                      <RecordCard
+                        key={record.id}
+                        record={record}
+                        userStat={userStat}
+                        showUserInfo={true}
+                      />
+                    );
+                  })}
+
+                  {/* 전체 기록 보기 버튼 - 6개 이상일 때만 표시 */}
+                  {recentRecords.length >= 6 && (
+                    <Link
+                      href={`/missions/${mission.id}/records`}
+                      className="block rounded-lg border border-border bg-background px-4 py-3 text-center text-sm font-medium hover:bg-muted"
+                    >
+                      전체 기록 보기
+                    </Link>
+                  )}
+                </>
               )}
             </div>
           </div>

@@ -5,6 +5,7 @@ import "./globals.css";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { SupabaseProvider } from "@/components/providers/supabase-provider";
+import { FeedbackButton } from "@/components/feedback-button";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -109,6 +110,7 @@ export default function RootLayout({
           <SiteNav />
           <div className="pb-10">{children}</div>
           <SiteFooter />
+          <FeedbackButton />
         </SupabaseProvider>
       </body>
     </html>
