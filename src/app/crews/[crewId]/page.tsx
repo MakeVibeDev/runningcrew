@@ -9,7 +9,6 @@ import { CrewJoinRequestsManager } from "@/components/crew/crew-join-requests-ma
 import { CrewProfileEditor } from "@/components/crew/crew-profile-editor";
 import { MissionEditor } from "@/components/crew/mission-editor";
 import { NaverSingleMarkerMap } from "@/components/map/naver-single-marker-map";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchCrewBySlug } from "@/lib/supabase/rest";
 
 export async function generateMetadata({ params }: { params: Promise<{ crewId: string }> }): Promise<Metadata> {
@@ -40,7 +39,7 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
   const missions = crew.missions ?? [];
 
   return (
-    <div className="min-h-screen bg-muted/40 pb-16">
+    <div className="min-h-screen bg-muted/40 pb-0">
       <div className="border-b border-border/60 bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
           <div>
@@ -57,8 +56,8 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
         </div>
       </div>
 
-      <main className="mx-auto mt-8 flex max-w-5xl flex-col gap-6 px-0">
-        <section className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
+      <main className="mx-auto mt-2 flex max-w-5xl flex-col gap-2 px-0">
+        <section className="border border-border/70 bg-background p-6 shadow-sm">
           <div className="flex flex-col gap-6 lg:flex-row">
             <div className="flex flex-1 flex-col gap-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -132,13 +131,13 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader className="gap-2">
-                <CardTitle>크루 소개</CardTitle>
-                <CardDescription>{crew.description ?? "크루의 활동 방식 요약"}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+          <div className="space-y-2">
+            <div className="border border-border/70 bg-background p-6 shadow-sm">
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold">크루 소개</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{crew.description ?? "크루의 활동 방식 요약"}</p>
+              </div>
+              <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
                 {introParagraphs.length > 0 ? (
                   introParagraphs.map((paragraph) => (
                     <p key={paragraph} className="text-foreground/90">
@@ -154,15 +153,15 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
                   defaultDescription={crew.description}
                   defaultIntro={crew.intro}
                 />
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <Card>
-              <CardHeader className="gap-2">
-                <CardTitle>진행 중 미션</CardTitle>
-                <CardDescription>등록된 미션과 진행 정보를 확인할 수 있습니다.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <div className="border border-border/70 bg-background p-6 shadow-sm">
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold">진행 중 미션</h3>
+                <p className="mt-1 text-sm text-muted-foreground">등록된 미션과 진행 정보를 확인할 수 있습니다.</p>
+              </div>
+              <div className="space-y-4">
                 {missions.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-border/60 bg-muted/30 p-6 text-sm text-muted-foreground">
                     공개된 미션이 아직 없습니다.
@@ -224,8 +223,8 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
                     );
                   })
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -233,25 +232,25 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
 
             <CrewJoinRequestsManager crewId={crew.id} ownerId={crew.owner_id} />
 
-            <Card>
-              <CardHeader className="gap-2">
-                <CardTitle>모임 일정</CardTitle>
-                <CardDescription>상세 일정 정보는 추후 등록됩니다.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <div className="border border-border/70 bg-background p-6 shadow-sm">
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold">모임 일정</h3>
+                <p className="mt-1 text-sm text-muted-foreground">상세 일정 정보는 추후 등록됩니다.</p>
+              </div>
+              <div className="space-y-3 text-sm text-muted-foreground">
                 <p>크루 운영진이 일정 정보를 준비하는 중입니다.</p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <Card>
-              <CardHeader className="gap-2">
-                <CardTitle>연락처 & 링크</CardTitle>
-                <CardDescription>가입 문의 채널은 추후 업데이트됩니다.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <div className="border border-border/70 bg-background p-6 shadow-sm">
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold">연락처 & 링크</h3>
+                <p className="mt-1 text-sm text-muted-foreground">가입 문의 채널은 추후 업데이트됩니다.</p>
+              </div>
+              <div className="space-y-3 text-sm text-muted-foreground">
                 <p>공식 SNS와 연락처 정보를 곧 연결할 예정입니다.</p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </section>
       </main>
