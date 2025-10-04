@@ -333,8 +333,8 @@ export async function fetchMissionRecords(missionId: string, limit?: number) {
     imagePath: record.image_path && SUPABASE_URL
       ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${record.image_path}`
       : null,
-    likesCount: Array.isArray(record.record_likes) ? record.record_likes.length : 0,
-    commentsCount: Array.isArray(record.record_comments) ? record.record_comments.length : 0,
+    likesCount: Array.isArray(record.record_likes) ? (record.record_likes[0]?.count ?? 0) : 0,
+    commentsCount: Array.isArray(record.record_comments) ? (record.record_comments[0]?.count ?? 0) : 0,
     profile: record.profile,
   }));
 }

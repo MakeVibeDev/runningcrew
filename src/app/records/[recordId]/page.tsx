@@ -140,8 +140,12 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
 
         const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-        const likesCount = Array.isArray(recordData.record_likes) ? recordData.record_likes.length : 0;
-        const commentsCount = Array.isArray(recordData.record_comments) ? recordData.record_comments.length : 0;
+        const likesCount = Array.isArray(recordData.record_likes)
+          ? recordData.record_likes[0]?.count ?? 0
+          : 0;
+        const commentsCount = Array.isArray(recordData.record_comments)
+          ? recordData.record_comments[0]?.count ?? 0
+          : 0;
 
         setRecord({
           id: recordData.id,

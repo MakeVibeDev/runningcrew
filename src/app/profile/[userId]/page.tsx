@@ -54,6 +54,8 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
     createdAt: string;
     notes: string | null;
     imagePath: string | null;
+    likesCount: number;
+    commentsCount: number;
     mission: { id: string; title: string } | null;
   }>>([]);
   const [stats, setStats] = useState<Awaited<ReturnType<typeof fetchUserOverallStats>> | null>(null);
@@ -144,7 +146,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
         // 기록 조회 (본인: 모든 기록, 타인: 공개 기록만)
         const recordsQuery = supabase
           .from("records")
-          .select("id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,image_path,notes,mission:missions(id,title,crew:crews(name))")
+          .select("id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,image_path,notes,record_likes(count),record_comments(count),mission:missions(id,title,crew:crews(name))")
           .eq("profile_id", resolvedParams.userId)
           .order("created_at", { ascending: false })
           .limit(10);
@@ -184,6 +186,8 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
           imagePath: record.image_path && SUPABASE_URL
             ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${record.image_path}`
             : null,
+          likesCount: Array.isArray(record.record_likes) ? (record.record_likes[0]?.count ?? 0) : 0,
+          commentsCount: Array.isArray(record.record_comments) ? (record.record_comments[0]?.count ?? 0) : 0,
           mission: record.mission,
         }));
 

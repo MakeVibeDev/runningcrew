@@ -98,13 +98,17 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
   };
 
   return (
-    <div className="relative rounded-xl border border-border/60 bg-background pb-4 text-sm text-muted-foreground">
+    <Link
+      href={`/records/${record.id}`}
+      className="relative block rounded-xl border border-border/60 bg-background pb-4 text-sm text-muted-foreground transition hover:shadow-md"
+    >
       {/* 수정 버튼 - 우측 상단 */}
       {showEditLink && isOwner && (
         <Link
           href={`/records/${record.id}/edit`}
-          className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+          className="absolute right-3 top-3 z-20 text-muted-foreground hover:text-foreground"
           title="수정"
+          onClick={(e) => e.stopPropagation()}
         >
           <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
@@ -126,7 +130,11 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
           {record.imagePath && (
             <button
               type="button"
-              onClick={() => setIsModalOpen(true)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsModalOpen(true);
+              }}
               className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg  border-border/40 transition hover:ring-2 hover:ring-foreground/20"
             >
               <Image
@@ -147,6 +155,7 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
                 <Link
                   href={`/profile/${record.profile.id}`}
                   className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted hover:ring-2 hover:ring-foreground/20 transition"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   {record.profile.avatar_url ? (
                     <Image
@@ -163,7 +172,11 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
                   )}
                 </Link>
                 <div className="flex-1 min-w-0">
-                  <Link href={`/profile/${record.profile.id}`} className="hover:underline">
+                  <Link
+                    href={`/profile/${record.profile.id}`}
+                    className="hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <p className="text-sm font-medium text-foreground truncate">
                       {record.profile.display_name}
                     </p>
@@ -216,7 +229,11 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
           {/* 좋아요 버튼 */}
           <button
             type="button"
-            onClick={handleLikeToggle}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleLikeToggle();
+            }}
             disabled={!user || isLiking}
             className="flex items-center gap-1 text-muted-foreground transition hover:text-red-500 disabled:opacity-50"
             title={user ? (isLiked ? "좋아요 취소" : "좋아요") : "로그인이 필요합니다"}
@@ -236,12 +253,8 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
             <span className="text-sm font-medium">{likesCount}</span>
           </button>
 
-          {/* 댓글 버튼 */}
-          <Link
-            href={`/records/${record.id}`}
-            className="flex items-center gap-1 text-muted-foreground transition hover:text-blue-500"
-            title="댓글 보기"
-          >
+          {/* 댓글 아이콘 (상세 페이지로 이동하는 전체 링크가 이미 있으므로 아이콘만 표시) */}
+          <div className="flex items-center gap-1 text-muted-foreground">
             <svg
               className="h-5 w-5 fill-none"
               stroke="currentColor"
@@ -255,7 +268,7 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
               />
             </svg>
             <span className="text-sm font-medium">{record.commentsCount || 0}</span>
-          </Link>
+          </div>
         </div>
       </div>
 
@@ -268,6 +281,6 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
           alt="기록 사진"
         />
       )}
-    </div>
+    </Link>
   );
 }
