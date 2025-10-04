@@ -57,15 +57,15 @@ export default function Home() {
         ) : !user ? (
           <>
             {/* 랜딩 페이지 - 비로그인 사용자용 */}
-            <section className="pt-6 text-center">
+            <section className="pt-6 px-4 text-center">
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
                 함께 달리는 즐거움
               </h1>
               <p className="mt-4 text-lg text-muted-foreground sm:text-xl">
-                러닝 크루와 함께 미션을 완수하고 기록을 공유하세요
+                러닝 크루와 함께 미션을 완수하고<br />기록을 공유하세요
               </p>
               <p className="mt-3 text-base text-muted-foreground">
-                러닝 크루 관리부터 기록 추적, 소셜 기능까지 - 러닝의 모든 순간을 함께합니다
+                러닝 크루 관리부터 기록 추적, 소셜 기능까지<br />러닝의 모든 순간을 함께합니다
               </p>
               <div className="mt-8 flex flex-col items-center gap-4">
                 <p className="text-sm text-muted-foreground">
