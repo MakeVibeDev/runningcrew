@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -166,33 +165,33 @@ export function CrewJoinRequestsManager({ crewId, ownerId }: CrewJoinRequestsMan
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>가입 신청 관리</CardTitle>
-          <CardDescription>크루 가입 신청을 검토하고 승인/거절할 수 있습니다.</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="border border-border/70 bg-background p-6 shadow-sm">
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold">가입 신청 관리</h3>
+          <p className="mt-1 text-sm text-muted-foreground">크루 가입 신청을 검토하고 승인/거절할 수 있습니다.</p>
+        </div>
+        <div>
           <p className="text-sm text-muted-foreground">로딩 중...</p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <div className="border border-border/70 bg-background p-6 shadow-sm">
+        <div className="mb-6">
+          <h3 className="flex items-center gap-2 text-xl font-semibold">
             가입 신청 관리
             {requests.length > 0 && (
               <span className="rounded-full bg-orange-500 px-2 py-0.5 text-xs text-white">
                 {requests.length}
               </span>
             )}
-          </CardTitle>
-          <CardDescription>크루 가입 신청을 검토하고 승인/거절할 수 있습니다.</CardDescription>
-        </CardHeader>
-        <CardContent>
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">크루 가입 신청을 검토하고 승인/거절할 수 있습니다.</p>
+        </div>
+        <div>
           {requests.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border/60 bg-muted/30 p-6 text-center text-sm text-muted-foreground">
               대기 중인 가입 신청이 없습니다.
@@ -256,8 +255,8 @@ export function CrewJoinRequestsManager({ crewId, ownerId }: CrewJoinRequestsMan
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Alert Dialogs */}
       <AlertDialog open={alertDialog === "approve_confirm"} onOpenChange={() => setAlertDialog(null)}>
