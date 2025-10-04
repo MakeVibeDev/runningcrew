@@ -43,10 +43,10 @@ export function SiteNav() {
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
         {/* Left side - Logo */}
-        <Link href={user ? `/profile/${user.id}` : "/"} className="flex items-center">
+        <Link href={user ? `/profile/${user.id}` : "/"} className="flex items-center gap-2">
           {/* Desktop: Full logo with text */}
           <Image
-            src="/logo_text-removebg.png"
+            src="/logo2.png"
             alt="RunningCrew"
             width={140}
             height={56}
@@ -56,7 +56,7 @@ export function SiteNav() {
           />
           {/* Mobile: Icon only */}
           <Image
-            src="/logo-removebg.png"
+            src="/logo2.png"
             alt="RunningCrew"
             width={40}
             height={40}
@@ -64,6 +64,10 @@ export function SiteNav() {
             style={{ width: '40px', height: 'auto' }}
             className="md:hidden"
           />
+          {/* Beta Badge */}
+          <span className="rounded-md bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-700 dark:bg-orange-950/50 dark:text-orange-400">
+            BETA
+          </span>
         </Link>
 
         {/* Mobile: Center - Page Title */}
