@@ -3,55 +3,29 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
-import { RecordCard } from "@/components/record-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { KakaoLoginButton } from "@/components/ui/oauth-button";
 import {
-  fetchUserParticipatingMissions,
-  fetchUserRecentRecords,
-  fetchUserOverallStats,
   fetchCrewList,
   fetchMissionList,
-  fetchUserJoinedCrews,
 } from "@/lib/supabase/rest";
 
-function formatDuration(seconds: number) {
-  const hrs = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-  return hrs > 0 ? `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}` : `${mins}:${String(secs).padStart(2, "0")}`;
-}
-
-function formatPace(paceSeconds?: number | null) {
-  if (!paceSeconds || paceSeconds <= 0) return "-";
-  const mins = Math.floor(paceSeconds / 60);
-  const secs = Math.round(paceSeconds % 60);
-  return `${mins}'${secs.toString().padStart(2, "0")}"`;
-}
-
-function formatDateRange(start: string, end: string) {
-  const startDate = new Intl.DateTimeFormat("ko", {
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(start));
-  const endDate = new Intl.DateTimeFormat("ko", {
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(end));
-  return `${startDate} - ${endDate}`;
-}
-
 export default function Home() {
-  const { user, loading, profile, signInWithOAuth } = useSupabase();
-  const [missions, setMissions] = useState<Awaited<ReturnType<typeof fetchUserParticipatingMissions>>>([]);
-  const [recentRecords, setRecentRecords] = useState<Awaited<ReturnType<typeof fetchUserRecentRecords>>>([]);
-  const [stats, setStats] = useState<Awaited<ReturnType<typeof fetchUserOverallStats>> | null>(null);
-  const [joinedCrews, setJoinedCrews] = useState<Awaited<ReturnType<typeof fetchUserJoinedCrews>>>([]);
+  const { user, loading, signInWithOAuth } = useSupabase();
+  const router = useRouter();
   const [publicCrews, setPublicCrews] = useState<Awaited<ReturnType<typeof fetchCrewList>>>([]);
   const [publicMissions, setPublicMissions] = useState<Awaited<ReturnType<typeof fetchMissionList>>>([]);
   const [dataLoading, setDataLoading] = useState(true);
+
+  // 로그인한 사용자는 본인 프로필 대시보드로 리다이렉트
+  useEffect(() => {
+    if (!loading && user) {
+      router.push(`/profile/${user.id}`);
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
     if (!user) {
@@ -62,8 +36,6 @@ export default function Home() {
         fetchMissionList(),
       ])
         .then(([crewsData, missionsData]) => {
-          console.log("Public crews:", crewsData);
-          console.log("Public missions:", missionsData);
           setPublicCrews(crewsData.slice(0, 3)); // 상위 3개만
           setPublicMissions(missionsData.slice(0, 3)); // 상위 3개만
         })
@@ -73,66 +45,7 @@ export default function Home() {
         .finally(() => {
           setDataLoading(false);
         });
-      return;
     }
-
-    // 로그인 사용자용 데이터 로드
-    setDataLoading(true);
-
-    async function loadUserData() {
-      if (!user) return;
-
-      try {
-        const [missionsData, statsData, crewsData] = await Promise.all([
-          fetchUserParticipatingMissions(user.id),
-          fetchUserOverallStats(user.id),
-          fetchUserJoinedCrews(user.id),
-        ]);
-
-        // 브라우저 클라이언트로 직접 기록 조회 (RLS 적용)
-        const { getBrowserSupabaseClient } = await import("@/lib/supabase/browser-client");
-        const supabase = getBrowserSupabaseClient();
-
-        const { data: recordsData, error } = await supabase
-          .from("records")
-          .select("id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,created_at,image_path,notes,mission:missions(id,title,crew:crews(name))")
-          .eq("profile_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(5);
-
-        if (error) {
-          throw error;
-        }
-
-        const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const formattedRecords = (recordsData || []).map((record: any) => ({
-          id: record.id,
-          recordedAt: record.recorded_at,
-          distanceKm: record.distance_km,
-          durationSeconds: record.duration_seconds,
-          paceSecondsPerKm: record.pace_seconds_per_km,
-          visibility: record.visibility,
-          createdAt: record.created_at,
-          notes: record.notes,
-          imagePath: record.image_path && SUPABASE_URL
-            ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${record.image_path}`
-            : null,
-          mission: record.mission,
-        }));
-
-        setMissions(missionsData);
-        setRecentRecords(formattedRecords);
-        setStats(statsData);
-        setJoinedCrews(crewsData);
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
-      } finally {
-        setDataLoading(false);
-      }
-    }
-
-    void loadUserData();
   }, [user]);
 
   return (
@@ -340,249 +253,9 @@ export default function Home() {
               </Card>
             </section>
           </>
-        ) : (
-          <>
-            {/* 통계 요약 카드 */}
-            <section className="m-4">
-              <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
-                {/* 블러 배경 - YouTube Music 스타일 */}
-                {(profile?.avatar_url || user?.user_metadata?.avatar_url) && (
-                  <div className="absolute inset-0">
-                    {/* 확대된 블러 배경 이미지 */}
-                    <Image
-                      src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string)}
-                      alt=""
-                      fill
-                      className="scale-[2] object-cover blur-[120px] saturate-[2.5] brightness-[1.3]"
-                      sizes="1200px"
-                      priority
-                    />
-                    {/* 그라데이션 오버레이 */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-background/30 via-background/50 to-background/70" />
-                  </div>
-                )}
-
-                {/* 컨텐츠 */}
-                <div className="relative backdrop-blur-sm">
-                  <div className="p-6 pb-6">
-                    <div className="flex items-center gap-4">
-                      <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-white/20 bg-muted shadow-lg ring-4 ring-black/5">
-                        {profile?.avatar_url || user?.user_metadata?.avatar_url ? (
-                          <Image
-                            src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string)}
-                            alt="프로필"
-                            fill
-                            sizes="80px"
-                            className="object-cover"
-                            priority
-                          />
-                        ) : (
-                          <div className="grid h-full w-full place-items-center bg-emerald-500/10 text-2xl text-emerald-700">
-                            {(profile?.display_name || user?.email || "?").charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-bold">
-                          {profile?.display_name || user?.email || "러너"}님의 대시보드
-                        </h2>
-                        <p className="mt-1 text-sm text-muted-foreground">전체 미션 활동 요약</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-6 pt-0">
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">총 기록 수</p>
-                        <p className="text-4xl font-bold tracking-tight">{stats?.totalRecords ?? 0}</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">총 누적 거리</p>
-                        <p className="text-4xl font-bold tracking-tight">
-                          {stats?.totalDistanceKm.toFixed(1) ?? 0}
-                          <span className="ml-1 text-2xl font-normal text-muted-foreground">km</span>
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">총 활동 시간</p>
-                        <p className="text-4xl font-bold tracking-tight">
-                          {formatDuration(stats?.totalDurationSeconds ?? 0)}
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">평균 페이스</p>
-                        <p className="text-4xl font-bold tracking-tight">
-                          {stats?.avgPaceSecondsPerKm ? formatPace(stats.avgPaceSecondsPerKm) : "-"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <div>
-              <section className="mt-1 bg-white px-4 py-4 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] border border-gray-100">
-                <div>
-                  <h2 className="text-2xl font-bold">참여 중인 미션</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    현재 참여하고 있는 미션 목록입니다.
-                  </p>
-                </div>
-                {missions.length === 0 ? (
-                  <div className="rounded-2xl border border-border/40 bg-muted/30 p-4 text-center">
-                    <p className="text-sm text-muted-foreground">
-                      참여 중인 미션이 없습니다.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4 mt-2">
-                    {missions.map((mission) => (
-                      <Link
-                        key={mission.id}
-                        href={`/missions/${mission.id}`}
-                        className="block rounded-2xl border border-border/40 bg-muted/30 p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              {mission.crew?.name ?? "크루 정보 없음"}
-                            </p>
-                            <h3 className="text-lg font-semibold">{mission.title}</h3>
-                          </div>
-                          <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-200">
-                            진행 중
-                          </span>
-                        </div>
-                        <div className="mt-2 grid gap-2 text-sm text-muted-foreground md:grid-cols-2">
-                          <div>
-                            <p>{formatDateRange(mission.startDate, mission.endDate)}</p>
-                          </div>
-                          {mission.targetDistanceKm && (
-                            <div>
-                              <p className="text-xs uppercase tracking-wide text-muted-foreground/70">
-                                목표
-                              </p>
-                              <p>{mission.targetDistanceKm} km</p>
-                            </div>
-                          )}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              <section className="mt-1 space-y-4 mt-1 bg-white px-4 py-4 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] border border-gray-100">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold">최근 업로드 기록</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      최근 등록한 러닝 기록입니다.
-                    </p>
-                  </div>
-                  <Link
-                    href="/records/upload"
-                    className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background hover:opacity-90"
-                  >
-                    기록 등록
-                  </Link>
-                </div>
-                {recentRecords.length === 0 ? (
-                  <div className="rounded-2xl border border-border/40 bg-background p-8 text-center shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-                    <p className="text-sm text-muted-foreground">
-                      아직 등록한 기록이 없습니다.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {recentRecords.map((record) => (
-                      <RecordCard
-                        key={record.id}
-                        record={record}
-                        showUserInfo={false}
-                        showEditLink={true}
-                        currentUserId={user?.id}
-                      />
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              <section className="mt-1 grid gap-0 bg-white shadow-[0_1px_0_0_rgba(0,0,0,0.1)] md:grid-cols-2 ">
-                <div className="space-y-4 px-4 py-4 md:border-r md:border-border/40">
-                  <div>
-                    <h2 className="text-xl font-bold">크루 탐색</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      새로운 러닝 크루를 찾아보세요.
-                    </p>
-                  </div>
-                  {joinedCrews.length > 0 && (
-                    <div>
-                      <p className="mb-3 text-sm font-medium text-muted-foreground">가입한 크루</p>
-                      <div className="flex flex-wrap gap-3">
-                        {joinedCrews.map((crew) => (
-                          <Link
-                            key={crew.id}
-                            href={`/crews/${crew.slug}`}
-                            className="group flex flex-col items-center gap-2"
-                            title={crew.name}
-                          >
-                            <div className="relative h-16 w-16 overflow-hidden rounded-xl border-2 border-border/60 bg-muted transition-all group-hover:scale-105 group-hover:border-foreground/40">
-                              {crew.logoImageUrl ? (
-                                <Image
-                                  src={crew.logoImageUrl}
-                                  alt={crew.name}
-                                  fill
-                                  className="object-cover"
-                                  sizes="64px"
-                                />
-                              ) : (
-                                <div className="grid h-full w-full place-items-center text-lg font-bold text-muted-foreground">
-                                  {crew.name.substring(0, 2)}
-                                </div>
-                              )}
-                            </div>
-                            <span className="w-16 truncate text-center text-xs text-muted-foreground">
-                              {crew.name}
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <Link
-                    href="/crews"
-                    className="block rounded-lg border border-border px-4 py-3 text-center text-sm font-medium hover:bg-muted"
-                  >
-                    크루 목록 보기
-                  </Link>
-                </div>
-              </section>
-              
-              <section className="mt-1 grid gap-0 bg-white shadow-[0_1px_0_0_rgba(0,0,0,0.1)] md:grid-cols-2 ">
-                <div className="space-y-4 px-4 py-4 my-2">
-                  <div>
-                    <h2 className="text-xl font-bold">미션 탐색</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      진행 중인 미션을 확인하세요.
-                    </p>
-                  </div>
-                  <Link
-                    href="/missions"
-                    className="block rounded-lg border border-border px-4 py-3 text-center text-sm font-medium hover:bg-muted"
-                  >
-                    미션 목록 보기
-                  </Link>
-                </div>
-              </section>
-            </div>
-          </>
-        )}
+        ) : null}
       </main>
     </div>
   );
 }
+

@@ -9,23 +9,21 @@ import { useSupabase } from "@/components/providers/supabase-provider";
 import { KakaoLoginButton } from "@/components/ui/oauth-button";
 import { cn } from "@/lib/utils";
 
-const baseNavItems = [
-  { href: "/", label: "대시보드", title: "Home" },
-  { href: "/records/upload", label: "기록 등록", title: "기록 등록" },
-  { href: "/missions", label: "미션", title: "미션" },
-  { href: "/crews", label: "크루", title: "크루" },
-];
+function getNavItems(userId?: string) {
+  return [
+    { href: userId ? `/profile/${userId}` : "/", label: "대시보드", title: "Home" },
+    { href: "/records/upload", label: "기록 등록", title: "기록 등록" },
+    { href: "/missions", label: "미션", title: "미션" },
+    { href: "/crews", label: "크루", title: "크루" },
+  ];
+}
 
 export function SiteNav() {
   const pathname = usePathname();
   const { user, profile, loading, signInWithOAuth, signOut } = useSupabase();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navItems = user
-    ? [
-        ...baseNavItems
-      ]
-    : baseNavItems;
+  const navItems = getNavItems(user?.id);
 
   const displayName = profile?.display_name
     || user?.user_metadata?.nickname
@@ -45,7 +43,7 @@ export function SiteNav() {
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
         {/* Left side - Logo */}
-        <Link href="/" className="flex items-center">
+        <Link href={user ? `/profile/${user.id}` : "/"} className="flex items-center">
           {/* Desktop: Full logo with text */}
           <Image
             src="/logo_text-removebg.png"
@@ -128,7 +126,7 @@ export function SiteNav() {
         {/* Mobile - Profile + Hamburger */}
         <div className="flex items-center gap-1 md:hidden">
           {user && (
-            <Link href="/" className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
+            <Link href={`/profile/${user.id}`} className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
               {avatarUrl ? (
                 <Image src={avatarUrl} alt={`${displayName} avatar`} fill sizes="32px" />
               ) : (

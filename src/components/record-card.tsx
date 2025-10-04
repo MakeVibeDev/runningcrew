@@ -95,7 +95,10 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
           <div className="flex flex-1 flex-col justify-between min-w-0">
             {showUserInfo && record.profile ? (
               <div className="flex items-center gap-2">
-                <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
+                <Link
+                  href={`/profile/${record.profile.id}`}
+                  className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted hover:ring-2 hover:ring-foreground/20 transition"
+                >
                   {record.profile.avatar_url ? (
                     <Image
                       src={record.profile.avatar_url}
@@ -109,11 +112,13 @@ export function RecordCard({ record, userStat, showUserInfo = true, showEditLink
                       {record.profile.display_name.charAt(0).toUpperCase()}
                     </div>
                   )}
-                </div>
+                </Link>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {record.profile.display_name}
-                  </p>
+                  <Link href={`/profile/${record.profile.id}`} className="hover:underline">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {record.profile.display_name}
+                    </p>
+                  </Link>
                   {userStat && (
                     <p className="text-xs text-muted-foreground">
                       누적: {userStat.totalDistanceKm.toFixed(1)}km · {formatDuration(userStat.totalDurationSeconds)}

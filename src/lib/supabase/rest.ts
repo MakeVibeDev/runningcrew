@@ -51,6 +51,7 @@ type MissionRow = {
   start_date: string;
   end_date: string;
   target_distance_km: number | null;
+  status: string;
   crew: {
     slug: string;
     name: string;
@@ -371,7 +372,7 @@ export async function fetchMissionStats(missionId: string) {
 export async function fetchUserParticipatingMissions(profileId: string) {
   const encoded = encodeURIComponent(profileId);
   const data = await supabaseRest<MissionRow[]>(
-    `missions?select=id,title,description,start_date,end_date,target_distance_km,mission_participants!inner(status,profile_id),crew:crews(id,slug,name,description,activity_region,owner_id)&mission_participants.profile_id=eq.${encoded}&mission_participants.status=eq.joined&order=start_date.desc&limit=10`,
+    `missions?select=id,title,description,start_date,end_date,target_distance_km,status,mission_participants!inner(status,profile_id),crew:crews(id,slug,name,description,activity_region,owner_id)&mission_participants.profile_id=eq.${encoded}&mission_participants.status=eq.joined&order=start_date.desc&limit=10`,
   );
 
   return data.map((row) => ({
@@ -381,6 +382,8 @@ export async function fetchUserParticipatingMissions(profileId: string) {
     startDate: row.start_date,
     endDate: row.end_date,
     targetDistanceKm: row.target_distance_km,
+    status: row.status,
+    crewName: row.crew?.name || "",
     crew: row.crew
       ? {
           id: row.crew.id,
@@ -511,13 +514,15 @@ type UserCrewRow = {
     slug: string;
     name: string;
     logo_image_url: string | null;
+    activity_region: string | null;
+    member_count: number | null;
   } | null;
 };
 
 export async function fetchUserJoinedCrews(profileId: string) {
   const encoded = encodeURIComponent(profileId);
   const data = await supabaseRest<UserCrewRow[]>(
-    `crew_members?profile_id=eq.${encoded}&select=crew:crews(id,slug,name,logo_image_url)`,
+    `crew_members?profile_id=eq.${encoded}&select=crew:crews(id,slug,name,logo_image_url,activity_region,member_count)`,
   );
 
   return data
@@ -527,6 +532,8 @@ export async function fetchUserJoinedCrews(profileId: string) {
       slug: row.crew!.slug,
       name: row.crew!.name,
       logoImageUrl: row.crew!.logo_image_url,
+      activityRegion: row.crew!.activity_region || "",
+      memberCount: row.crew!.member_count || 0,
     }));
 }
 
