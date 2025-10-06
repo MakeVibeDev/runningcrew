@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { KakaoLoginButton } from "@/components/ui/oauth-button";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { cn } from "@/lib/utils";
 
 function getNavItems(userId?: string) {
@@ -97,6 +98,7 @@ export function SiteNav() {
           <div className="flex items-center gap-3 text-sm">
             {user ? (
               <>
+                <NotificationBell />
                 <Link href="/profile" className="flex items-center gap-2 hover:opacity-80">
                   <div className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
                     {avatarUrl ? (
@@ -127,18 +129,21 @@ export function SiteNav() {
           </div>
         </div>
 
-        {/* Mobile - Profile + Hamburger */}
-        <div className="flex items-center gap-1 md:hidden">
+        {/* Mobile - Notification + Profile + Hamburger */}
+        <div className="flex items-center gap-3 md:hidden">
           {user && (
-            <Link href={`/profile/${user.id}`} className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
-              {avatarUrl ? (
-                <Image src={avatarUrl} alt={`${displayName} avatar`} fill sizes="32px" />
-              ) : (
-                <div className="grid h-full w-full place-items-center bg-orange-500/10 text-orange-700">
-                  {initials}
-                </div>
-              )}
-            </Link>
+            <>
+              <NotificationBell />
+              <Link href={`/profile/${user.id}`} className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
+                {avatarUrl ? (
+                  <Image src={avatarUrl} alt={`${displayName} avatar`} fill sizes="32px" />
+                ) : (
+                  <div className="grid h-full w-full place-items-center bg-orange-500/10 text-orange-700">
+                    {initials}
+                  </div>
+                )}
+              </Link>
+            </>
           )}
           <button
             type="button"
