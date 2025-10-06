@@ -106,7 +106,7 @@ export function CrewJoinRequestsManager({ crewId, crewName, crewSlug, ownerId }:
         } as never)
         .eq("id", selectedRequestId);
 
-      if (error) {
+      if (error && Object.keys(error).length > 0) {
         console.error("승인 실패:", error);
 
         await reportSupabaseError(error, "Crew Join Request Approval Failed", {
@@ -200,7 +200,7 @@ export function CrewJoinRequestsManager({ crewId, crewName, crewSlug, ownerId }:
         } as never)
         .eq("id", selectedRequestId);
 
-      if (error) {
+      if (error && Object.keys(error).length > 0) {
         console.error("거절 실패:", error);
 
         await reportSupabaseError(error, "Crew Join Request Rejection Failed", {
