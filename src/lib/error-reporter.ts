@@ -27,9 +27,8 @@ export interface ErrorReport {
  * Report error to Slack
  */
 export async function reportError({ error, context, severity = 'medium' }: ErrorReport): Promise<void> {
-  // Only report in production or when explicitly enabled
-  if (process.env.NODE_ENV === 'development' && !process.env.NEXT_PUBLIC_ENABLE_ERROR_REPORTING) {
-    console.warn('Error reporting disabled in development');
+  // Don't report in test environment
+  if (process.env.NODE_ENV === 'test') {
     return;
   }
 

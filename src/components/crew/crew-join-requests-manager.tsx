@@ -328,7 +328,7 @@ export function CrewJoinRequestsManager({ crewId, ownerId }: CrewJoinRequestsMan
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction>확인</AlertDialogAction>
+            <AlertDialogAction onClick={() => setAlertDialog(null)}>확인</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -342,7 +342,7 @@ export function CrewJoinRequestsManager({ crewId, ownerId }: CrewJoinRequestsMan
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction>확인</AlertDialogAction>
+            <AlertDialogAction onClick={() => setAlertDialog(null)}>확인</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -371,7 +371,7 @@ export function CrewJoinRequestsManager({ crewId, ownerId }: CrewJoinRequestsMan
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction>확인</AlertDialogAction>
+            <AlertDialogAction onClick={() => setAlertDialog(null)}>확인</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -385,7 +385,7 @@ export function CrewJoinRequestsManager({ crewId, ownerId }: CrewJoinRequestsMan
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction>확인</AlertDialogAction>
+            <AlertDialogAction onClick={() => setAlertDialog(null)}>확인</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -399,7 +399,7 @@ export function CrewJoinRequestsManager({ crewId, ownerId }: CrewJoinRequestsMan
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction>확인</AlertDialogAction>
+            <AlertDialogAction onClick={() => setAlertDialog(null)}>확인</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
