@@ -15,17 +15,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { reportSupabaseError } from "@/lib/error-reporter";
+import { notifyCrewJoinRequest } from "@/lib/notifications/triggers";
 
 type JoinStatus = "not_member" | "pending" | "member" | "owner" | "loading";
 
 interface CrewJoinButtonProps {
   crewId: string;
+  crewName: string;
   ownerId: string;
 }
 
 type AlertType = "login_required" | "join_success" | "join_error" | "cancel_confirm" | "cancel_success" | "cancel_error" | "generic_error" | null;
 
-export function CrewJoinButton({ crewId, ownerId }: CrewJoinButtonProps) {
+export function CrewJoinButton({ crewId, crewName, ownerId }: CrewJoinButtonProps) {
   const router = useRouter();
   const { client, user } = useSupabase();
   const [status, setStatus] = useState<JoinStatus>("loading");
@@ -138,6 +140,16 @@ export function CrewJoinButton({ crewId, ownerId }: CrewJoinButtonProps) {
       }
 
       console.log("가입 신청 성공:", data);
+
+      // 크루 리더에게 알림 전송
+      const displayName = user.user_metadata?.name || user.email?.split('@')[0] || '러너';
+      await notifyCrewJoinRequest(client, {
+        crewId,
+        crewName,
+        ownerId,
+        applicantId: user.id,
+        applicantName: displayName,
+      });
 
       setAlertDialog("join_success");
       setStatus("pending");

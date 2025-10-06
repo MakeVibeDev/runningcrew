@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { KakaoLoginButton } from "@/components/ui/oauth-button";
+import { notifyMissionCreated } from "@/lib/notifications/triggers";
 
 const initialState = {
   crewId: "",
@@ -82,12 +83,41 @@ export default function MissionCreatePage() {
         } as never)
         .select("id, crew_id")
         .single()
-        .then(({ data, error: insertError }) => {
+        .then(async ({ data, error: insertError }) => {
           if (insertError) {
             console.error("미션 생성 실패", insertError);
             setError(insertError.message ?? "미션을 생성하는 중 오류가 발생했습니다.");
             return;
           }
+
+          // 미션 생성 알림 전송
+          if (data) {
+            // 크루 정보 및 멤버 조회
+            const { data: crew } = await client
+              .from("crews")
+              .select("name, slug")
+              .eq("id", form.crewId)
+              .single();
+
+            const { data: members } = await client
+              .from("crew_members")
+              .select("profile_id")
+              .eq("crew_id", form.crewId);
+
+            if (crew && members && members.length > 0) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const memberIds = members.map((m: any) => m.profile_id);
+              await notifyMissionCreated(client, {
+                missionId: data.id,
+                missionTitle: form.title.trim(),
+                crewId: form.crewId,
+                crewName: crew.name,
+                crewSlug: crew.slug,
+                memberIds,
+              });
+            }
+          }
+
           setSuccess("미션이 생성되었습니다.");
           setForm((prev) => ({ ...prev, title: "", description: "", targetDistance: "" }));
           if (data) {

@@ -228,9 +228,9 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
           </div>
 
           <div className="space-y-2">
-            <CrewJoinButton crewId={crew.id} ownerId={crew.owner_id} />
+            <CrewJoinButton crewId={crew.id} crewName={crew.name} ownerId={crew.owner_id} />
 
-            <CrewJoinRequestsManager crewId={crew.id} ownerId={crew.owner_id} />
+            <CrewJoinRequestsManager crewId={crew.id} crewName={crew.name} crewSlug={crew.slug} ownerId={crew.owner_id} />
 
             <div className="border border-border/70 bg-background p-4 shadow-sm">
               <div className="mb-6">
