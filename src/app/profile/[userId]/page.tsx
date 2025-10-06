@@ -235,9 +235,27 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
     <div className="min-h-screen bg-muted/40 pb-4">
       <main className="mx-auto max-w-6xl px-0 py-0">
         {/* 프로필 헤더 */}
-        <section className="bg-background p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-border/60 bg-muted">
+        <section className="relative overflow-hidden p-6 shadow-sm">
+          {/* 배경 이미지 (blur 효과) */}
+          {profileUser.avatar_url && (
+            <div className="absolute inset-0 -z-10">
+              <Image
+                src={profileUser.avatar_url}
+                alt=""
+                fill
+                className="object-cover blur-3xl opacity-30 scale-110"
+                sizes="100vw"
+                priority
+              />
+              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+            </div>
+          )}
+          {!profileUser.avatar_url && (
+            <div className="absolute inset-0 -z-10 bg-background" />
+          )}
+
+          <div className="relative flex items-center gap-4">
+            <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-border/60 bg-muted shadow-lg">
               {profileUser.avatar_url ? (
                 <Image
                   src={profileUser.avatar_url}
@@ -267,7 +285,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
 
           {/* 통계 */}
           {stats && (
-            <div className="mt-6 grid grid-cols-3 gap-4 rounded-xl border border-border/60 bg-muted/30 p-4">
+            <div className="relative mt-6 grid grid-cols-3 gap-4 rounded-xl border border-border/60 bg-muted/30 p-4">
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">총 거리</p>
                 <p className="mt-1 text-xl font-bold">{stats.totalDistanceKm.toFixed(1)} km</p>
