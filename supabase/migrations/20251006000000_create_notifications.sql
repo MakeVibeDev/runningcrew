@@ -1,3 +1,6 @@
+-- Enable uuid-ossp extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Create notifications table
 CREATE TABLE IF NOT EXISTS notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
