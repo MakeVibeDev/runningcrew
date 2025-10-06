@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
+import { reportSupabaseError } from "@/lib/error-reporter";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -104,6 +105,17 @@ export function CrewJoinRequestsManager({ crewId, ownerId }: CrewJoinRequestsMan
 
       if (error) {
         console.error("승인 실패:", error);
+
+        await reportSupabaseError(error, "Crew Join Request Approval Failed", {
+          userId: user?.id,
+          userEmail: user?.email,
+          userName: user?.user_metadata?.name || user?.email,
+          metadata: {
+            crewId,
+            requestId: selectedRequestId,
+          },
+        });
+
         setAlertDialog("approve_error");
         setProcessingId(null);
         return;
@@ -114,6 +126,17 @@ export function CrewJoinRequestsManager({ crewId, ownerId }: CrewJoinRequestsMan
       router.refresh();
     } catch (error) {
       console.error("승인 오류:", error);
+
+      await reportSupabaseError(error, "Crew Join Request Approval Exception", {
+        userId: user?.id,
+        userEmail: user?.email,
+        userName: user?.user_metadata?.name || user?.email,
+        metadata: {
+          crewId,
+          requestId: selectedRequestId,
+        },
+      });
+
       setAlertDialog("generic_error");
     } finally {
       setProcessingId(null);
@@ -142,6 +165,17 @@ export function CrewJoinRequestsManager({ crewId, ownerId }: CrewJoinRequestsMan
 
       if (error) {
         console.error("거절 실패:", error);
+
+        await reportSupabaseError(error, "Crew Join Request Rejection Failed", {
+          userId: user?.id,
+          userEmail: user?.email,
+          userName: user?.user_metadata?.name || user?.email,
+          metadata: {
+            crewId,
+            requestId: selectedRequestId,
+          },
+        });
+
         setAlertDialog("reject_error");
         setProcessingId(null);
         return;
@@ -152,6 +186,17 @@ export function CrewJoinRequestsManager({ crewId, ownerId }: CrewJoinRequestsMan
       router.refresh();
     } catch (error) {
       console.error("거절 오류:", error);
+
+      await reportSupabaseError(error, "Crew Join Request Rejection Exception", {
+        userId: user?.id,
+        userEmail: user?.email,
+        userName: user?.user_metadata?.name || user?.email,
+        metadata: {
+          crewId,
+          requestId: selectedRequestId,
+        },
+      });
+
       setAlertDialog("generic_error");
     } finally {
       setProcessingId(null);
