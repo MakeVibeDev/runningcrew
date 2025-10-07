@@ -165,8 +165,13 @@ export default function Home() {
               </div>
             </section>
 
+            {/* 최신 릴리즈 */}
+            <section className="m-4 mt-8">
+              <LatestReleaseBanner />
+            </section>
+
             {/* 주요 기능 소개 */}
-            <section className="m-4 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <section className="m-4 grid gap-2 md:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
                 <div className="mb-3 text-4xl">🏃</div>
                 <h3 className="mb-2 text-lg font-semibold">러닝 크루</h3>
@@ -201,7 +206,7 @@ export default function Home() {
             </section>
 
             {/* How It Works */}
-            <section className="m-4 mt-12 rounded-xl border border-border/70 bg-background p-8 shadow-sm">
+            <section className="m-4 mt-4 rounded-xl border border-border/70 bg-background p-8 shadow-sm">
               <h2 className="mb-6 text-center text-2xl font-bold">시작하기</h2>
               <div className="grid gap-6 md:grid-cols-4">
                 <div className="text-center">
@@ -246,13 +251,8 @@ export default function Home() {
               </div>
             </section>
 
-            {/* 최신 릴리즈 */}
-            <section className="m-4 mt-8">
-              <LatestReleaseBanner />
-            </section>
-
             {/* 크루 & 미션 미리보기 */}
-            <section className="m-4 grid gap-6 md:grid-cols-2">
+            <section className="m-4 grid gap-4 md:grid-cols-2">
               <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
                 <div className="mb-6">
                   <h3 className="text-xl font-semibold">인기 크루</h3>
@@ -388,7 +388,7 @@ export default function Home() {
             </section>
 
             {/* Beta Notice */}
-            <section className="m-4 mt-8 rounded-xl border border-orange-200 bg-orange-50 p-6 dark:border-orange-800 dark:bg-orange-950/30">
+            <section className="m-4 mt-4 rounded-xl border border-orange-200 bg-orange-50 p-6 dark:border-orange-800 dark:bg-orange-950/30">
               <div className="flex items-start gap-4">
                 <div className="text-4xl">🚀</div>
                 <div className="flex-1">

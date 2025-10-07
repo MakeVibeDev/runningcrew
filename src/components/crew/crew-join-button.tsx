@@ -108,7 +108,7 @@ export function CrewJoinButton({ crewId, crewName, ownerId }: CrewJoinButtonProp
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await client
+      const { error } = await client
         .from("crew_join_requests")
         .insert({
           crew_id: crewId,
@@ -138,8 +138,6 @@ export function CrewJoinButton({ crewId, crewName, ownerId }: CrewJoinButtonProp
         setAlertDialog("join_error");
         return;
       }
-
-      console.log("가입 신청 성공:", data);
 
       // 크루 리더에게 알림 전송
       const displayName = user.user_metadata?.name || user.email?.split('@')[0] || '러너';

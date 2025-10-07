@@ -263,22 +263,6 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
       const recordedAtDate = new Date(recordedAt);
       const recordedAtISO = recordedAtDate.toISOString();
 
-      console.log("Date conversion:", {
-        input: recordedAt,
-        date: recordedAtDate.toString(),
-        iso: recordedAtISO,
-      });
-
-      console.log("Updating record with:", {
-        distance_km: distanceKm,
-        duration_seconds: durationSeconds,
-        pace_seconds_per_km: paceSeconds,
-        recorded_at: recordedAtISO,
-        notes: notes.trim() || null,
-        visibility,
-        image_path: imagePath,
-      });
-
       // 기록 업데이트
       /* eslint-disable @typescript-eslint/no-explicit-any */
       const { error: updateError } = await (supabase as any)
@@ -299,7 +283,6 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
         throw new Error(`기록 수정 실패: ${updateError.message}`);
       }
 
-      console.log("Record updated successfully");
       showAlert("완료", "기록이 수정되었습니다.", () => {
         // 캐시를 새로고침하고 이전 페이지로 이동
         router.refresh();
@@ -416,10 +399,7 @@ export default function EditRecordPage({ params }: { params: Promise<{ recordId:
               type="datetime-local"
               id="recordedAt"
               value={recordedAt}
-              onChange={(e) => {
-                console.log("Date changed:", e.target.value);
-                setRecordedAt(e.target.value);
-              }}
+              onChange={(e) => setRecordedAt(e.target.value)}
               className="mt-2 w-full rounded-lg border border-border bg-background px-4 py-2"
               required
             />

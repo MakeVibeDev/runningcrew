@@ -174,11 +174,8 @@ export async function fetchCrewList() {
     "crews?select=id,slug,name,activity_region,description,logo_image_url,owner_id,crew_members(profile_id),owner_profile:profiles!owner_id(display_name,avatar_url)&order=created_at.desc",
   );
 
-  console.log("Raw crew data:", data);
-
   return data.map((item) => {
     const memberCount = item.crew_members?.length ?? 0;
-    console.log(`Crew ${item.name}: members =`, item.crew_members, "count =", memberCount);
     return {
       id: item.id,
       slug: item.slug,
