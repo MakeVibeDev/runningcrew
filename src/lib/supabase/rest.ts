@@ -699,3 +699,35 @@ export async function fetchUserMissionRanking(missionId: string, profileId: stri
     totalDistance: userStat.total_distance_km,
   };
 }
+
+/**
+ * 사용자가 참여 중인 미션 목록 가져오기
+ */
+export async function fetchUserJoinedMissions(profileId: string) {
+  const encodedProfileId = encodeURIComponent(profileId);
+
+  const missions = await supabaseRest<Array<{
+    mission_id: string;
+    joined_at: string;
+    mission: {
+      id: string;
+      title: string;
+      description: string;
+      start_date: string;
+      end_date: string;
+      crew_id: string;
+      crew: {
+        id: string;
+        name: string;
+        slug: string;
+      };
+    };
+  }>>(
+    `mission_participants?profile_id=eq.${encodedProfileId}&select=mission_id,joined_at,mission:missions(id,title,description,start_date,end_date,crew_id,crew:crews(id,name,slug))`
+  );
+
+  return missions.map((mp) => ({
+    ...mp.mission,
+    joined_at: mp.joined_at,
+  }));
+}

@@ -12,6 +12,7 @@ import {
   fetchMissionList,
   fetchUserJoinedMissionsRecentRecords,
   fetchUserMissionRanking,
+  fetchUserJoinedMissions,
 } from "@/lib/supabase/rest";
 
 interface RecentRecord {
@@ -51,6 +52,7 @@ export default function Home() {
   const [recentRecords, setRecentRecords] = useState<RecentRecord[]>([]);
   const [userRankings, setUserRankings] = useState<Map<string, { rank: number; totalParticipants: number; totalDistance: number }>>(new Map());
   const [unreadNotifications, setUnreadNotifications] = useState<Notification[]>([]);
+  const [userJoinedMissions, setUserJoinedMissions] = useState<Awaited<ReturnType<typeof fetchUserJoinedMissions>>>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [hideHowItWorks, setHideHowItWorks] = useState(false);
 
@@ -75,19 +77,20 @@ export default function Home() {
           .limit(5),
         fetchCrewList(),
         fetchMissionList(),
+        fetchUserJoinedMissions(user.id),
       ])
-        .then(async ([records, notificationsResult, crewsData, missionsData]) => {
+        .then(async ([records, notificationsResult, crewsData, missionsData, joinedMissionsData]) => {
           setRecentRecords(records);
           setUnreadNotifications(notificationsResult.data || []);
           setPublicCrews(crewsData.slice(0, 3));
           setPublicMissions(missionsData.slice(0, 3));
+          setUserJoinedMissions(joinedMissionsData);
 
-          // 각 미션에 대한 사용자 순위 가져오기
-          const missionIds = [...new Set(records.map((r) => r.mission_id))];
+          // 참여 중인 미션에 대한 사용자 순위 가져오기
           const rankings = await Promise.all(
-            missionIds.map(async (missionId) => {
-              const ranking = await fetchUserMissionRanking(missionId, user.id);
-              return { missionId, ranking };
+            joinedMissionsData.map(async (mission) => {
+              const ranking = await fetchUserMissionRanking(mission.id, user.id);
+              return { missionId: mission.id, ranking };
             })
           );
 
@@ -412,6 +415,7 @@ export default function Home() {
             user={user}
             recentRecords={recentRecords}
             userRankings={userRankings}
+            userJoinedMissions={userJoinedMissions}
             unreadNotifications={unreadNotifications}
             publicCrews={publicCrews}
             publicMissions={publicMissions}

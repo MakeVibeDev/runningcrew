@@ -39,6 +39,21 @@ interface User {
   email?: string;
 }
 
+interface UserMission {
+  id: string;
+  title: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  crew_id: string;
+  crew: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  joined_at: string;
+}
+
 interface LoggedInHomeProps {
   user: User;
   recentRecords: Array<{
@@ -64,6 +79,7 @@ interface LoggedInHomeProps {
     } | null;
   }>;
   userRankings: Map<string, { rank: number; totalParticipants: number; totalDistance: number }>;
+  userJoinedMissions: UserMission[];
   unreadNotifications: Notification[];
   publicCrews: Crew[];
   publicMissions: Mission[];
@@ -74,6 +90,7 @@ interface LoggedInHomeProps {
 export function LoggedInHome({
   recentRecords,
   userRankings,
+  userJoinedMissions,
   unreadNotifications,
   publicCrews,
   publicMissions,
@@ -137,7 +154,7 @@ export function LoggedInHome({
       )}
 
       {/* 참여 미션의 최근 기록 */}
-      {recentRecords.length > 0 && (
+      {(userJoinedMissions.length > 0 || recentRecords.length > 0) && (
         <section className="rounded-xl border border-border/60 bg-background p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold">참여 미션의 최근 기록</h2>
@@ -146,159 +163,74 @@ export function LoggedInHome({
             </Link>
           </div>
           <div className="space-y-4">
-            {recentRecords.map((record) => {
-              const ranking = record.mission_id ? userRankings.get(record.mission_id) : null;
+            {/* 참여 중인 미션 카드 */}
+            {userJoinedMissions.map((mission) => {
+              const ranking = userRankings.get(mission.id);
               return (
-                <div key={record.id} className="rounded-lg border border-border/40 bg-muted/20 p-4">
-                  <div className="flex items-start gap-4">
-                    {/* 프로필 이미지 */}
-                    <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-border bg-muted">
-                      {record.profile?.avatar_url ? (
-                        <Image
-                          src={record.profile.avatar_url}
-                          alt={record.profile.display_name}
-                          fill
-                          className="object-cover"
-                          sizes="48px"
-                        />
-                      ) : (
-                        <div className="grid h-full w-full place-items-center text-lg font-semibold text-muted-foreground">
-                          {record.profile?.display_name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 기록 정보 */}
+                <Link
+                  key={mission.id}
+                  href={`/missions/${mission.id}`}
+                  className="block rounded-lg border border-border/60 bg-muted/10 p-4 transition hover:bg-muted/30"
+                >
+                  <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <p className="font-semibold">{record.profile?.display_name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {record.mission?.crew.name} · {record.mission?.title}
+                      <h3 className="font-semibold">{mission.title}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {mission.crew.name} · 참가 중
                       </p>
-                      <div className="mt-2 flex flex-wrap gap-3 text-sm">
-                        <span>🏃 {record.distance_km.toFixed(2)}km</span>
-                        <span>⏱️ {formatDuration(record.duration_seconds)}</span>
-                        <span>⚡ {formatPace(record.pace_seconds_per_km)}/km</span>
+                    </div>
+                    {ranking && (
+                      <div className="flex-shrink-0 rounded-lg bg-orange-100 px-3 py-2 text-center dark:bg-orange-950/30">
+                        <p className="text-xs text-orange-700 dark:text-orange-400">내 순위</p>
+                        <p className="text-lg font-bold text-orange-700 dark:text-orange-400">
+                          {ranking.rank}위 / {ranking.totalParticipants}명
+                        </p>
                       </div>
-                      {ranking && (
-                        <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-700 dark:bg-orange-950/30 dark:text-orange-400">
-                          🏆 내 순위: {ranking.rank}위 / {ranking.totalParticipants}명
-                        </div>
-                      )}
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+
+            {/* 최근 기록 */}
+            {recentRecords.map((record) => (
+              <div key={record.id} className="rounded-lg border border-border/40 bg-muted/20 p-4">
+                <div className="flex items-start gap-4">
+                  {/* 프로필 이미지 */}
+                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-border bg-muted">
+                    {record.profile?.avatar_url ? (
+                      <Image
+                        src={record.profile.avatar_url}
+                        alt={record.profile.display_name}
+                        fill
+                        className="object-cover"
+                        sizes="48px"
+                      />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center text-lg font-semibold text-muted-foreground">
+                        {record.profile?.display_name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 기록 정보 */}
+                  <div className="flex-1">
+                    <p className="font-semibold">{record.profile?.display_name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {record.mission?.crew.name} · {record.mission?.title}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-3 text-sm">
+                      <span>🏃 {record.distance_km.toFixed(2)}km</span>
+                      <span>⏱️ {formatDuration(record.duration_seconds)}</span>
+                      <span>⚡ {formatPace(record.pace_seconds_per_km)}/km</span>
                     </div>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </section>
       )}
-
-      {/* 시작하기 섹션 */}
-      {!hideHowItWorks && (
-        <section className="rounded-xl border border-border/70 bg-background p-8 shadow-sm">
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold">시작하기</h2>
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-              <input
-                type="checkbox"
-                checked={hideHowItWorks}
-                onChange={(e) => onHideHowItWorksChange(e.target.checked)}
-                className="h-3.5 w-3.5 rounded border-border text-orange-500 focus:ring-orange-500"
-              />
-              다시 보지 않기
-            </label>
-          </div>
-          <div className="grid gap-6 md:grid-cols-4">
-            <div className="text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400">
-                1
-              </div>
-              <h3 className="mb-2 font-semibold">카카오 로그인</h3>
-              <p className="text-sm text-muted-foreground">간편하게 카카오 계정으로 시작하세요</p>
-            </div>
-
-            <div className="text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400">
-                2
-              </div>
-              <h3 className="mb-2 font-semibold">크루 찾기</h3>
-              <p className="text-sm text-muted-foreground">내 지역의 크루를 찾거나 직접 만들어보세요</p>
-            </div>
-
-            <div className="text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400">
-                3
-              </div>
-              <h3 className="mb-2 font-semibold">미션 참여</h3>
-              <p className="text-sm text-muted-foreground">크루의 미션에 참여하고 목표에 도전하세요</p>
-            </div>
-
-            <div className="text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400">
-                4
-              </div>
-              <h3 className="mb-2 font-semibold">기록 업로드</h3>
-              <p className="text-sm text-muted-foreground">러닝 앱 스크린샷을 업로드하면 OCR이 자동 분석합니다</p>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Beta Notice */}
-      <section className="rounded-xl border border-orange-200 bg-orange-50 p-6 dark:border-orange-800 dark:bg-orange-950/30">
-        <div className="flex items-start gap-4">
-          <div className="text-4xl">🚀</div>
-          <div className="flex-1">
-            <h3 className="mb-2 text-lg font-semibold text-orange-900 dark:text-orange-200">
-              베타 테스트 중입니다
-            </h3>
-            <p className="mb-3 text-sm text-orange-700 dark:text-orange-300">
-              RunningCrew는 현재 베타 버전입니다. 서비스를 이용하시면서 불편한 점이나 개선사항이 있으시면 언제든지 알려주세요.
-            </p>
-            <div className="flex flex-wrap gap-3 text-sm">
-              <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
-                <span>💡</span>
-                <span>페이지 하단 버그 및 문의하기 버튼으로 의견 전달</span>
-              </div>
-              <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
-                <span>🐛</span>
-                <span>버그 제보 환영</span>
-              </div>
-              <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
-                <span>✨</span>
-                <span>개선 아이디어 제안</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 주요 기능 소개 */}
-      <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
-          <div className="mb-3 text-4xl">🏃</div>
-          <h3 className="mb-2 text-lg font-semibold">러닝 크루</h3>
-          <p className="text-sm text-muted-foreground">같은 목표를 가진 러너들과 함께 달리세요</p>
-        </div>
-
-        <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
-          <div className="mb-3 text-4xl">🎯</div>
-          <h3 className="mb-2 text-lg font-semibold">미션 챌린지</h3>
-          <p className="text-sm text-muted-foreground">크루별 미션에 참여하고 목표를 달성하세요</p>
-        </div>
-
-        <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
-          <div className="mb-3 text-4xl">📱</div>
-          <h3 className="mb-2 text-lg font-semibold">OCR 기록 분석</h3>
-          <p className="text-sm text-muted-foreground">앱 스크린샷을 업로드하면 자동으로 기록을 인식합니다</p>
-        </div>
-
-        <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
-          <div className="mb-3 text-4xl">💬</div>
-          <h3 className="mb-2 text-lg font-semibold">소셜 기능</h3>
-          <p className="text-sm text-muted-foreground">좋아요와 댓글로 함께 응원하고 격려하세요</p>
-        </div>
-      </section>
 
       {/* 크루 & 미션 미리보기 */}
       <section className="grid gap-6 md:grid-cols-2">
@@ -426,6 +358,115 @@ export function LoggedInHome({
           </div>
         </div>
       </section>
+      
+      {/* 시작하기 섹션 */}
+      {!hideHowItWorks && (
+        <section className="rounded-xl border border-border/70 bg-background p-8 shadow-sm">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-2xl font-bold">시작하기</h2>
+            <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={hideHowItWorks}
+                onChange={(e) => onHideHowItWorksChange(e.target.checked)}
+                className="h-3.5 w-3.5 rounded border-border text-orange-500 focus:ring-orange-500"
+              />
+              다시 보지 않기
+            </label>
+          </div>
+          <div className="grid gap-6 md:grid-cols-4">
+            <div className="text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400">
+                1
+              </div>
+              <h3 className="mb-2 font-semibold">카카오 로그인</h3>
+              <p className="text-sm text-muted-foreground">간편하게 카카오 계정으로 시작하세요</p>
+            </div>
+
+            <div className="text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400">
+                2
+              </div>
+              <h3 className="mb-2 font-semibold">크루 찾기</h3>
+              <p className="text-sm text-muted-foreground">내 지역의 크루를 찾거나 직접 만들어보세요</p>
+            </div>
+
+            <div className="text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400">
+                3
+              </div>
+              <h3 className="mb-2 font-semibold">미션 참여</h3>
+              <p className="text-sm text-muted-foreground">크루의 미션에 참여하고 목표에 도전하세요</p>
+            </div>
+
+            <div className="text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400">
+                4
+              </div>
+              <h3 className="mb-2 font-semibold">기록 업로드</h3>
+              <p className="text-sm text-muted-foreground">러닝 앱 스크린샷을 업로드하면 OCR이 자동 분석합니다</p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Beta Notice */}
+      <section className="rounded-xl border border-orange-200 bg-orange-50 p-6 dark:border-orange-800 dark:bg-orange-950/30">
+        <div className="flex items-start gap-4">
+          <div className="text-4xl">🚀</div>
+          <div className="flex-1">
+            <h3 className="mb-2 text-lg font-semibold text-orange-900 dark:text-orange-200">
+              베타 테스트 중입니다
+            </h3>
+            <p className="mb-3 text-sm text-orange-700 dark:text-orange-300">
+              RunningCrew는 현재 베타 버전입니다. 서비스를 이용하시면서 불편한 점이나 개선사항이 있으시면 언제든지 알려주세요.
+            </p>
+            <div className="flex flex-wrap gap-3 text-sm">
+              <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                <span>💡</span>
+                <span>페이지 하단 버그 및 문의하기 버튼으로 의견 전달</span>
+              </div>
+              <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                <span>🐛</span>
+                <span>버그 제보 환영</span>
+              </div>
+              <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                <span>✨</span>
+                <span>개선 아이디어 제안</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 주요 기능 소개 */}
+      {/* <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
+          <div className="mb-3 text-4xl">🏃</div>
+          <h3 className="mb-2 text-lg font-semibold">러닝 크루</h3>
+          <p className="text-sm text-muted-foreground">같은 목표를 가진 러너들과 함께 달리세요</p>
+        </div>
+
+        <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
+          <div className="mb-3 text-4xl">🎯</div>
+          <h3 className="mb-2 text-lg font-semibold">미션 챌린지</h3>
+          <p className="text-sm text-muted-foreground">크루별 미션에 참여하고 목표를 달성하세요</p>
+        </div>
+
+        <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
+          <div className="mb-3 text-4xl">📱</div>
+          <h3 className="mb-2 text-lg font-semibold">OCR 기록 분석</h3>
+          <p className="text-sm text-muted-foreground">앱 스크린샷을 업로드하면 자동으로 기록을 인식합니다</p>
+        </div>
+
+        <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
+          <div className="mb-3 text-4xl">💬</div>
+          <h3 className="mb-2 text-lg font-semibold">소셜 기능</h3>
+          <p className="text-sm text-muted-foreground">좋아요와 댓글로 함께 응원하고 격려하세요</p>
+        </div>
+      </section> */}
+
+      
     </main>
   );
 }
