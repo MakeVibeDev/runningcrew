@@ -63,7 +63,7 @@ export default async function CrewsPage() {
                     alt={`${crew.name} 로고`}
                     fill
                     sizes="(min-width: 1024px) 33vw, 100vw"
-                    className="object-contain p-4"
+                    className="object-contain p-0"
                   />
                 ) : (
                   <div className="grid h-full w-full place-items-center px-4 text-center text-2xl font-bold text-foreground/70">

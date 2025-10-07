@@ -248,7 +248,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
                   backgroundPosition: 'center',
                   filter: 'blur(20px)',
                   opacity: 0.4,
-                  transform: 'scale(1.1)',
+                  transform: 'scale(0.9)',
                 }}
               />
               <div
@@ -327,7 +327,13 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
                 >
                   <div className="relative h-32 w-full bg-gradient-to-br from-muted/50 to-muted">
                     {crew.logoImageUrl ? (
-                      <Image src={crew.logoImageUrl} alt={crew.name} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
+                      <Image
+                        src={crew.logoImageUrl}
+                        alt={crew.name}
+                        fill
+                        className="object-contain p-4"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
                     ) : (
                       <div className="grid h-full w-full place-items-center px-4 text-center text-2xl font-bold text-foreground/70">
                         {crew.name}
@@ -335,9 +341,32 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
                     )}
                   </div>
                   <div className="p-4">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">{crew.name}</h3>
-                      <span className="text-xs text-muted-foreground">{crew.memberCount}명</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold">{crew.name}</h3>
+                        <span className="text-xs text-muted-foreground">{crew.memberCount}명</span>
+                      </div>
+                      {/* 리더 정보 - 크루명 우측 */}
+                      {crew.owner && (
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs">⭐</span>
+                          <div className="relative h-6 w-6 overflow-hidden rounded-full border border-border/60 bg-muted">
+                            {crew.owner.avatar_url ? (
+                              <Image
+                                src={crew.owner.avatar_url}
+                                alt={crew.owner.display_name}
+                                fill
+                                className="object-cover"
+                                sizes="24px"
+                              />
+                            ) : (
+                              <div className="grid h-full w-full place-items-center text-[10px] font-semibold text-muted-foreground">
+                                {crew.owner.display_name.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">{crew.activityRegion}</p>
                   </div>

@@ -542,18 +542,25 @@ type UserCrewRow = {
 export async function fetchUserJoinedCrews(profileId: string) {
   const encoded = encodeURIComponent(profileId);
   const data = await supabaseRest<UserCrewRow[]>(
-    `crew_members?profile_id=eq.${encoded}&select=crew:crews(id,slug,name,logo_image_url,activity_region)`,
+    `crew_members?profile_id=eq.${encoded}&select=crew:crews(id,slug,name,logo_image_url,activity_region,owner_id)`,
   );
 
-  // 각 크루의 멤버 수 계산
+  // 각 크루의 멤버 수 및 리더 정보 계산
   const crewsWithCounts = await Promise.all(
     data
       .filter((row) => row.crew !== null)
       .map(async (row) => {
         const crewId = encodeURIComponent(row.crew!.id);
+        const ownerId = encodeURIComponent(row.crew!.owner_id);
+
         // 크루별 멤버 수 조회
         const memberCountData = await supabaseRest<Array<{ crew_id: string }>>(
           `crew_members?crew_id=eq.${crewId}&select=crew_id`,
+        );
+
+        // 리더 프로필 조회
+        const ownerData = await supabaseRest<Array<{ id: string; display_name: string; avatar_url: string | null }>>(
+          `profiles?id=eq.${ownerId}&select=id,display_name,avatar_url`,
         );
 
         return {
@@ -563,6 +570,7 @@ export async function fetchUserJoinedCrews(profileId: string) {
           logoImageUrl: row.crew!.logo_image_url,
           activityRegion: row.crew!.activity_region || "",
           memberCount: memberCountData.length,
+          owner: ownerData[0] || null,
         };
       })
   );
