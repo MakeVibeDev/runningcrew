@@ -23,7 +23,7 @@ export interface Release {
 export const releases: Release[] = [
   {
     version: "v0.6.0-001",
-    date: "2025-01-08",
+    date: "2025-10-08",
     title: "알림 시스템 및 사용성 개선",
     summary: "실시간 알림 기능과 크루 가입 프로세스 개선, 그리고 다양한 UI/UX 개선사항이 포함되었습니다.",
     highlights: [
