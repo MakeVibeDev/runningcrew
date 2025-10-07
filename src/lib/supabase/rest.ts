@@ -605,3 +605,98 @@ export async function uploadProfileImage(userId: string, file: File): Promise<st
 
   return data.publicUrl;
 }
+
+/**
+ * 사용자가 참여 중인 미션들의 최근 기록 가져오기
+ */
+export async function fetchUserJoinedMissionsRecentRecords(profileId: string, limit = 3) {
+  const encoded = encodeURIComponent(profileId);
+
+  // 참여 중인 미션 목록 가져오기
+  const missions = await supabaseRest<Array<{ mission: { id: string; title: string; crew: { name: string; slug: string } } }>>(
+    `mission_participants?profile_id=eq.${encoded}&status=eq.joined&select=mission:missions(id,title,crew:crews(name,slug))`
+  );
+
+  if (!missions || missions.length === 0) {
+    return [];
+  }
+
+  const missionIds = missions
+    .map((m) => m.mission?.id)
+    .filter((id): id is string => !!id);
+
+  if (missionIds.length === 0) {
+    return [];
+  }
+
+  // 각 미션의 최근 기록 가져오기 (전체 참여자)
+  const recordsPromises = missionIds.map(async (missionId) => {
+    const encodedMissionId = encodeURIComponent(missionId);
+    const records = await supabaseRest<Array<{
+      id: string;
+      profile_id: string;
+      mission_id: string;
+      recorded_at: string;
+      distance_km: number;
+      duration_seconds: number;
+      pace_seconds_per_km: number;
+      visibility: string;
+      profile: {
+        id: string;
+        display_name: string;
+        avatar_url: string | null;
+      } | null;
+    }>>(
+      `records?mission_id=eq.${encodedMissionId}&visibility=eq.public&select=id,profile_id,mission_id,recorded_at,distance_km,duration_seconds,pace_seconds_per_km,visibility,profile:profiles(id,display_name,avatar_url)&order=recorded_at.desc&limit=${limit}`
+    );
+
+    const mission = missions.find((m) => m.mission?.id === missionId)?.mission;
+
+    return records.map((record) => ({
+      ...record,
+      mission: mission || null,
+    }));
+  });
+
+  const allRecords = (await Promise.all(recordsPromises)).flat();
+
+  // 최신순으로 정렬하고 limit개만 반환
+  return allRecords
+    .sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
+    .slice(0, limit);
+}
+
+/**
+ * 특정 미션에서 사용자의 현재 순위 가져오기
+ */
+export async function fetchUserMissionRanking(missionId: string, profileId: string) {
+  const encodedMissionId = encodeURIComponent(missionId);
+  const encodedProfileId = encodeURIComponent(profileId);
+
+  // 해당 미션의 전체 통계 가져오기
+  const stats = await supabaseRest<Array<{
+    profile_id: string;
+    total_distance_km: number;
+  }>>(
+    `mission_stats?mission_id=eq.${encodedMissionId}&select=profile_id,total_distance_km&order=total_distance_km.desc`
+  );
+
+  if (!stats || stats.length === 0) {
+    return null;
+  }
+
+  // 사용자의 순위 찾기
+  const userRank = stats.findIndex((stat) => stat.profile_id === profileId);
+
+  if (userRank === -1) {
+    return null;
+  }
+
+  const userStat = stats[userRank];
+
+  return {
+    rank: userRank + 1,
+    totalParticipants: stats.length,
+    totalDistance: userStat.total_distance_km,
+  };
+}
