@@ -536,6 +536,7 @@ type UserCrewRow = {
     name: string;
     logo_image_url: string | null;
     activity_region: string | null;
+    owner_id: string;
   } | null;
 };
 

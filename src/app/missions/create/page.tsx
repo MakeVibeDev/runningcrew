@@ -91,7 +91,7 @@ export default function MissionCreatePage() {
           }
 
           // 미션 생성 알림 전송
-          if (data) {
+          if (data && typeof data === 'object' && 'id' in data) {
             // 크루 정보 및 멤버 조회
             const { data: crew } = await client
               .from("crews")
@@ -107,12 +107,12 @@ export default function MissionCreatePage() {
             if (crew && members && members.length > 0) {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const memberIds = members.map((m: any) => m.profile_id);
+              const crewData = crew as { name: string; slug: string };
               await notifyMissionCreated(client, {
-                missionId: data.id,
+                missionId: (data as { id: string }).id,
                 missionTitle: form.title.trim(),
                 crewId: form.crewId,
-                crewName: crew.name,
-                crewSlug: crew.slug,
+                crewName: crewData.name,
                 memberIds,
               });
             }

@@ -227,7 +227,7 @@ export async function createRecordComment(
         recordOwnerId: record.profile_id,
         commenterId: userId,
         commenterName,
-        commentContent: content.trim(),
+        commentPreview: content.trim(),
       });
     }
 
