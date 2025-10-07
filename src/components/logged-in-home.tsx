@@ -158,7 +158,10 @@ export function LoggedInHome({
         <section className="rounded-xl border border-border/60 bg-background p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold">참여 미션의 최근 기록</h2>
-            <Link href="/missions" className="text-sm font-medium text-orange-600 hover:text-orange-700">
+            <Link
+              href={userJoinedMissions.length > 0 ? `/missions/${userJoinedMissions[0].id}` : "/missions"}
+              className="text-sm font-medium text-orange-600 hover:text-orange-700"
+            >
               더보기
             </Link>
           </div>
