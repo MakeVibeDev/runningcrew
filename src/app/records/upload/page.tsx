@@ -18,6 +18,9 @@ import {
 
 const MAX_IMAGE_MB = 5;
 const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"] as const;
+const MAX_IMAGE_WIDTH = 1920;
+const MAX_IMAGE_HEIGHT = 1920;
+const COMPRESSION_QUALITY = 0.85;
 
 function formatToDatetimeLocal(isoString: string) {
   const date = new Date(isoString);
@@ -92,6 +95,80 @@ function parseDurationInput(value: string) {
   const seconds = parseInt(s, 10);
   if ([hours, minutes, seconds].some((n) => Number.isNaN(n))) return null;
   return hours * 3600 + minutes * 60 + seconds;
+}
+
+/**
+ * 이미지 압축 함수
+ * Canvas를 사용하여 이미지 크기를 조정하고 압축합니다.
+ */
+async function compressImage(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const img = document.createElement('img');
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let { width, height } = img;
+
+        // 비율 유지하면서 최대 크기로 조정
+        if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT) {
+          const ratio = Math.min(MAX_IMAGE_WIDTH / width, MAX_IMAGE_HEIGHT / height);
+          width = Math.floor(width * ratio);
+          height = Math.floor(height * ratio);
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas context not available'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error('Image compression failed'));
+              return;
+            }
+
+            // 압축된 이미지가 원본보다 크면 원본 사용
+            if (blob.size >= file.size) {
+              resolve(file);
+              return;
+            }
+
+            // 파일명 유지하면서 새 파일 생성
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+
+            resolve(compressedFile);
+          },
+          'image/jpeg',
+          COMPRESSION_QUALITY
+        );
+      };
+
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+      };
+
+      img.src = e.target?.result as string;
+    };
+
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'));
+    };
+
+    reader.readAsDataURL(file);
+  });
 }
 
 type JoinedMission = {
@@ -339,7 +416,19 @@ function RecordUploadPageContent() {
     }
 
     setError(null);
-    const objectUrl = URL.createObjectURL(file);
+
+    // 이미지 압축
+    let fileToUpload = file;
+    try {
+      console.log("[Compress] Original size:", (file.size / 1024 / 1024).toFixed(2), "MB");
+      fileToUpload = await compressImage(file);
+      console.log("[Compress] Compressed size:", (fileToUpload.size / 1024 / 1024).toFixed(2), "MB");
+    } catch (compressionError) {
+      console.warn("[Compress] Failed to compress image, using original:", compressionError);
+      fileToUpload = file;
+    }
+
+    const objectUrl = URL.createObjectURL(fileToUpload);
     setImagePreview(objectUrl);
     setDurationSeconds("");
     setDurationInput("");
@@ -356,9 +445,9 @@ function RecordUploadPageContent() {
 
     const { data: uploadData, error: uploadError } = await client.storage
       .from("records-raw")
-      .upload(path, file, {
+      .upload(path, fileToUpload, {
         upsert: true,
-        contentType: file.type,
+        contentType: fileToUpload.type,
       });
 
     if (uploadError) {
