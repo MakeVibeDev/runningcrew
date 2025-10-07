@@ -7,7 +7,7 @@ import { getLatestRelease } from "@/data/releases";
 
 export function LatestReleaseBanner() {
   const [isHidden, setIsHidden] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const release = getLatestRelease();
 
   useEffect(() => {
