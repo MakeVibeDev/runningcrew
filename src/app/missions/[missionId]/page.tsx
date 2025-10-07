@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { MissionParticipationControl } from "@/components/crew/mission-participation-control";
 import { RecordCard } from "@/components/record-card";
+import { RankingCard } from "@/components/mission/ranking-card";
 import { fetchMissionById, fetchMissionRecords, fetchMissionStats } from "@/lib/supabase/rest";
 
 export const revalidate = 0;
@@ -193,61 +193,14 @@ export default async function MissionDetailPage({
               ) : (
                 <>
                 {stats.slice(0, 5).map((stat, index) => (
-                  <div
+                  <RankingCard
                     key={stat.profileId}
-                    className="relative overflow-hidden rounded-xl border border-border/60 bg-background p-2 text-sm text-muted-foreground"
-                  >
-                    {/* 순위 표시 - 최상단 좌측 모서리 */}
-                    <div className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-br-lg bg-foreground text-xs font-bold text-background">
-                      {index + 1}
-                    </div>
-
-                    <div className="flex items-center gap-3 pl-9 pt-1">
-                      <Link
-                        href={`/profile/${stat.profileId}`}
-                        className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-border/60 bg-muted hover:ring-2 hover:ring-foreground/20 transition"
-                      >
-                        {stat.profile?.avatar_url ? (
-                          <Image
-                            src={stat.profile.avatar_url}
-                            alt={stat.profile.display_name ?? "프로필"}
-                            fill
-                            className="object-cover"
-                            sizes="48px"
-                          />
-                        ) : (
-                          <div className="grid h-full w-full place-items-center text-lg font-semibold text-muted-foreground">
-                            {stat.profile?.display_name?.charAt(0)?.toUpperCase() ?? "?"}
-                          </div>
-                        )}
-                      </Link>
-                      <Link href={`/profile/${stat.profileId}`} className="hover:underline">
-                        <p className="font-medium text-foreground">
-                          {stat.profile?.display_name ?? "익명"}
-                        </p>
-                      </Link>
-                    </div>
-                    <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs uppercase tracking-wide text-muted-foreground/70">
-                      <div>
-                        <p className="text-[0.65rem]">총 거리</p>
-                        <p className="text-base font-semibold text-foreground">
-                          {stat.totalDistanceKm.toFixed(2)} KM
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[0.65rem]">총 시간</p>
-                        <p className="text-base font-semibold text-foreground">
-                          {formatDuration(stat.totalDurationSeconds)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[0.65rem]">평균 페이스</p>
-                        <p className="text-base font-semibold text-foreground">
-                          {formatPace(stat.avgPaceSecondsPerKm)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                    stat={stat}
+                    index={index}
+                    formatDuration={formatDuration}
+                    formatPace={formatPace}
+                    compact
+                  />
                 ))
                 }
 
