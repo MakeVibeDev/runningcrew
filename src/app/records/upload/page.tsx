@@ -6,6 +6,15 @@ import { Suspense, useEffect, useMemo, useState, useTransition } from "react";
 
 import { KakaoLoginButton } from "@/components/ui/oauth-button";
 import { useSupabase } from "@/components/providers/supabase-provider";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const MAX_IMAGE_MB = 5;
 const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"] as const;
@@ -138,6 +147,7 @@ function RecordUploadPageContent() {
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrResultId, setOcrResultId] = useState<string | null>(null);
   const [ocrRawText, setOcrRawText] = useState<string | null>(null);
+  const [showNoMissionsDialog, setShowNoMissionsDialog] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -177,6 +187,7 @@ function RecordUploadPageContent() {
           setMissionId(preferred);
         } else {
           setMissionId("");
+          setShowNoMissionsDialog(true);
         }
         setFetchingMissions(false);
       });
@@ -465,12 +476,34 @@ function RecordUploadPageContent() {
     );
   }
   return (
-    <div className="mx-auto max-w-3xl space-y-8 px-0 py-8">
-      <div className="space-y-4 px-4">
-        <h1 className="text-3xl font-semibold">기록 등록</h1>
-        <p className="text-sm text-muted-foreground">
-          참여 중인 미션을 선택하고 OCR 결과를 확인한 뒤 기록을 저장하세요.
-        </p>
+    <>
+      <AlertDialog open={showNoMissionsDialog} onOpenChange={setShowNoMissionsDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>참여 중인 미션이 없습니다</AlertDialogTitle>
+            <AlertDialogDescription>
+              기록을 등록하려면 크루의 미션에 참여해야 합니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setShowNoMissionsDialog(false);
+                router.push("/missions");
+              }}
+            >
+              미션 보기
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="mx-auto max-w-3xl space-y-8 px-0 py-8">
+        <div className="space-y-4 px-4">
+          <h1 className="text-3xl font-semibold">기록 등록</h1>
+          <p className="text-sm text-muted-foreground">
+            참여 중인 미션을 선택하고 OCR 결과를 확인한 뒤 기록을 저장하세요.
+          </p>
 
         {/* 안내 사항 */}
         {!hideGuide && (
@@ -638,38 +671,14 @@ function RecordUploadPageContent() {
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
                     활동 시각<span className="px-2 text-orange-600 dark:text-orange-400">실제 활동 시간</span>
                   </label>
-                  <div className="relative">
-                    <input
-                      id="recorded-at"
-                      type="datetime-local"
-                      value={recordedAt}
-                      onChange={(event) => setRecordedAt(event.target.value)}
-                      className="absolute opacity-0 h-0 w-0"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const input = document.getElementById("recorded-at") as HTMLInputElement | null;
-                        if (input && typeof (input as unknown as { showPicker?: () => void }).showPicker === 'function') {
-                          (input as unknown as { showPicker: () => void }).showPicker();
-                        }
-                      }}
-                      className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-left text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    >
-                      {recordedAt ? (() => {
-                        const date = new Date(recordedAt);
-                        const year = date.getFullYear();
-                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                        const day = String(date.getDate()).padStart(2, '0');
-                        const hours = String(date.getHours()).padStart(2, '0');
-                        const minutes = String(date.getMinutes()).padStart(2, '0');
-                        const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-                        const weekday = weekdays[date.getDay()];
-                        return `${year}-${month}-${day} (${weekday}) ${hours}:${minutes}`;
-                      })() : '날짜 선택'}
-                    </button>
-                  </div>
+                  <input
+                    id="recorded-at"
+                    type="datetime-local"
+                    value={recordedAt}
+                    onChange={(event) => setRecordedAt(event.target.value)}
+                    className="mt-2 w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                     <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
@@ -755,13 +764,14 @@ function RecordUploadPageContent() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="w-full rounded-full bg-foreground px-5 py-4 text-sm font-semibold text-background shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-full bg-orange-500 px-5 py-4 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? "💾 저장 중..." : "✅ 기록 등록"}
+            {isSubmitting ? "💾 저장 중..." : "💾 기록 저장"}
           </button>
         </div>
       </form>
-    </div>
+      </div>
+    </>
   );
 }
 
