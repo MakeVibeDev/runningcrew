@@ -671,7 +671,6 @@ export async function fetchUserJoinedMissionsRecentRecords(profileId: string, li
  */
 export async function fetchUserMissionRanking(missionId: string, profileId: string) {
   const encodedMissionId = encodeURIComponent(missionId);
-  const encodedProfileId = encodeURIComponent(profileId);
 
   // 해당 미션의 전체 통계 가져오기
   const stats = await supabaseRest<Array<{

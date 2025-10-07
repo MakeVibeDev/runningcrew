@@ -3,40 +3,115 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { KakaoLoginButton } from "@/components/ui/oauth-button";
+import { LoggedInHome } from "@/components/logged-in-home";
 import {
   fetchCrewList,
   fetchMissionList,
+  fetchUserJoinedMissionsRecentRecords,
+  fetchUserMissionRanking,
 } from "@/lib/supabase/rest";
 
+interface RecentRecord {
+  id: string;
+  profile_id: string;
+  mission_id: string;
+  recorded_at: string;
+  distance_km: number;
+  duration_seconds: number;
+  pace_seconds_per_km: number;
+  profile: {
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+  } | null;
+  mission: {
+    id: string;
+    title: string;
+    crew: {
+      name: string;
+      slug: string;
+    };
+  } | null;
+}
+
+interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+}
+
 export default function Home() {
-  const { user, loading, signInWithOAuth } = useSupabase();
-  const router = useRouter();
+  const { user, loading, signInWithOAuth, client } = useSupabase();
   const [publicCrews, setPublicCrews] = useState<Awaited<ReturnType<typeof fetchCrewList>>>([]);
   const [publicMissions, setPublicMissions] = useState<Awaited<ReturnType<typeof fetchMissionList>>>([]);
+  const [recentRecords, setRecentRecords] = useState<RecentRecord[]>([]);
+  const [userRankings, setUserRankings] = useState<Map<string, { rank: number; totalParticipants: number; totalDistance: number }>>(new Map());
+  const [unreadNotifications, setUnreadNotifications] = useState<Notification[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [hideHowItWorks, setHideHowItWorks] = useState(false);
 
-  // 로그인한 사용자는 본인 프로필 대시보드로 리다이렉트
   useEffect(() => {
-    if (!loading && user) {
-      router.push(`/profile/${user.id}`);
+    if (typeof window !== "undefined") {
+      setHideHowItWorks(localStorage.getItem("hideHowItWorks") === "true");
     }
-  }, [user, loading, router]);
+  }, []);
 
   useEffect(() => {
-    if (!user) {
-      // 비로그인 사용자용 데이터 로드
+    if (user) {
+      // 로그인 사용자용 데이터 로드
       setDataLoading(true);
       Promise.all([
+        fetchUserJoinedMissionsRecentRecords(user.id, 3),
+        client
+          .from("notifications")
+          .select("*")
+          .eq("recipient_id", user.id)
+          .eq("read", false)
+          .order("created_at", { ascending: false })
+          .limit(5),
         fetchCrewList(),
         fetchMissionList(),
       ])
+        .then(async ([records, notificationsResult, crewsData, missionsData]) => {
+          setRecentRecords(records);
+          setUnreadNotifications(notificationsResult.data || []);
+          setPublicCrews(crewsData.slice(0, 3));
+          setPublicMissions(missionsData.slice(0, 3));
+
+          // 각 미션에 대한 사용자 순위 가져오기
+          const missionIds = [...new Set(records.map((r) => r.mission_id))];
+          const rankings = await Promise.all(
+            missionIds.map(async (missionId) => {
+              const ranking = await fetchUserMissionRanking(missionId, user.id);
+              return { missionId, ranking };
+            })
+          );
+
+          const rankingsMap = new Map<string, { rank: number; totalParticipants: number; totalDistance: number }>();
+          rankings.forEach(({ missionId, ranking }) => {
+            if (ranking) {
+              rankingsMap.set(missionId, ranking);
+            }
+          });
+          setUserRankings(rankingsMap);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch user data:", error);
+        })
+        .finally(() => {
+          setDataLoading(false);
+        });
+    } else if (!loading) {
+      // 비로그인 사용자용 데이터 로드
+      setDataLoading(true);
+      Promise.all([fetchCrewList(), fetchMissionList()])
         .then(([crewsData, missionsData]) => {
-          setPublicCrews(crewsData.slice(0, 3)); // 상위 3개만
-          setPublicMissions(missionsData.slice(0, 3)); // 상위 3개만
+          setPublicCrews(crewsData.slice(0, 3));
+          setPublicMissions(missionsData.slice(0, 3));
         })
         .catch((error) => {
           console.error("Failed to fetch public data:", error);
@@ -45,7 +120,7 @@ export default function Home() {
           setDataLoading(false);
         });
     }
-  }, [user]);
+  }, [user, loading, client]);
 
   return (
     <div className="min-h-screen bg-muted/40 pb-0">
@@ -181,7 +256,7 @@ export default function Home() {
                   <div className="flex flex-wrap gap-3 text-sm">
                     <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
                       <span>💡</span>
-                      <span>우측 하단 피드백 버튼으로 의견 전달</span>
+                      <span>페이지 하단 피드백 버튼으로 의견 전달</span>
                     </div>
                     <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
                       <span>🐛</span>
@@ -332,7 +407,21 @@ export default function Home() {
               </div>
             </section>
           </>
-        ) : null}
+        ) : (
+          <LoggedInHome
+            user={user}
+            recentRecords={recentRecords}
+            userRankings={userRankings}
+            unreadNotifications={unreadNotifications}
+            publicCrews={publicCrews}
+            publicMissions={publicMissions}
+            hideHowItWorks={hideHowItWorks}
+            onHideHowItWorksChange={(hide) => {
+              setHideHowItWorks(hide);
+              localStorage.setItem("hideHowItWorks", String(hide));
+            }}
+          />
+        )}
       </main>
     </div>
   );
