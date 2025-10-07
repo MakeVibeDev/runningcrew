@@ -44,7 +44,7 @@ export function SiteNav() {
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
         {/* Left side - Logo */}
-        <Link href={user ? `/profile/${user.id}` : "/"} className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           {/* Desktop: Full logo with text */}
           <Image
             src="/logo2.png"
