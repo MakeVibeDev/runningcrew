@@ -82,16 +82,8 @@ function AuthCallbackContent() {
       await syncProfile();
       await refreshProfile();
 
-      // Get user ID for redirect
-      const { data: userData } = await client.auth.getUser();
-      const userId = userData.user?.id;
-
       setTimeout(() => {
-        if (userId) {
-          router.replace(`/profile/${userId}`);
-        } else {
-          router.replace("/");
-        }
+        router.replace("/");
       }, 400);
     };
 
