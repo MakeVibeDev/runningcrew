@@ -64,27 +64,27 @@ export default async function MissionRankingsPage({
               <div
                 key={stat.profileId}
                 className="relative overflow-hidden rounded-xl border border-border/60 p-3 shadow-sm transition hover:shadow-md"
+                style={{
+                  backgroundColor: 'hsl(var(--card))',
+                }}
               >
                 {/* 배경 이미지 (blur 효과) */}
                 {stat.profile?.avatar_url && (
-                  <div className="absolute inset-0" style={{ zIndex: -1 }}>
-                    <Image
-                      src={stat.profile.avatar_url}
-                      alt=""
-                      fill
-                      className="object-cover"
+                  <>
+                    <div
+                      className="absolute inset-0"
                       style={{
+                        zIndex: 0,
+                        backgroundImage: `url(${stat.profile.avatar_url})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
                         filter: 'blur(40px)',
                         opacity: 0.2,
-                        transform: 'scale(1.1)'
+                        transform: 'scale(1.1)',
                       }}
-                      sizes="100vw"
                     />
-                    <div className="absolute inset-0 bg-card/90 backdrop-blur-sm" />
-                  </div>
-                )}
-                {!stat.profile?.avatar_url && (
-                  <div className="absolute inset-0 bg-card" style={{ zIndex: -1 }} />
+                    <div className="absolute inset-0 bg-card/90" style={{ zIndex: 0 }} />
+                  </>
                 )}
 
                 {/* 순위 표시 - 최상단 좌측 모서리 */}
@@ -103,7 +103,7 @@ export default async function MissionRankingsPage({
                 </div>
 
                 {/* 1행: 프로필 이미지 | 이름 + 기록 횟수 */}
-                <div className="relative flex items-center gap-3 pl-10 pt-1">
+                <div className="relative flex items-center gap-3 pl-10 pt-1" style={{ zIndex: 1 }}>
                   <Link
                     href={`/profile/${stat.profileId}`}
                     className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full border-2 border-border/60 bg-muted shadow-md hover:ring-2 hover:ring-foreground/20 transition"
@@ -134,7 +134,7 @@ export default async function MissionRankingsPage({
                 </div>
 
                 {/* 2행: 통계 3개 */}
-                <div className="relative mt-3 grid grid-cols-3 gap-2 text-center">
+                <div className="relative mt-3 grid grid-cols-3 gap-2 text-center" style={{ zIndex: 1 }}>
                   <div>
                     <p className="text-[1 rem] text-muted-foreground">총 거리</p>
                     <p className="text-xl font-bold text-foreground">
