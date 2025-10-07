@@ -67,19 +67,24 @@ export default async function MissionRankingsPage({
               >
                 {/* 배경 이미지 (blur 효과) */}
                 {stat.profile?.avatar_url && (
-                  <div className="absolute inset-0 -z-10">
+                  <div className="absolute inset-0" style={{ zIndex: -1 }}>
                     <Image
                       src={stat.profile.avatar_url}
                       alt=""
                       fill
-                      className="object-cover blur-3xl opacity-20 scale-110"
+                      className="object-cover"
+                      style={{
+                        filter: 'blur(40px)',
+                        opacity: 0.2,
+                        transform: 'scale(1.1)'
+                      }}
                       sizes="100vw"
                     />
                     <div className="absolute inset-0 bg-card/90 backdrop-blur-sm" />
                   </div>
                 )}
                 {!stat.profile?.avatar_url && (
-                  <div className="absolute inset-0 -z-10 bg-card" />
+                  <div className="absolute inset-0 bg-card" style={{ zIndex: -1 }} />
                 )}
 
                 {/* 순위 표시 - 최상단 좌측 모서리 */}

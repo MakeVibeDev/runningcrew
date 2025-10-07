@@ -238,12 +238,17 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
         <section className="relative overflow-hidden p-6 shadow-sm">
           {/* 배경 이미지 (blur 효과) */}
           {profileUser.avatar_url && (
-            <div className="absolute inset-0 -z-10">
+            <div className="absolute inset-0" style={{ zIndex: -1 }}>
               <Image
                 src={profileUser.avatar_url}
                 alt=""
                 fill
-                className="object-cover blur-3xl opacity-30 scale-110"
+                className="object-cover"
+                style={{
+                  filter: 'blur(40px)',
+                  opacity: 0.3,
+                  transform: 'scale(1.1)'
+                }}
                 sizes="100vw"
                 priority
               />
@@ -251,7 +256,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
             </div>
           )}
           {!profileUser.avatar_url && (
-            <div className="absolute inset-0 -z-10 bg-background" />
+            <div className="absolute inset-0 bg-background" style={{ zIndex: -1 }} />
           )}
 
           <div className="relative flex items-center gap-4">
