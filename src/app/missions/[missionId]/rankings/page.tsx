@@ -63,27 +63,28 @@ export default async function MissionRankingsPage({
             stats.map((stat, index) => (
               <div
                 key={stat.profileId}
-                className="relative overflow-hidden rounded-xl border border-border/60 p-3 shadow-sm transition hover:shadow-md"
-                style={{
-                  backgroundColor: 'hsl(var(--card))',
-                }}
+                className="relative overflow-hidden rounded-xl border border-border/60 bg-card p-3 shadow-sm transition hover:shadow-md"
               >
                 {/* 배경 이미지 (blur 효과) */}
                 {stat.profile?.avatar_url && (
                   <>
                     <div
-                      className="absolute inset-0"
-                      style={{
-                        zIndex: 0,
-                        backgroundImage: `url(${stat.profile.avatar_url})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        filter: 'blur(40px)',
-                        opacity: 0.2,
-                        transform: 'scale(1.1)',
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-card/90" style={{ zIndex: 0 }} />
+                      className="absolute inset-0 pointer-events-none"
+                      style={{ zIndex: 0 }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={stat.profile.avatar_url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        style={{
+                          filter: 'blur(40px)',
+                          opacity: 0.2,
+                          transform: 'scale(1.1)',
+                        }}
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-card/90 pointer-events-none" style={{ zIndex: 0 }} />
                   </>
                 )}
 
