@@ -72,8 +72,6 @@ function AuthCallbackContent() {
             hasAvatarUrl: !!avatarUrl,
           },
         });
-      } else {
-        console.log("프로필 동기화 성공:", user.id, displayName);
       }
     };
 

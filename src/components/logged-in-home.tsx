@@ -111,7 +111,7 @@ export function LoggedInHome({
   };
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
+    <main className="mx-auto max-w-6xl space-y-6 px-4 py-0">
       {/* 최신 릴리즈 배너 */}
       <LatestReleaseBanner />
 

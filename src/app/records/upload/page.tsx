@@ -351,8 +351,6 @@ function RecordUploadPageContent() {
         return;
       }
 
-      console.log("[OCR] Invoking Edge Function with path:", path);
-
       const { data, error: invokeError } = await client.functions.invoke<OcrResponse>("ocr-ingest", {
         body: {
           profileId: user.id,
@@ -360,8 +358,6 @@ function RecordUploadPageContent() {
           bucket: "records-raw",
         },
       });
-
-      console.log("[OCR] Edge Function response:", { data, error: invokeError });
 
       if (invokeError || !data?.success || !data.data) {
         setError(
@@ -420,9 +416,7 @@ function RecordUploadPageContent() {
     // 이미지 압축
     let fileToUpload = file;
     try {
-      console.log("[Compress] Original size:", (file.size / 1024 / 1024).toFixed(2), "MB");
       fileToUpload = await compressImage(file);
-      console.log("[Compress] Compressed size:", (fileToUpload.size / 1024 / 1024).toFixed(2), "MB");
     } catch (compressionError) {
       console.warn("[Compress] Failed to compress image, using original:", compressionError);
       fileToUpload = file;
@@ -441,9 +435,8 @@ function RecordUploadPageContent() {
     setOcrResultId(null);
 
     const path = `${user.id}/ocr-${Date.now()}_${file.name}`;
-    console.log("[Upload] Uploading to path:", path);
 
-    const { data: uploadData, error: uploadError } = await client.storage
+    const { error: uploadError } = await client.storage
       .from("records-raw")
       .upload(path, fileToUpload, {
         upsert: true,
@@ -456,7 +449,6 @@ function RecordUploadPageContent() {
       return;
     }
 
-    console.log("[Upload] Upload successful:", uploadData);
     setStoragePath(path);
 
     // 짧은 지연 추가 - Storage 파일이 완전히 커밋될 때까지 대기
@@ -495,8 +487,6 @@ function RecordUploadPageContent() {
       const recordedAtISO = new Date(
         recordedDate.getTime() - recordedDate.getTimezoneOffset() * 60000
       ).toISOString();
-      console.log("[Submit] recordedAt (input value):", recordedAt);
-      console.log("[Submit] recordedAtISO (will save):", recordedAtISO);
 
       const { error: insertError } = await client
         .from("records")
