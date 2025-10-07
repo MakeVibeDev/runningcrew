@@ -70,7 +70,7 @@ export default function Home() {
           .from("notifications")
           .select("*")
           .eq("recipient_id", user.id)
-          .eq("read", false)
+          .eq("is_read", false)
           .order("created_at", { ascending: false })
           .limit(5),
         fetchCrewList(),
