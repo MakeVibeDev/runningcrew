@@ -677,7 +677,7 @@ export async function fetchUserMissionRanking(missionId: string, profileId: stri
     profile_id: string;
     total_distance_km: number;
   }>>(
-    `mission_stats?mission_id=eq.${encodedMissionId}&select=profile_id,total_distance_km&order=total_distance_km.desc`
+    `mission_participant_stats?mission_id=eq.${encodedMissionId}&select=profile_id,total_distance_km&order=total_distance_km.desc`
   );
 
   if (!stats || stats.length === 0) {
