@@ -37,7 +37,7 @@ export function CrewCard({ crew, variant = "simple" }: CrewCardProps) {
               src={crew.logoImageUrl}
               alt={crew.name}
               fill
-              className="object-contain p-4"
+              className="object-contain p-0"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           ) : (
@@ -54,23 +54,23 @@ export function CrewCard({ crew, variant = "simple" }: CrewCardProps) {
             </div>
             {/* 리더 정보 */}
             {owner && (
-              <div className="flex items-center gap-1">
-                <span className="text-xs">⭐</span>
-                <div className="relative h-6 w-6 overflow-hidden rounded-full border border-border/60 bg-muted">
+              <div className="relative">
+                <div className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted">
                   {owner.avatar_url ? (
                     <Image
                       src={owner.avatar_url}
                       alt={owner.display_name}
                       fill
                       className="object-cover"
-                      sizes="24px"
+                      sizes="32px"
                     />
                   ) : (
-                    <div className="grid h-full w-full place-items-center text-[10px] font-semibold text-muted-foreground">
+                    <div className="grid h-full w-full place-items-center text-xs font-semibold text-muted-foreground">
                       {owner.display_name.charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
+                <span className="absolute -right-1.5 -top-1.5 text-sm">⭐</span>
               </div>
             )}
           </div>
@@ -103,7 +103,7 @@ export function CrewCard({ crew, variant = "simple" }: CrewCardProps) {
             alt={`${crew.name} 로고`}
             fill
             sizes="(min-width: 1024px) 33vw, 100vw"
-            className="object-contain p-4"
+            className="object-contain p-0"
           />
         ) : (
           <div className="grid h-full w-full place-items-center px-4 text-center text-2xl font-bold text-foreground/70">
@@ -119,23 +119,23 @@ export function CrewCard({ crew, variant = "simple" }: CrewCardProps) {
           </div>
           {/* 리더 정보 */}
           {owner && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm">⭐</span>
-              <div className="relative h-7 w-7 overflow-hidden rounded-full border border-border/60 bg-muted">
+            <div className="relative">
+              <div className="relative h-9 w-9 overflow-hidden rounded-full border border-border/60 bg-muted">
                 {owner.avatar_url ? (
                   <Image
                     src={owner.avatar_url}
                     alt={owner.display_name}
                     fill
                     className="object-cover"
-                    sizes="28px"
+                    sizes="36px"
                   />
                 ) : (
-                  <div className="grid h-full w-full place-items-center text-xs font-semibold text-muted-foreground">
+                  <div className="grid h-full w-full place-items-center text-sm font-semibold text-muted-foreground">
                     {owner.display_name.charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
+              <span className="absolute -right-1.5 -top-1.5 text-base">⭐</span>
             </div>
           )}
         </div>
