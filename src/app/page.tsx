@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { KakaoLoginButton } from "@/components/ui/oauth-button";
 import { LoggedInHome } from "@/components/logged-in-home";
+import { LatestReleaseBanner } from "@/components/latest-release-banner";
 import {
   fetchCrewList,
   fetchMissionList,
@@ -245,33 +246,9 @@ export default function Home() {
               </div>
             </section>
 
-            {/* Beta Notice */}
-            <section className="m-4 mt-8 rounded-xl border border-orange-200 bg-orange-50 p-6 dark:border-orange-800 dark:bg-orange-950/30">
-              <div className="flex items-start gap-4">
-                <div className="text-4xl">🚀</div>
-                <div className="flex-1">
-                  <h3 className="mb-2 text-lg font-semibold text-orange-900 dark:text-orange-200">
-                    베타 테스트 중입니다
-                  </h3>
-                  <p className="mb-3 text-sm text-orange-700 dark:text-orange-300">
-                    RunningCrew는 현재 베타 버전입니다. 서비스를 이용하시면서 불편한 점이나 개선사항이 있으시면 언제든지 알려주세요.
-                  </p>
-                  <div className="flex flex-wrap gap-3 text-sm">
-                    <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
-                      <span>💡</span>
-                      <span>페이지 하단 피드백 버튼으로 의견 전달</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
-                      <span>🐛</span>
-                      <span>버그 제보 환영</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
-                      <span>✨</span>
-                      <span>개선 아이디어 제안</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            {/* 최신 릴리즈 */}
+            <section className="m-4 mt-8">
+              <LatestReleaseBanner />
             </section>
 
             {/* 크루 & 미션 미리보기 */}
@@ -406,6 +383,35 @@ export default function Home() {
                       </Link>
                     </div>
                   )}
+                </div>
+              </div>
+            </section>
+
+            {/* Beta Notice */}
+            <section className="m-4 mt-8 rounded-xl border border-orange-200 bg-orange-50 p-6 dark:border-orange-800 dark:bg-orange-950/30">
+              <div className="flex items-start gap-4">
+                <div className="text-4xl">🚀</div>
+                <div className="flex-1">
+                  <h3 className="mb-2 text-lg font-semibold text-orange-900 dark:text-orange-200">
+                    베타 테스트 중입니다
+                  </h3>
+                  <p className="mb-3 text-sm text-orange-700 dark:text-orange-300">
+                    RunningCrew는 현재 베타 버전입니다. 서비스를 이용하시면서 불편한 점이나 개선사항이 있으시면 언제든지 알려주세요.
+                  </p>
+                  <div className="flex flex-wrap gap-3 text-sm">
+                    <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                      <span>💡</span>
+                      <span>페이지 하단 피드백 버튼으로 의견 전달</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                      <span>🐛</span>
+                      <span>버그 제보 환영</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                      <span>✨</span>
+                      <span>개선 아이디어 제안</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
