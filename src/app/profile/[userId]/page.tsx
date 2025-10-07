@@ -314,9 +314,9 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
         {joinedCrews.length > 0 && (
           <section className="mt-1 bg-white px-4 py-6 shadow-[0_1px_0_0_rgba(0,0,0,0.1)]">
             <div>
-              <h2 className="text-xl font-bold">참여 중인 크루</h2>
+              <h2 className="text-xl font-bold">나의 크루</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {joinedCrews.length}개의 크루에 참여 중입니다.
+                {joinedCrews.length}개의 크루에 가입 중입니다.
               </p>
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
