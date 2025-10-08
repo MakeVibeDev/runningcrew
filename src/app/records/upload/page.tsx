@@ -223,7 +223,6 @@ function RecordUploadPageContent() {
   const [isSubmitting, startTransition] = useTransition();
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrResultId, setOcrResultId] = useState<string | null>(null);
-  const [ocrRawText, setOcrRawText] = useState<string | null>(null);
   const [showNoMissionsDialog, setShowNoMissionsDialog] = useState(false);
 
   useEffect(() => {
@@ -377,7 +376,13 @@ function RecordUploadPageContent() {
         setDurationInput(formatSecondsToHhMmSs(durationSeconds));
       }
       if (recordedAt) setRecordedAt(formatToDatetimeLocal(recordedAt));
-      setOcrRawText(rawText ?? null);
+
+      // OCR 원문을 콘솔에 출력
+      if (rawText) {
+        console.log("=== OCR 원문 ===");
+        console.log(rawText);
+        console.log("===============");
+      }
     } catch (ocrError) {
       console.error("OCR 호출 실패", ocrError);
       setOcrResultId(null);
@@ -729,15 +734,6 @@ function RecordUploadPageContent() {
                   </div>
                 ) : null}
               </div>
-
-              {ocrRawText ? (
-                <details className="mt-4 rounded-xl border border-border/60 bg-muted/40 p-4 text-xs text-muted-foreground">
-                  <summary className="cursor-pointer text-sm font-medium text-foreground">
-                    OCR 원문 보기
-                  </summary>
-                  <pre className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground">{ocrRawText}</pre>
-                </details>
-              ) : null}
             </div>
 
             <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
