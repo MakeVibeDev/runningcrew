@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
+import { Avatar } from "@/components/ui/avatar";
 import { reportSupabaseError } from "@/lib/error-reporter";
 import { notifyCrewJoinApproved, notifyCrewJoinRejected, notifyNewMemberJoined } from "@/lib/notifications/triggers";
 import {
@@ -301,15 +301,12 @@ export function CrewJoinRequestsManager({ crewId, crewName, crewSlug, ownerId }:
                     className="rounded-2xl border border-border/60 bg-muted/30 p-4"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="relative h-10 w-10 overflow-hidden rounded-full border border-border/60 bg-muted">
-                        {avatarUrl ? (
-                          <Image src={avatarUrl} alt={displayName} fill sizes="40px" />
-                        ) : (
-                          <div className="grid h-full w-full place-items-center text-xs font-semibold uppercase text-muted-foreground">
-                            {displayName.slice(0, 1)}
-                          </div>
-                        )}
-                      </div>
+                      <Avatar
+                        src={avatarUrl}
+                        alt={displayName}
+                        size="sm"
+                        className="border border-border/60"
+                      />
                       <div className="flex-1">
                         <p className="font-medium">{displayName}</p>
                         <p className="text-xs text-muted-foreground">

@@ -120,7 +120,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <SupabaseProvider>
             <SiteNav />
-            <div className="pb-10">{children}</div>
+            <div className="pb-0">{children}</div>
             <SiteFooter />
             <FeedbackButton />
           </SupabaseProvider>

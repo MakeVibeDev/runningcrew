@@ -17,6 +17,8 @@ function getNavItems(userId?: string) {
     { href: "/records/upload", label: "기록 등록", title: "기록 등록" },
     { href: "/missions", label: "미션", title: "미션" },
     { href: "/crews", label: "크루", title: "크루" },
+    { href: "/notifications", label: "알림", title: "Notifications" },
+    { href: "/releases", label: "릴리즈", title: "Releases" },
   ];
 }
 
@@ -37,7 +39,19 @@ export function SiteNav() {
   const avatarUrl = profile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined);
 
   // 현재 페이지 타이틀 찾기
-  const currentPageTitle = navItems.find((item) => item.href === pathname)?.title || "Home";
+  const currentPageTitle = (() => {
+    if (!pathname) return "Home";
+
+    // 정확히 일치하는 경로 찾기
+    const exactMatch = navItems.find((item) => item.href === pathname);
+    if (exactMatch) return exactMatch.title;
+
+    // 동적 라우트 처리 (예: /releases/v0.6.0-001 → "Releases")
+    const dynamicMatch = navItems.find((item) => pathname.startsWith(item.href + '/'));
+    if (dynamicMatch) return dynamicMatch.title;
+
+    return "Home";
+  })();
 
   return (
     <>

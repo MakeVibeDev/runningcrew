@@ -185,7 +185,7 @@ export function LoggedInHome({
                     </div>
                     {ranking && (
                       <div className="flex-shrink-0 rounded-lg bg-orange-100 px-3 py-2 text-center dark:bg-orange-950/30">
-                        <p className="text-xs text-orange-700 dark:text-orange-400">내 순위</p>
+                        <p className="text-xs text-orange-700 dark:text-orange-400">🏆 내 순위</p>
                         <p className="text-lg font-bold text-orange-700 dark:text-orange-400">
                           {ranking.rank}위 / {ranking.totalParticipants}명
                         </p>
@@ -198,8 +198,12 @@ export function LoggedInHome({
 
             {/* 최근 기록 */}
             {recentRecords.map((record) => (
-              <div key={record.id} className="rounded-lg border border-border/40 bg-muted/20 p-4">
-                <div className="flex items-start gap-4">
+              <Link
+                key={record.id}
+                href={`/records/${record.id}`}
+                className="block rounded-lg border border-border/40 bg-muted/20 p-4 transition hover:bg-muted/30"
+              >
+                <div className="flex gap-3">
                   {/* 프로필 이미지 */}
                   <Avatar
                     src={record.profile?.avatar_url}
@@ -213,14 +217,12 @@ export function LoggedInHome({
                     <p className="text-sm text-muted-foreground">
                       {record.mission?.crew.name} · {record.mission?.title}
                     </p>
-                    <div className="mt-2 flex flex-wrap gap-3 text-sm">
-                      <span>🏃 {record.distance_km.toFixed(2)}km</span>
-                      <span>⏱️ {formatDuration(record.duration_seconds)}</span>
-                      <span>⚡ {formatPace(record.pace_seconds_per_km)}/km</span>
-                    </div>
                   </div>
                 </div>
-              </div>
+                <p className="mt-4 text-mm font-semibold">
+                  🏃 {record.distance_km.toFixed(2)}km · ⏱️ {formatDuration(record.duration_seconds)} · ⚡ {formatPace(record.pace_seconds_per_km)}/km
+                </p>
+              </Link>
             ))}
           </div>
         </section>

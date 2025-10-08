@@ -5,6 +5,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Notification, CreateNotificationParams } from './types';
+import { reportSupabaseError } from '@/lib/error-reporter';
 
 /**
  * Create a new notification
@@ -42,13 +43,23 @@ export async function createNotification(
       .single();
 
     if (error) {
-      console.error('[Notification Debug] Insert failed:', {
-        error,
-        errorCode: error.code,
-        errorMessage: error.message,
-        errorDetails: error.details,
-        errorHint: error.hint,
+      console.error('[Notification Debug] Insert failed:');
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      console.error('Error details:', error.details);
+      console.error('Error hint:', error.hint);
+      console.error('Full error:', error);
+
+      // Report to Slack
+      await reportSupabaseError(error, 'Create Notification Failed', {
+        metadata: {
+          recipientId: params.recipientId,
+          type: params.type,
+          title: params.title,
+          currentUserId: user?.id,
+        },
       });
+
       throw error;
     }
 

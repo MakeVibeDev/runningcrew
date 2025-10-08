@@ -107,7 +107,7 @@ export default function NotificationsPage() {
         <div className="mx-auto max-w-3xl px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">알림</h1>
+              <h1 className="text-2xl font-bold">Notifications</h1>
               {unreadCount > 0 && (
                 <p className="text-sm text-muted-foreground">읽지 않은 알림 {unreadCount}개</p>
               )}

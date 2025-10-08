@@ -1,5 +1,4 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { notifyRecordLiked, notifyRecordCommented } from "@/lib/notifications/triggers";
 
 /**
  * Toggle like on a record
@@ -48,31 +47,7 @@ export async function toggleRecordLike(
         return { liked: false, error: insertError.message };
       }
 
-      // 기록 오너 정보 가져오기
-      const { data: record } = await supabase
-        .from("records")
-        .select("profile_id")
-        .eq("id", recordId)
-        .single();
-
-      if (record) {
-        // 현재 사용자 정보 가져오기
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("display_name")
-          .eq("id", userId)
-          .single();
-
-        const likerName = profile?.display_name || "러너";
-
-        // 알림 전송
-        await notifyRecordLiked(supabase, {
-          recordId,
-          recordOwnerId: record.profile_id,
-          likerId: userId,
-          likerName,
-        });
-      }
+      // 알림은 데이터베이스 트리거에서 자동 생성됨
 
       return { liked: true, error: null };
     }
@@ -204,32 +179,7 @@ export async function createRecordComment(
       return { data: null, error: error.message };
     }
 
-    // 기록 오너 정보 가져오기
-    const { data: record } = await supabase
-      .from("records")
-      .select("profile_id")
-      .eq("id", recordId)
-      .single();
-
-    if (record) {
-      // 댓글 작성자 정보 가져오기
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("display_name")
-        .eq("id", userId)
-        .single();
-
-      const commenterName = profile?.display_name || "러너";
-
-      // 알림 전송
-      await notifyRecordCommented(supabase, {
-        recordId,
-        recordOwnerId: record.profile_id,
-        commenterId: userId,
-        commenterName,
-        commentPreview: content.trim(),
-      });
-    }
+    // 알림은 데이터베이스 트리거에서 자동 생성됨
 
     return { data, error: null };
   } catch (err) {
