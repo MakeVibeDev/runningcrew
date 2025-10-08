@@ -14,6 +14,20 @@ export async function createNotification(
   params: CreateNotificationParams
 ): Promise<{ data: Notification | null; error: Error | null }> {
   try {
+    // Debug: Log current user and auth state
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('[Notification Debug] Current user:', {
+      userId: user?.id,
+      role: user?.role,
+      isAuthenticated: !!user,
+    });
+    console.log('[Notification Debug] Attempting to create notification:', {
+      recipientId: params.recipientId,
+      type: params.type,
+      currentUserId: user?.id,
+      isSelfNotification: user?.id === params.recipientId,
+    });
+
     const { data, error } = await supabase
       .from('notifications')
       .insert({
@@ -27,14 +41,25 @@ export async function createNotification(
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('[Notification Debug] Insert failed:', {
+        error,
+        errorCode: error.code,
+        errorMessage: error.message,
+        errorDetails: error.details,
+        errorHint: error.hint,
+      });
+      throw error;
+    }
+
+    console.log('[Notification Debug] Notification created successfully:', data?.id);
 
     return {
       data: data ? mapNotification(data) : null,
       error: null,
     };
   } catch (error) {
-    console.error('Failed to create notification:', error);
+    console.error('[Notification Debug] Exception caught:', error);
     return {
       data: null,
       error: error as Error,
