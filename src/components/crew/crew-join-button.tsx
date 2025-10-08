@@ -108,6 +108,45 @@ export function CrewJoinButton({ crewId, crewName, ownerId }: CrewJoinButtonProp
     setIsSubmitting(true);
 
     try {
+      // 프로필 존재 여부 확인
+      const { data: existingProfile } = await client
+        .from("profiles")
+        .select("id")
+        .eq("id", user.id)
+        .single();
+
+      // 프로필이 없으면 생성
+      if (!existingProfile) {
+        const displayName = user.user_metadata?.name
+          || user.user_metadata?.full_name
+          || user.email?.split('@')[0]
+          || '러너';
+        const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
+
+        const { error: profileError } = await client
+          .from("profiles")
+          .insert({
+            id: user.id,
+            display_name: displayName,
+            avatar_url: avatarUrl,
+          } as never);
+
+        if (profileError) {
+          console.error("프로필 생성 실패:", profileError);
+          await reportSupabaseError(profileError, "Profile Creation Failed Before Join Request", {
+            userId: user.id,
+            userEmail: user.email,
+            userName: displayName,
+            metadata: {
+              crewId,
+            },
+          });
+          setAlertDialog("join_error");
+          return;
+        }
+      }
+
+      // 크루 가입 요청
       const { error } = await client
         .from("crew_join_requests")
         .insert({
