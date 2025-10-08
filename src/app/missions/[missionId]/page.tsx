@@ -220,7 +220,7 @@ export default async function MissionDetailPage({
 
           <div className="border-y border-border/60 bg-card">
             <div className="p-4 pb-2">
-              <h3 className="text-lg font-semibold">최근 공개 기록</h3>
+              <h3 className="text-lg font-semibold">최근 등록 기록</h3>
               <p className="text-sm text-muted-foreground">참여자가 업로드한 공개 기록을 최신순으로 보여줍니다.</p>
             </div>
             <div className="space-y-4 p-4 pt-2">

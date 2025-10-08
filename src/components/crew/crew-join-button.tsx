@@ -326,21 +326,81 @@ export function CrewJoinButton({ crewId, crewSlug, crewName, ownerId }: CrewJoin
 
   if (status === "pending") {
     return (
-      <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-6">
-        <p className="text-center text-sm font-medium text-orange-700 dark:text-orange-400">
-          가입 신청 대기 중
-        </p>
-        <p className="mt-2 text-center text-xs text-muted-foreground">
-          크루 리더의 승인을 기다리고 있습니다
-        </p>
-        <button
-          onClick={handleCancelRequest}
-          disabled={isSubmitting}
-          className="mt-4 w-full rounded-lg border border-border/60 bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
-        >
-          {isSubmitting ? "처리 중..." : "신청 취소"}
-        </button>
-      </div>
+      <>
+        <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-6">
+          <p className="text-center text-sm font-medium text-orange-700 dark:text-orange-400">
+            가입 신청 대기 중
+          </p>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            크루 리더의 승인을 기다리고 있습니다
+          </p>
+          <button
+            onClick={handleCancelRequest}
+            disabled={isSubmitting}
+            className="mt-4 w-full rounded-lg border border-border/60 bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
+          >
+            {isSubmitting ? "처리 중..." : "신청 취소"}
+          </button>
+        </div>
+
+        {/* Alert Dialogs for cancel */}
+        <AlertDialog open={alertDialog === "cancel_confirm"} onOpenChange={() => setAlertDialog(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>신청 취소 확인</AlertDialogTitle>
+              <AlertDialogDescription>
+                가입 신청을 취소하시겠습니까?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>아니오</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmCancelRequest}>예</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={alertDialog === "cancel_success"} onOpenChange={() => setAlertDialog(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>신청 취소 완료</AlertDialogTitle>
+              <AlertDialogDescription>
+                가입 신청이 취소되었습니다.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction>확인</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={alertDialog === "cancel_error"} onOpenChange={() => setAlertDialog(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>신청 취소 실패</AlertDialogTitle>
+              <AlertDialogDescription>
+                신청 취소에 실패했습니다.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction>확인</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={alertDialog === "generic_error"} onOpenChange={() => setAlertDialog(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>오류 발생</AlertDialogTitle>
+              <AlertDialogDescription>
+                오류가 발생했습니다.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction>확인</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
     );
   }
 

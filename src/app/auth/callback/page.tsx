@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { reportSupabaseError } from "@/lib/error-reporter";
+import { uploadAvatarFromUrl } from "@/lib/upload-avatar";
 
 function AuthCallbackContent() {
   const router = useRouter();
@@ -45,19 +46,45 @@ function AuthCallbackContent() {
         (metadata?.full_name as string | undefined) ||
         user.email?.split("@")[0] ||
         "러너";
-      const avatarUrl =
+
+      // 외부 이미지 URL 추출
+      const externalAvatarUrl =
         (metadata?.profile_image_url as string | undefined) ||
         (metadata?.thumbnail_image_url as string | undefined) ||
         (metadata?.picture as string | undefined) ||
         (metadata?.avatar_url as string | undefined) ||
         null;
 
+      // 기존 프로필 확인
+      const { data: existingProfile } = await client
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      let finalAvatarUrl: string | null = externalAvatarUrl;
+
+      // 외부 URL이 있고, 아직 우리 서버에 업로드되지 않은 경우
+      if (externalAvatarUrl && !externalAvatarUrl.includes("supabase.co")) {
+        // 이미 우리 서버 URL이 있으면 재업로드하지 않음
+        const existingAvatarUrl = (existingProfile as { avatar_url?: string | null } | null)?.avatar_url;
+        if (!existingAvatarUrl?.includes("supabase.co")) {
+          const uploadedUrl = await uploadAvatarFromUrl(client, externalAvatarUrl, user.id);
+          if (uploadedUrl) {
+            finalAvatarUrl = uploadedUrl;
+          }
+        } else {
+          // 기존에 이미 업로드된 URL 사용
+          finalAvatarUrl = existingAvatarUrl;
+        }
+      }
+
       const { error: upsertError } = await client
         .from("profiles")
         .upsert({
           id: user.id,
           display_name: displayName,
-          avatar_url: avatarUrl,
+          avatar_url: finalAvatarUrl,
         } as never);
 
       if (upsertError) {
@@ -69,7 +96,8 @@ function AuthCallbackContent() {
           userEmail: user.email,
           userName: displayName,
           metadata: {
-            hasAvatarUrl: !!avatarUrl,
+            hasAvatarUrl: !!finalAvatarUrl,
+            isExternalUrl: !finalAvatarUrl?.includes("supabase.co"),
           },
         });
       }

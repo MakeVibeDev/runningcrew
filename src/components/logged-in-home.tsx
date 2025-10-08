@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { LatestReleaseBanner } from "@/components/latest-release-banner";
+import { Avatar } from "@/components/ui/avatar";
 
 interface Notification {
   id: string;
@@ -200,21 +201,11 @@ export function LoggedInHome({
               <div key={record.id} className="rounded-lg border border-border/40 bg-muted/20 p-4">
                 <div className="flex items-start gap-4">
                   {/* 프로필 이미지 */}
-                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-border bg-muted">
-                    {record.profile?.avatar_url ? (
-                      <Image
-                        src={record.profile.avatar_url}
-                        alt={record.profile.display_name}
-                        fill
-                        className="object-cover"
-                        sizes="48px"
-                      />
-                    ) : (
-                      <div className="grid h-full w-full place-items-center text-lg font-semibold text-muted-foreground">
-                        {record.profile?.display_name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
+                  <Avatar
+                    src={record.profile?.avatar_url}
+                    alt={record.profile?.display_name || "러너"}
+                    size="md"
+                  />
 
                   {/* 기록 정보 */}
                   <div className="flex-1">
@@ -292,21 +283,12 @@ export function LoggedInHome({
                           </div>
 
                           <div className="relative flex-shrink-0">
-                            <div className="relative h-10 w-10 overflow-hidden rounded-full border-2 border-border/60 bg-muted">
-                              {crew.ownerProfile?.avatar_url ? (
-                                <Image
-                                  src={crew.ownerProfile.avatar_url}
-                                  alt={crew.ownerProfile.display_name ?? "리더"}
-                                  fill
-                                  className="object-cover"
-                                  sizes="40px"
-                                />
-                              ) : (
-                                <div className="grid h-full w-full place-items-center text-sm font-semibold text-muted-foreground">
-                                  {crew.ownerProfile?.display_name?.charAt(0)?.toUpperCase() ?? "?"}
-                                </div>
-                              )}
-                            </div>
+                            <Avatar
+                              src={crew.ownerProfile?.avatar_url}
+                              alt={crew.ownerProfile?.display_name ?? "리더"}
+                              size="sm"
+                              className="border-2 border-border/60"
+                            />
                             <span className="absolute -right-1 -top-1 text-sm">⭐</span>
                           </div>
                         </div>

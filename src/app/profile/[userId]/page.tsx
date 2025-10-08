@@ -379,7 +379,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
           <div>
             <h2 className="text-xl font-bold">최근 업로드 기록</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {isOwnProfile ? "최근 업로드한 기록입니다." : "최근 공개 기록입니다."}
+              {isOwnProfile ? "최근 업로드한 기록입니다." : "최근 등록 기록입니다."}
             </p>
           </div>
 

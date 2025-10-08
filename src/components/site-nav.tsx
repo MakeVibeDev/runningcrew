@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { KakaoLoginButton } from "@/components/ui/oauth-button";
 import { NotificationBell } from "@/components/notifications/notification-bell";
+import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 function getNavItems(userId?: string) {
@@ -34,7 +35,6 @@ export function SiteNav() {
     || "러너";
 
   const avatarUrl = profile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined);
-  const initials = displayName.slice(0, 1).toUpperCase();
 
   // 현재 페이지 타이틀 찾기
   const currentPageTitle = navItems.find((item) => item.href === pathname)?.title || "Home";
@@ -100,15 +100,12 @@ export function SiteNav() {
               <>
                 <NotificationBell />
                 <Link href="/profile" className="flex items-center gap-2 hover:opacity-80">
-                  <div className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
-                    {avatarUrl ? (
-                      <Image src={avatarUrl} alt={`${displayName} avatar`} fill sizes="32px" />
-                    ) : (
-                      <div className="grid h-full w-full place-items-center bg-orange-500/10 text-orange-700">
-                        {initials}
-                      </div>
-                    )}
-                  </div>
+                  <Avatar
+                    src={avatarUrl}
+                    alt={displayName}
+                    size="sm"
+                    className="border border-border/60"
+                  />
                   <span className="hidden text-muted-foreground sm:inline">{displayName}님</span>
                 </Link>
                 <button
@@ -134,14 +131,13 @@ export function SiteNav() {
           {user && (
             <>
               <NotificationBell />
-              <Link href={`/profile/${user.id}`} className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
-                {avatarUrl ? (
-                  <Image src={avatarUrl} alt={`${displayName} avatar`} fill sizes="32px" />
-                ) : (
-                  <div className="grid h-full w-full place-items-center bg-orange-500/10 text-orange-700">
-                    {initials}
-                  </div>
-                )}
+              <Link href={`/profile/${user.id}`}>
+                <Avatar
+                  src={avatarUrl}
+                  alt={displayName}
+                  size="sm"
+                  className="border border-border/60"
+                />
               </Link>
             </>
           )}
@@ -246,15 +242,12 @@ export function SiteNav() {
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted"
                     >
-                      <div className="relative h-10 w-10 overflow-hidden rounded-full border border-border/60 bg-muted text-xs font-semibold uppercase text-muted-foreground">
-                        {avatarUrl ? (
-                          <Image src={avatarUrl} alt={`${displayName} avatar`} fill sizes="40px" />
-                        ) : (
-                          <div className="grid h-full w-full place-items-center bg-orange-500/10 text-orange-700">
-                            {initials}
-                          </div>
-                        )}
-                      </div>
+                      <Avatar
+                        src={avatarUrl}
+                        alt={displayName}
+                        size="sm"
+                        className="border border-border/60"
+                      />
                       <div className="flex-1">
                         <p className="text-sm font-medium">{displayName}님</p>
                         <p className="text-xs text-muted-foreground">프로필 수정</p>
