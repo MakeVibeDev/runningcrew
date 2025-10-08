@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getReleaseByVersion, releases } from "@/data/releases";
+import { ReleaseInteractions } from "@/components/release/release-interactions";
 
 interface PageProps {
   params: Promise<{
@@ -170,6 +171,9 @@ export default async function ReleaseDetailPage({ params }: PageProps) {
           )}
         </div>
       </main>
+
+      {/* Interactions Section */}
+      <ReleaseInteractions releaseVersion={release.version} />
     </div>
   );
 }
