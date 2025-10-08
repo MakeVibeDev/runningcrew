@@ -14,12 +14,14 @@ export async function notifyCrewJoinRequest(
   supabase: SupabaseClient,
   {
     crewId,
+    crewSlug,
     crewName,
     ownerId,
     applicantId,
     applicantName,
   }: {
     crewId: string;
+    crewSlug: string;
     crewName: string;
     ownerId: string;
     applicantId: string;
@@ -37,7 +39,7 @@ export async function notifyCrewJoinRequest(
       actorId: applicantId,
       actorName: applicantName,
     },
-    link: `/crews/${crewId}`,
+    link: `/crews/${crewSlug}`,
   });
 }
 

@@ -21,13 +21,14 @@ type JoinStatus = "not_member" | "pending" | "member" | "owner" | "loading";
 
 interface CrewJoinButtonProps {
   crewId: string;
+  crewSlug: string;
   crewName: string;
   ownerId: string;
 }
 
 type AlertType = "login_required" | "join_success" | "join_error" | "cancel_confirm" | "cancel_success" | "cancel_error" | "generic_error" | null;
 
-export function CrewJoinButton({ crewId, crewName, ownerId }: CrewJoinButtonProps) {
+export function CrewJoinButton({ crewId, crewSlug, crewName, ownerId }: CrewJoinButtonProps) {
   const router = useRouter();
   const { client, user } = useSupabase();
   const [status, setStatus] = useState<JoinStatus>("loading");
@@ -182,6 +183,7 @@ export function CrewJoinButton({ crewId, crewName, ownerId }: CrewJoinButtonProp
       const displayName = user.user_metadata?.name || user.email?.split('@')[0] || '러너';
       await notifyCrewJoinRequest(client, {
         crewId,
+        crewSlug,
         crewName,
         ownerId,
         applicantId: user.id,
