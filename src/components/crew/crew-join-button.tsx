@@ -181,7 +181,7 @@ export function CrewJoinButton({ crewId, crewSlug, crewName, ownerId }: CrewJoin
 
       // 크루 리더에게 알림 전송
       const displayName = user.user_metadata?.name || user.email?.split('@')[0] || '러너';
-      await notifyCrewJoinRequest(client, {
+      const notificationResult = await notifyCrewJoinRequest(client, {
         crewId,
         crewSlug,
         crewName,
@@ -189,6 +189,22 @@ export function CrewJoinButton({ crewId, crewSlug, crewName, ownerId }: CrewJoin
         applicantId: user.id,
         applicantName: displayName,
       });
+
+      // 알림 전송 실패 시 에러 리포트 (가입 신청은 성공했으므로 계속 진행)
+      if (notificationResult.error) {
+        console.error("알림 전송 실패:", notificationResult.error);
+        await reportSupabaseError(notificationResult.error, "Crew Join Notification Failed", {
+          userId: user.id,
+          userEmail: user.email,
+          userName: displayName,
+          metadata: {
+            crewId,
+            crewSlug,
+            crewName,
+            ownerId,
+          },
+        });
+      }
 
       setAlertDialog("join_success");
       setStatus("pending");
