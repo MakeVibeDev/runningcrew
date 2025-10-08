@@ -15,7 +15,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { reportSupabaseError } from "@/lib/error-reporter";
-import { notifyCrewJoinRequest } from "@/lib/notifications/triggers";
 
 type JoinStatus = "not_member" | "pending" | "member" | "owner" | "loading";
 
@@ -179,47 +178,7 @@ export function CrewJoinButton({ crewId, crewSlug, crewName, ownerId }: CrewJoin
         return;
       }
 
-      // 크루 리더에게 알림 전송
-      const displayName = user.user_metadata?.name || user.email?.split('@')[0] || '러너';
-      const notificationResult = await notifyCrewJoinRequest(client, {
-        crewId,
-        crewSlug,
-        crewName,
-        ownerId,
-        applicantId: user.id,
-        applicantName: displayName,
-      });
-
-      // 알림 전송 실패 시 에러 리포트 (가입 신청은 성공했으므로 계속 진행)
-      if (notificationResult.error) {
-        console.error("알림 전송 실패:", notificationResult.error);
-
-        // Get detailed auth state for debugging
-        const { data: { session } } = await client.auth.getSession();
-
-        await reportSupabaseError(notificationResult.error, "Crew Join Notification Failed", {
-          userId: user.id,
-          userEmail: user.email,
-          userName: displayName,
-          metadata: {
-            crewId,
-            crewSlug,
-            crewName,
-            ownerId,
-            applicantId: user.id,
-            // Auth debugging info
-            hasSession: !!session,
-            sessionUserId: session?.user?.id,
-            sessionRole: session?.user?.role,
-            accessToken: session?.access_token ? 'present' : 'missing',
-            // Error details
-            errorCode: (notificationResult.error as unknown as { code?: string })?.code,
-            errorMessage: notificationResult.error.message,
-            errorDetails: (notificationResult.error as unknown as { details?: string })?.details,
-            errorHint: (notificationResult.error as unknown as { hint?: string })?.hint,
-          },
-        });
-      }
+      // 알림은 데이터베이스 트리거에서 자동 생성됨
 
       setAlertDialog("join_success");
       setStatus("pending");

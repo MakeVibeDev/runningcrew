@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { Avatar } from "@/components/ui/avatar";
 import { reportSupabaseError } from "@/lib/error-reporter";
-import { notifyCrewJoinApproved, notifyCrewJoinRejected, notifyNewMemberJoined } from "@/lib/notifications/triggers";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -124,39 +123,7 @@ export function CrewJoinRequestsManager({ crewId, crewName, crewSlug, ownerId }:
         return;
       }
 
-      // 승인된 사용자 정보 가져오기
-      const approvedRequest = requests.find(req => req.id === selectedRequestId);
-      if (approvedRequest) {
-        const profile = Array.isArray(approvedRequest.profile) ? approvedRequest.profile[0] : approvedRequest.profile;
-        const newMemberName = profile?.display_name || "새 멤버";
-
-        // 신청자에게 승인 알림
-        await notifyCrewJoinApproved(client, {
-          crewId,
-          crewName,
-          crewSlug,
-          applicantId: approvedRequest.profile_id,
-        });
-
-        // 기존 크루원들에게 새 멤버 알림
-        const { data: members } = await client
-          .from('crew_members')
-          .select('profile_id')
-          .eq('crew_id', crewId);
-
-        if (members && members.length > 0) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const memberIds = members.map((m: any) => m.profile_id);
-          await notifyNewMemberJoined(client, {
-            crewId,
-            crewName,
-            crewSlug,
-            newMemberId: approvedRequest.profile_id,
-            newMemberName,
-            existingMemberIds: memberIds,
-          });
-        }
-      }
+      // 알림은 데이터베이스 트리거에서 자동 생성됨
 
       setAlertDialog("approve_success");
       setRequests((prev) => prev.filter((req) => req.id !== selectedRequestId));
@@ -218,15 +185,7 @@ export function CrewJoinRequestsManager({ crewId, crewName, crewSlug, ownerId }:
         return;
       }
 
-      // 거절된 사용자에게 알림
-      const rejectedRequest = requests.find(req => req.id === selectedRequestId);
-      if (rejectedRequest) {
-        await notifyCrewJoinRejected(client, {
-          crewId,
-          crewName,
-          applicantId: rejectedRequest.profile_id,
-        });
-      }
+      // 알림은 데이터베이스 트리거에서 자동 생성됨
 
       setAlertDialog("reject_success");
       setRequests((prev) => prev.filter((req) => req.id !== selectedRequestId));
