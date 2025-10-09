@@ -156,9 +156,9 @@ export function LoggedInHome({
 
       {/* 참여 미션의 최근 기록 */}
       {(userJoinedMissions.length > 0 || recentRecords.length > 0) && (
-        <section className="rounded-xl border border-border/60 bg-background p-6 shadow-sm">
+        <section className="rounded-xl border border-border/60 bg-background p-2 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold">참여 미션의 최근 기록</h2>
+            <h2 className="text-xl font-semibold p-2">참여 미션의 최근 기록</h2>
             <Link
               href={userJoinedMissions.length > 0 ? `/missions/${userJoinedMissions[0].id}` : "/missions"}
               className="text-sm font-medium text-orange-600 hover:text-orange-700"
