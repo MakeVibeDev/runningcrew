@@ -230,8 +230,8 @@ export function LoggedInHome({
 
       {/* 크루 & 미션 미리보기 */}
       <section className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
-          <div className="mb-6">
+        <div className="rounded-xl border border-border/70 bg-background p-2 shadow-sm">
+          <div className="mb-6 p-2">
             <h3 className="text-xl font-semibold">인기 크루</h3>
             <p className="mt-1 text-sm text-muted-foreground">활발하게 활동 중인 러닝 크루들</p>
           </div>
@@ -309,8 +309,8 @@ export function LoggedInHome({
           </div>
         </div>
 
-        <div className="rounded-xl border border-border/70 bg-background p-6 shadow-sm">
-          <div className="mb-6">
+        <div className="rounded-xl border border-border/70 bg-background p-2 shadow-sm">
+          <div className="mb-6 p-2">
             <h3 className="text-xl font-semibold">진행 중인 미션</h3>
             <p className="mt-1 text-sm text-muted-foreground">지금 참여할 수 있는 미션들</p>
           </div>
