@@ -134,49 +134,6 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
             <CrewJoinRequestsManager crewId={crew.id} crewName={crew.name} crewSlug={crew.slug} ownerId={crew.owner_id} />
           </div>
 
-          {/* Recent Members (Last 72 hours) */}
-          {recentMembers.length > 0 && (
-            <div className="mb-6">
-              <div className="mb-4">
-                <h3 className="text-xl font-semibold">최근 가입한 크루원</h3>
-                <p className="mt-1 text-sm text-muted-foreground">지난 72시간 내에 가입한 새로운 크루원들입니다</p>
-              </div>
-              <div className="space-y-3">
-                {recentMembers.map((member) => {
-                  const joinedDate = new Date(member.joinedAt);
-                  const now = new Date();
-                  const hoursAgo = Math.floor((now.getTime() - joinedDate.getTime()) / (1000 * 60 * 60));
-                  const timeAgo = hoursAgo < 1
-                    ? '방금 전'
-                    : hoursAgo < 24
-                      ? `${hoursAgo}시간 전`
-                      : `${Math.floor(hoursAgo / 24)}일 전`;
-
-                  return (
-                    <div
-                      key={member.id}
-                      className="flex items-center gap-3 rounded-2xl border border-border/60 bg-muted/30 p-4"
-                    >
-                      <Avatar
-                        src={member.avatarUrl}
-                        alt={member.displayName}
-                        size="md"
-                        className="border border-border/60"
-                      />
-                      <div className="flex-1">
-                        <p className="font-semibold">{member.displayName}</p>
-                        <p className="text-xs text-muted-foreground">{timeAgo} 가입</p>
-                      </div>
-                      <div className="rounded-full bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-600 dark:text-orange-400">
-                        🎉 새 멤버
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           {/* Crew Introduction */}
           <div className="mb-6">
             <div className="mb-4">
@@ -273,6 +230,50 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
             </div>
           </div>
         </section>
+
+        {/* Recent Members (Last 72 hours) - Separate Section */}
+        {recentMembers.length > 0 && (
+          <section className="border border-border/70 bg-background p-6 shadow-sm">
+            <div className="mb-4">
+              <h3 className="text-xl font-semibold">최근 가입한 크루원</h3>
+              <p className="mt-1 text-sm text-muted-foreground">지난 72시간 내에 가입한 새로운 크루원들입니다</p>
+            </div>
+            <div className="space-y-3">
+              {recentMembers.map((member) => {
+                const joinedDate = new Date(member.joinedAt);
+                const now = new Date();
+                const hoursAgo = Math.floor((now.getTime() - joinedDate.getTime()) / (1000 * 60 * 60));
+                const timeAgo = hoursAgo < 1
+                  ? '방금 전'
+                  : hoursAgo < 24
+                    ? `${hoursAgo}시간 전`
+                    : `${Math.floor(hoursAgo / 24)}일 전`;
+
+                return (
+                  <Link
+                    key={member.id}
+                    href={`/profile/${member.id}`}
+                    className="flex items-center gap-3 rounded-2xl border border-border/60 bg-muted/30 p-4 transition hover:bg-muted/40"
+                  >
+                    <Avatar
+                      src={member.avatarUrl}
+                      alt={member.displayName}
+                      size="md"
+                      className="border border-border/60"
+                    />
+                    <div className="flex-1">
+                      <p className="font-semibold">{member.displayName}</p>
+                      <p className="text-xs text-muted-foreground">{timeAgo} 가입</p>
+                    </div>
+                    <div className="rounded-full bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-600 dark:text-orange-400">
+                      🎉 새 멤버
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );
