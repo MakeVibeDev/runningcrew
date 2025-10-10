@@ -93,27 +93,22 @@ export default function CrewMembersPage() {
 
       <main className="mx-auto mt-6 max-w-5xl px-6">
         {/* Search and Filter */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="이름으로 검색..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground">정렬:</label>
-            <select
-              value={orderBy}
-              onChange={(e) => setOrderBy(e.target.value as "joined_date" | "name")}
-              className="rounded-lg border border-border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="joined_date">가입일자</option>
-              <option value="name">이름순</option>
-            </select>
-          </div>
+        <div className="mb-6 flex items-center gap-3">
+          <input
+            type="text"
+            placeholder="이름으로 검색..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 rounded-lg border border-border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+          <select
+            value={orderBy}
+            onChange={(e) => setOrderBy(e.target.value as "joined_date" | "name")}
+            className="rounded-lg border border-border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+            <option value="joined_date">가입일자</option>
+            <option value="name">이름순</option>
+          </select>
         </div>
 
         {/* Members Count */}
