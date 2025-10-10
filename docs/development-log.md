@@ -2936,4 +2936,617 @@ grid gap-6 md:grid-cols-4
 
 ---
 
-마지막 업데이트: 2025-10-04 (오후)
+## 13. 알림 시스템 완성 및 크루 관리 기능 개선 (2025-10-09)
+
+### 13.1 미션 및 랭킹 알림 트리거 구현
+
+#### `/supabase/migrations/20251009000000_auto_mission_ranking_notifications.sql`
+
+**구현 내용:**
+- 미션 생성 시 크루원들에게 자동 알림
+- TOP 3 랭킹 진입 시 자동 알림
+- SECURITY DEFINER로 RLS 우회하여 안정적인 알림 생성
+
+**주요 코드:**
+
+```sql
+-- 미션 생성 알림 함수
+CREATE OR REPLACE FUNCTION create_mission_created_notification()
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  crew_member_ids uuid[];
+  crew_info record;
+BEGIN
+  -- 크루 정보 조회
+  SELECT id, name, slug INTO crew_info
+  FROM crews
+  WHERE id = NEW.crew_id;
+
+  -- 크루 멤버들 조회
+  SELECT array_agg(profile_id) INTO crew_member_ids
+  FROM crew_members
+  WHERE crew_id = NEW.crew_id;
+
+  -- 크루원들에게 알림 생성
+  IF crew_member_ids IS NOT NULL THEN
+    INSERT INTO notifications (recipient_id, type, title, message, data, link)
+    SELECT
+      unnest(crew_member_ids),
+      'mission_created',
+      '새로운 미션',
+      crew_info.name || ' 크루에 새로운 미션 "' || NEW.title || '"이(가) 생성되었습니다!',
+      jsonb_build_object(
+        'missionId', NEW.id,
+        'missionTitle', NEW.title,
+        'crewId', crew_info.id,
+        'crewName', crew_info.name
+      ),
+      '/missions/' || NEW.id;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+-- 트리거 생성
+DROP TRIGGER IF EXISTS trigger_notify_mission_created ON missions;
+CREATE TRIGGER trigger_notify_mission_created
+  AFTER INSERT ON missions
+  FOR EACH ROW
+  EXECUTE FUNCTION create_mission_created_notification();
+
+-- TOP 3 랭킹 진입 알림 함수
+CREATE OR REPLACE FUNCTION create_ranking_top3_notification()
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  current_rank integer;
+  previous_rank integer;
+  mission_info record;
+BEGIN
+  -- 미션 정보 조회
+  SELECT id, title INTO mission_info
+  FROM missions
+  WHERE id = NEW.mission_id;
+
+  -- 현재 순위 계산
+  SELECT COUNT(*) + 1 INTO current_rank
+  FROM mission_participant_stats
+  WHERE mission_id = NEW.mission_id
+    AND total_distance_km > NEW.total_distance_km;
+
+  -- 이전 순위 계산
+  IF TG_OP = 'UPDATE' THEN
+    SELECT COUNT(*) + 1 INTO previous_rank
+    FROM mission_participant_stats
+    WHERE mission_id = OLD.mission_id
+      AND total_distance_km > OLD.total_distance_km;
+  END IF;
+
+  -- TOP 3 진입 시 알림 생성
+  IF current_rank <= 3 AND (previous_rank > 3 OR previous_rank IS NULL OR TG_OP = 'INSERT') THEN
+    INSERT INTO notifications (recipient_id, type, title, message, data, link)
+    VALUES (
+      NEW.profile_id,
+      'ranking_top3',
+      '순위권 진입! 🏆',
+      '축하합니다! "' || mission_info.title || '" 미션에서 ' || current_rank || '위에 올랐습니다!',
+      jsonb_build_object(
+        'missionId', mission_info.id,
+        'missionTitle', mission_info.title,
+        'rank', current_rank,
+        'previousRank', previous_rank
+      ),
+      '/missions/' || mission_info.id || '/rankings'
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+-- 트리거 생성
+DROP TRIGGER IF EXISTS trigger_notify_ranking_top3 ON mission_participant_stats;
+CREATE TRIGGER trigger_notify_ranking_top3
+  AFTER INSERT OR UPDATE OF total_distance_km ON mission_participant_stats
+  FOR EACH ROW
+  EXECUTE FUNCTION create_ranking_top3_notification();
+```
+
+**배포 완료:**
+- 마이그레이션 적용 완료
+- dev 브랜치 배포 완료
+- main 브랜치 배포 완료
+
+---
+
+### 13.2 크루 상세 페이지 레이아웃 통합
+
+#### `/src/app/crews/[crewId]/page.tsx`
+
+**변경 사항:**
+1. 3개 섹션을 1개로 통합
+2. 로고 이미지 없을 시 크루명 첫 2글자 표시 (그라데이션 배경)
+3. "크루 목록으로" 버튼을 메인 섹션 우측 상단으로 이동
+4. 정보 계층 구조 개선
+
+**주요 코드:**
+
+```typescript
+<section className="border border-border/70 bg-background p-4 shadow-sm">
+  {/* Header with back button */}
+  <div className="mb-6 flex items-center justify-between">
+    <div className="flex items-center gap-4">
+      {/* Logo */}
+      <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-orange-500 to-pink-500">
+        {crew.logo_image_url ? (
+          <Image
+            src={crew.logo_image_url}
+            alt={`${crew.name} logo`}
+            fill
+            sizes="80px"
+            className="object-cover"
+          />
+        ) : (
+          <div className="grid h-full w-full place-items-center text-lg font-bold text-white">
+            {crew.name.substring(0, 2)}
+          </div>
+        )}
+      </div>
+      {/* Crew name and region */}
+      <div>
+        <p className="text-sm text-muted-foreground">{crew.activity_region}</p>
+        <h1 className="text-2xl font-semibold">{crew.name}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {crew.description ?? "안녕하세요. MTRC입니다."}
+        </p>
+      </div>
+    </div>
+    {/* Back button */}
+    <Link
+      href="/crews"
+      className="rounded-full border border-border px-4 py-2 text-sm hover:bg-muted"
+    >
+      크루 목록으로
+    </Link>
+  </div>
+
+  {/* Stats with member count link */}
+  <dl className="mb-6 grid gap-4 rounded-2xl border border-border/60 bg-muted/30 p-5 text-sm sm:grid-cols-4">
+    <div>
+      <dt className="text-xs uppercase tracking-wide text-muted-foreground/70">활동 지역</dt>
+      <dd className="mt-1 text-base font-semibold text-foreground">{crew.activity_region}</dd>
+    </div>
+    <Link href={`/crews/${crew.slug}/members`} className="block transition hover:bg-muted/30 rounded-lg -m-2 p-2">
+      <dt className="text-xs uppercase tracking-wide text-muted-foreground/70">크루 멤버</dt>
+      <dd className="mt-1 text-base font-semibold text-foreground">{crew.member_count}명 →</dd>
+    </Link>
+    {/* ... */}
+  </dl>
+
+  {/* Map, Profile, Join, Intro, Missions all in same section */}
+</section>
+```
+
+**개선 효과:**
+- 정보 흐름이 자연스러워짐
+- 모바일/데스크톱 반응형 개선
+- 시각적 계층 구조 명확화
+
+---
+
+### 13.3 최근 가입 크루원 기능
+
+#### `/src/lib/supabase/rest.ts`
+
+**fetchCrewBySlug 함수 수정:**
+
+```typescript
+// 72시간 이내 가입 멤버 필터링 및 정렬
+const now = new Date();
+const seventyTwoHoursAgo = new Date(now.getTime() - 72 * 60 * 60 * 1000);
+
+const recentMembers = row.crew_members
+  ?.filter((member) => {
+    const joinedAt = new Date(member.created_at);
+    return joinedAt >= seventyTwoHoursAgo;
+  })
+  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  .map((member) => ({
+    id: member.profiles?.id ?? member.profile_id,
+    displayName: member.profiles?.display_name ?? '러너',
+    avatarUrl: member.profiles?.avatar_url ?? null,
+    joinedAt: member.created_at,
+  })) ?? [];
+
+return {
+  ...row,
+  recent_members: recentMembers,
+  // ...
+};
+```
+
+#### `/src/app/crews/[crewId]/page.tsx`
+
+**최근 가입 크루원 섹션 추가:**
+
+```typescript
+{/* Recent Members (Last 72 hours) - Separate Section */}
+{recentMembers.length > 0 && (
+  <section className="border border-border/70 bg-background p-6 shadow-sm">
+    <div className="mb-4">
+      <h3 className="text-xl font-semibold">최근 가입한 크루원</h3>
+      <p className="mt-1 text-sm text-muted-foreground">지난 72시간 내에 가입한 새로운 크루원들입니다</p>
+    </div>
+    <div className="space-y-3">
+      {recentMembers.map((member) => {
+        const joinedDate = new Date(member.joinedAt);
+        const now = new Date();
+        const hoursAgo = Math.floor((now.getTime() - joinedDate.getTime()) / (1000 * 60 * 60));
+        const timeAgo = hoursAgo < 1
+          ? '방금 전'
+          : hoursAgo < 24
+            ? `${hoursAgo}시간 전`
+            : `${Math.floor(hoursAgo / 24)}일 전`;
+
+        return (
+          <Link
+            key={member.id}
+            href={`/profile/${member.id}`}
+            className="flex items-center gap-3 rounded-2xl border border-border/60 bg-muted/30 p-4 transition hover:bg-muted/40"
+          >
+            <Avatar
+              src={member.avatarUrl}
+              alt={member.displayName}
+              size="md"
+              className="border border-border/60"
+            />
+            <div className="flex-1">
+              <p className="font-semibold">{member.displayName}</p>
+              <p className="text-xs text-muted-foreground">{timeAgo} 가입</p>
+            </div>
+            <div className="rounded-full bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-600 dark:text-orange-400">
+              🎉 새 멤버
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  </section>
+)}
+```
+
+**기능:**
+- 72시간 이내 가입한 크루원만 표시
+- 상대 시간 표시 ("방금 전", "N시간 전", "N일 전")
+- 프로필 링크 연결
+- 호버 효과 적용
+- 별도 섹션으로 분리하여 "진행 중 미션" 아래 배치
+
+---
+
+### 13.4 크루원 목록 페이지
+
+#### `/src/lib/supabase/rest.ts`
+
+**새 함수 추가:**
+
+```typescript
+export async function fetchCrewMembers(
+  crewId: string,
+  options?: {
+    search?: string;
+    orderBy?: 'name' | 'joined_date';
+  }
+) {
+  const { search = '', orderBy = 'joined_date' } = options ?? {};
+
+  // PostgREST 쿼리
+  let query = `crew_members?crew_id=eq.${crewId}&select=profile_id,created_at,profiles(id,display_name,avatar_url)`;
+
+  if (orderBy === 'name') {
+    query += '&order=profiles(display_name).asc';
+  } else {
+    query += '&order=created_at.desc';
+  }
+
+  const data = await supabaseRest<CrewMemberRow[]>(query);
+
+  // 데이터 변환
+  let members = data.map((member) => ({
+    id: member.profiles?.id ?? member.profile_id,
+    displayName: member.profiles?.display_name ?? '러너',
+    avatarUrl: member.profiles?.avatar_url ?? null,
+    joinedAt: member.created_at,
+  }));
+
+  // 클라이언트 사이드 검색 필터링
+  if (search) {
+    members = members.filter((member) =>
+      member.displayName.toLowerCase().includes(search.toLowerCase())
+    );
+  }
+
+  // 클라이언트 사이드 이름 정렬 (PostgREST 중첩 정렬이 잘 동작하지 않음)
+  if (orderBy === 'name') {
+    members.sort((a, b) => a.displayName.localeCompare(b.displayName, 'ko'));
+  }
+
+  return members;
+}
+```
+
+#### `/src/app/crews/[crewId]/members/page.tsx`
+
+**새 페이지 생성:**
+
+```typescript
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { Avatar } from "@/components/ui/avatar";
+import { fetchCrewBySlug, fetchCrewMembers } from "@/lib/supabase/rest";
+
+export default function CrewMembersPage() {
+  const params = useParams();
+  const router = useRouter();
+  const crewSlug = params?.crewId as string;
+
+  const [crew, setCrew] = useState<Crew | null>(null);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [orderBy, setOrderBy] = useState<"joined_date" | "name">("joined_date");
+
+  useEffect(() => {
+    async function loadData() {
+      if (!crewSlug) {
+        router.push("/crews");
+        return;
+      }
+
+      setLoading(true);
+      const crewData = await fetchCrewBySlug(crewSlug);
+
+      if (!crewData) {
+        router.push("/crews");
+        return;
+      }
+
+      setCrew(crewData);
+
+      const membersData = await fetchCrewMembers(crewData.id, { search, orderBy });
+      setMembers(membersData);
+      setLoading(false);
+    }
+
+    loadData();
+  }, [crewSlug, search, orderBy, router]);
+
+  return (
+    <div className="min-h-screen bg-muted/40 pb-8">
+      <main className="mx-auto mt-0 max-w-5xl px-4 pt-8">
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">{crew?.name} 크루원 목록</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              총 {members.length}명의 크루원
+            </p>
+          </div>
+          <Link
+            href={`/crews/${crewSlug}`}
+            className="rounded-full border border-border px-4 py-2 text-sm hover:bg-muted"
+          >
+            크루 홈으로
+          </Link>
+        </div>
+
+        {/* Search and Filter in single row */}
+        <div className="mb-6 flex items-center gap-3">
+          <input
+            type="text"
+            placeholder="이름으로 검색..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 rounded-lg border border-border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+          <select
+            value={orderBy}
+            onChange={(e) => setOrderBy(e.target.value as "joined_date" | "name")}
+            className="rounded-lg border border-border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+            <option value="joined_date">가입일자</option>
+            <option value="name">이름순</option>
+          </select>
+        </div>
+
+        {/* Members grid */}
+        {loading ? (
+          <div className="py-12 text-center text-muted-foreground">로딩 중...</div>
+        ) : members.length === 0 ? (
+          <div className="py-12 text-center text-muted-foreground">
+            {search ? "검색 결과가 없습니다." : "아직 크루원이 없습니다."}
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {members.map((member) => (
+              <Link
+                key={member.id}
+                href={`/profile/${member.id}`}
+                className="flex items-center gap-3 rounded-lg border border-border bg-background p-4 transition hover:bg-muted/50"
+              >
+                <Avatar
+                  src={member.avatarUrl}
+                  alt={member.displayName}
+                  size="md"
+                  className="border border-border/60"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold truncate">{member.displayName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(member.joinedAt).toLocaleDateString('ko-KR')} 가입
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+```
+
+**기능:**
+- 이름 검색 (실시간 필터링)
+- 정렬 옵션: "가입일자" (기본), "이름순"
+- 반응형 그리드 레이아웃 (1/2/3열)
+- 프로필 페이지 링크
+- 크루 홈으로 돌아가기 버튼
+
+**배포 완료:**
+- dev 브랜치 배포 완료
+- main 브랜치 배포 완료
+
+---
+
+### 13.5 iOS PWA 상태바 스타일링
+
+#### `/src/app/layout.tsx`
+
+**Metadata API 설정:**
+
+```typescript
+// Viewport 설정
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
+};
+
+// Metadata 설정
+export const metadata: Metadata = {
+  // ...
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default", // 흰색 배경 + 검은색 텍스트
+    title: "RunningCrew",
+  },
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  // ...
+};
+```
+
+**변경 사항:**
+1. `viewport`에 `themeColor` 추가 (라이트/다크 모드 대응)
+2. `metadata.appleWebApp` 설정:
+   - `capable: true` - PWA 모드 활성화
+   - `statusBarStyle: "default"` - 기본 스타일 (흰색 배경)
+   - `title: "RunningCrew"` - 앱 타이틀
+3. `formatDetection` 추가 - 자동 링크 변환 비활성화
+
+**주의사항:**
+- 변경사항 적용을 위해 기존 홈 화면 아이콘 삭제 후 재설치 필요
+- iOS Safari에서만 적용됨
+
+**배포 완료:**
+- dev 브랜치 배포 완료
+- main 브랜치 배포 완료
+
+---
+
+### 13.6 웹 푸시 알림 논의
+
+**검토 내용:**
+- PWA 푸시 알림 구현을 위해 필요한 것:
+  - Service Worker + Push API
+  - FCM (Firebase Cloud Messaging) 또는 다른 푸시 서비스
+  - 사용자 권한 요청 및 토큰 관리
+  - iOS Safari 제약사항: iOS 16.4+ 필요, PWA로 설치된 경우만 지원
+
+**결정:**
+- 현재 시점에서는 구현 보류
+- 향후 필요 시 재논의
+
+---
+
+### 테스트 체크리스트
+
+- [x] 알림 트리거 마이그레이션 적용 확인
+- [x] 미션 생성 시 알림 생성 확인
+- [x] 랭킹 TOP 3 진입 시 알림 생성 확인
+- [x] 크루 상세 페이지 레이아웃 확인
+- [x] 로고 플레이스홀더 그라데이션 확인
+- [x] 최근 가입 크루원 섹션 확인 (72시간 필터)
+- [x] 크루원 목록 페이지 확인
+- [x] 검색 및 정렬 기능 확인
+- [x] iOS PWA 상태바 스타일 확인
+- [x] 빌드 성공 확인
+- [x] dev 브랜치 배포 완료
+- [x] main 브랜치 배포 완료
+
+---
+
+### 기술적 개선사항
+
+1. **알림 시스템 완성**
+   - 8개 알림 타입 모두 자동화
+   - SECURITY DEFINER로 RLS 이슈 해결
+   - 데이터베이스 트리거로 안정성 확보
+
+2. **UX 개선**
+   - 크루 상세 정보 계층 구조 개선
+   - 최근 가입 멤버 가시성 향상
+   - 크루원 검색 및 정렬 기능 추가
+
+3. **PWA 지원**
+   - iOS 홈 화면 추가 시 상태바 스타일링
+   - 라이트/다크 모드 테마 색상 지원
+
+---
+
+### 다음 작업
+
+#### 알림 시스템
+1. **알림 UI 개선**
+   - 알림 센터 디자인 개선
+   - 읽음/안읽음 상태 표시 명확화
+   - 알림 그룹화 기능
+
+2. **웹 푸시 알림**
+   - Service Worker 구현
+   - FCM 연동
+   - 사용자 권한 관리
+
+#### 크루 관리
+1. **크루 관리자 기능**
+   - 멤버 역할 관리
+   - 멤버 제거 기능
+   - 크루 통계 대시보드
+
+2. **크루 검색 개선**
+   - 지역별 필터
+   - 활동 상태별 필터
+   - 인기순 정렬
+
+---
+
+마지막 업데이트: 2025-10-09
