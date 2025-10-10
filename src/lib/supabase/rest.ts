@@ -31,7 +31,15 @@ type CrewDetailRow = {
   owner_id: string;
   location_lat: number | null;
   location_lng: number | null;
-  crew_members: { profile_id: string }[] | null;
+  crew_members: {
+    profile_id: string;
+    created_at: string;
+    profiles: {
+      id: string;
+      display_name: string;
+      avatar_url: string | null;
+    } | null;
+  }[] | null;
   missions: Array<{
     id: string;
     title: string;
@@ -191,16 +199,33 @@ export async function fetchCrewList() {
 
 export async function fetchCrewBySlug(slug: string) {
   const data = await supabaseRest<CrewDetailRow[]>(
-    `crews?slug=eq.${slug}&select=id,slug,name,activity_region,description,intro,logo_image_url,owner_id,location_lat,location_lng,crew_members(profile_id),missions(id,title,description,start_date,end_date,target_distance_km,crew_id,mission_participants(status,profile_id))`,
+    `crews?slug=eq.${slug}&select=id,slug,name,activity_region,description,intro,logo_image_url,owner_id,location_lat,location_lng,crew_members(profile_id,created_at,profiles(id,display_name,avatar_url)),missions(id,title,description,start_date,end_date,target_distance_km,crew_id,mission_participants(status,profile_id))`,
   );
   const row = data[0];
   if (!row) return null;
 
   const memberCount = row.crew_members?.length ?? 0;
 
+  // Get members joined within last 72 hours and sort by created_at descending
+  const now = new Date();
+  const seventyTwoHoursAgo = new Date(now.getTime() - 72 * 60 * 60 * 1000);
+  const recentMembers = row.crew_members
+    ?.filter((member) => {
+      const joinedAt = new Date(member.created_at);
+      return joinedAt >= seventyTwoHoursAgo;
+    })
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .map((member) => ({
+      id: member.profiles?.id ?? member.profile_id,
+      displayName: member.profiles?.display_name ?? '러너',
+      avatarUrl: member.profiles?.avatar_url ?? null,
+      joinedAt: member.created_at,
+    })) ?? [];
+
   return {
     ...row,
     member_count: memberCount,
+    recent_members: recentMembers,
     missions: row.missions?.map((mission) => ({
       ...mission,
       participants_count:
