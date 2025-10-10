@@ -166,7 +166,7 @@ export function LoggedInHome({
               더보기
             </Link>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {/* 참여 중인 미션 카드 */}
             {userJoinedMissions.map((mission) => {
               const ranking = userRankings.get(mission.id);
@@ -201,7 +201,7 @@ export function LoggedInHome({
               <Link
                 key={record.id}
                 href={`/records/${record.id}`}
-                className="block rounded-lg border border-border/40 bg-muted/20 p-4 transition hover:bg-muted/30"
+                className="block rounded-lg border border-border/40 bg-muted/20 pt-4 pb-4 pl-2 pr-2 transition hover:bg-muted/30"
               >
                 <div className="flex gap-3">
                   {/* 프로필 이미지 */}
