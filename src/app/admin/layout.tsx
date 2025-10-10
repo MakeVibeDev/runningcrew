@@ -17,18 +17,22 @@ export default async function AdminLayout({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/signin?redirect=/admin");
+    redirect("/?error=unauthorized");
   }
 
   // 관리자 권한 확인
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("crew_role")
     .eq("id", user.id)
     .single<{ crew_role: string }>();
 
+  if (error) {
+    console.error("Admin layout - profile fetch error:", error);
+  }
+
   if (!profile || profile.crew_role !== "admin") {
-    redirect("/");
+    redirect("/?error=forbidden");
   }
 
   return (
