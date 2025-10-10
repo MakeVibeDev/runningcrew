@@ -87,10 +87,10 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ cre
               <dt className="text-xs uppercase tracking-wide text-muted-foreground/70">활동 지역</dt>
               <dd className="mt-1 text-base font-semibold text-foreground">{crew.activity_region}</dd>
             </div>
-            <div>
+            <Link href={`/crews/${crew.slug}/members`} className="block transition hover:bg-muted/30 rounded-lg -m-2 p-2">
               <dt className="text-xs uppercase tracking-wide text-muted-foreground/70">크루 멤버</dt>
-              <dd className="mt-1 text-base font-semibold text-foreground">{crew.member_count}명</dd>
-            </div>
+              <dd className="mt-1 text-base font-semibold text-foreground">{crew.member_count}명 →</dd>
+            </Link>
             <div>
               <dt className="text-xs uppercase tracking-wide text-muted-foreground/70">소개 상태</dt>
               <dd className="mt-1 text-base font-semibold text-foreground">

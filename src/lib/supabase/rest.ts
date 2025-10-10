@@ -753,3 +753,56 @@ export async function fetchUserJoinedMissions(profileId: string) {
     joined_at: mp.joined_at,
   }));
 }
+
+/**
+ * Fetch crew members with optional search and ordering
+ */
+export async function fetchCrewMembers(crewId: string, options?: {
+  search?: string;
+  orderBy?: 'name' | 'joined_date';
+}) {
+  const { search = '', orderBy = 'joined_date' } = options ?? {};
+
+  // Base query
+  let query = `crew_members?crew_id=eq.${crewId}&select=profile_id,created_at,profiles(id,display_name,avatar_url)`;
+
+  // Add ordering
+  if (orderBy === 'name') {
+    query += '&order=profiles(display_name).asc';
+  } else {
+    query += '&order=created_at.desc';
+  }
+
+  type CrewMemberRow = {
+    profile_id: string;
+    created_at: string;
+    profiles: {
+      id: string;
+      display_name: string;
+      avatar_url: string | null;
+    } | null;
+  };
+
+  const data = await supabaseRest<CrewMemberRow[]>(query);
+
+  // Filter by search term if provided
+  let members = data.map((member) => ({
+    id: member.profiles?.id ?? member.profile_id,
+    displayName: member.profiles?.display_name ?? '러너',
+    avatarUrl: member.profiles?.avatar_url ?? null,
+    joinedAt: member.created_at,
+  }));
+
+  if (search) {
+    members = members.filter((member) =>
+      member.displayName.toLowerCase().includes(search.toLowerCase())
+    );
+  }
+
+  // Re-sort by name if needed (since PostgREST ordering on nested fields doesn't work)
+  if (orderBy === 'name') {
+    members.sort((a, b) => a.displayName.localeCompare(b.displayName, 'ko'));
+  }
+
+  return members;
+}
