@@ -26,6 +26,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
 };
 
 export const metadata: Metadata = {
@@ -38,6 +42,11 @@ export const metadata: Metadata = {
   authors: [{ name: "RunningCrew" }],
   creator: "RunningCrew",
   publisher: "RunningCrew",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "RunningCrew",
+  },
   formatDetection: {
     email: false,
     address: false,
@@ -114,11 +123,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <head>
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="RunningCrew" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-background text-foreground antialiased`}
       >
