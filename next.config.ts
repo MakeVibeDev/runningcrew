@@ -25,24 +25,15 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  async rewrites() {
+  async redirects() {
     if (isAdminApp) {
-      // Admin 앱: 루트 경로를 /admin-dashboard로 리다이렉트
+      // Admin 앱: 루트를 admin-dashboard로 리다이렉트 + 서비스 라우트 차단
       return [
         {
           source: "/",
           destination: "/admin-dashboard",
+          permanent: false,
         },
-      ];
-    }
-    // Main 앱: rewrites 없음
-    return [];
-  },
-
-  async redirects() {
-    if (isAdminApp) {
-      // Admin 앱에서는 일반 서비스 라우트 접근 차단
-      return [
         {
           source: "/missions/:path*",
           destination: "/admin-dashboard",
