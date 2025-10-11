@@ -11,12 +11,19 @@ export default async function AdminLayout({
   const cookieStore = await cookies();
   const supabase = await createClient(cookieStore);
 
+  console.log("Admin layout - checking auth...");
+
   // 인증 확인
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
 
+  console.log("Admin layout - user:", user?.id, user?.email);
+  console.log("Admin layout - authError:", authError);
+
   if (!user) {
+    console.log("Admin layout - No user, redirecting to /?error=unauthorized");
     redirect("/?error=unauthorized");
   }
 
@@ -27,13 +34,22 @@ export default async function AdminLayout({
     .eq("id", user.id)
     .single<{ crew_role: string }>();
 
+  console.log("Admin layout - profile:", profile);
+  console.log("Admin layout - profile error:", error);
+
   if (error) {
     console.error("Admin layout - profile fetch error:", error);
   }
 
   if (!profile || profile.crew_role !== "admin") {
+    console.log(
+      "Admin layout - Not admin, redirecting to /?error=forbidden",
+      profile?.crew_role
+    );
     redirect("/?error=forbidden");
   }
+
+  console.log("Admin layout - Access granted!");
 
   return (
     <div className="min-h-screen bg-muted/40">

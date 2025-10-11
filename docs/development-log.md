@@ -13,6 +13,87 @@ RunningCrew는 러닝 크루 미션 추적 앱으로, Next.js 15 App Router와 S
 
 ## 최근 세션 작업 내역 (상세)
 
+### 2025-10-11: Admin/Main 앱 분리 (Vercel 배포 준비)
+
+#### 작업 목표
+하나의 코드베이스에서 Main 서비스와 Admin 패널을 완전히 분리하여 독립적으로 배포할 수 있도록 구현
+
+#### 구현 내용
+
+**1. 환경 변수 기반 앱 타입 분리**
+- `.env.admin.example` 생성
+- `NEXT_PUBLIC_APP_TYPE` 환경 변수로 앱 모드 제어 (main/admin)
+
+**2. Next.js 설정 수정** ([next.config.ts](../next.config.ts))
+```typescript
+const isAdminApp = process.env.NEXT_PUBLIC_APP_TYPE === "admin";
+
+// Admin 앱: 루트를 /admin-dashboard로 rewrite
+rewrites: isAdminApp ? [{ source: "/", destination: "/admin-dashboard" }] : []
+
+// 각 앱에서 반대편 라우트 차단
+redirects: {
+  admin: ["/missions/*", "/crews/*", "/records/*", "/members/*"] → "/admin-dashboard"
+  main: ["/admin-dashboard/*", "/admin-login"] → "/"
+}
+```
+
+**3. Middleware 런타임 보호 강화** ([src/middleware.ts](../src/middleware.ts))
+- 빌드 타임 redirects를 우회하는 시도를 런타임에서 추가 차단
+- Admin 앱: 서비스 라우트 접근 시 `/admin-dashboard`로 강제 리다이렉트
+- Main 앱: Admin 라우트 접근 시 `/`로 강제 리다이렉트
+
+**4. 빌드 스크립트 추가** ([package.json](../package.json))
+```json
+{
+  "dev:admin": "NEXT_PUBLIC_APP_TYPE=admin next dev --turbopack -p 3001",
+  "build:admin": "NEXT_PUBLIC_APP_TYPE=admin next build --turbopack",
+  "start:admin": "NEXT_PUBLIC_APP_TYPE=admin next start -p 3001"
+}
+```
+
+**5. TypeScript/React 오류 수정**
+- Admin records API: 타입 추론 오류 해결 (eslint-disable 추가)
+- Admin records 페이지: `useSearchParams()` Suspense boundary 추가
+
+#### 로컬 테스트 결과 ✅
+
+**Main 앱 (localhost:3000)**
+- ✅ `/` → 200 (서비스 홈)
+- ✅ `/missions`, `/crews`, `/records`, `/members` → 200
+- ✅ `/admin-dashboard` → 307 redirect to `/`
+
+**Admin 앱 (localhost:3001)**
+- ✅ `/` → 200 (자동으로 admin-dashboard로 rewrite)
+- ✅ `/admin-login`, `/admin-dashboard` → 200
+- ✅ `/missions`, `/crews`, `/records` → 307 redirect to `/admin-dashboard`
+
+#### 프로덕션 빌드 테스트 ✅
+```bash
+✅ npm run build - 성공
+✅ npm run build:admin - 성공
+```
+
+#### 배포 가이드 문서
+- [vercel-deployment-guide.md](./vercel-deployment-guide.md) - 상세 배포 가이드
+- [admin-separation-summary.md](./admin-separation-summary.md) - 작업 요약 및 체크리스트
+
+#### 배포 방법 요약
+1. Vercel에서 두 개의 프로젝트 생성:
+   - **runningcrew** (Main): Build Command `npm run build`, 도메인 `runningcrew.io`
+   - **runningcrew-admin** (Admin): Build Command `npm run build:admin`, 도메인 `admin.runningcrew.io`
+2. 각 프로젝트에 동일한 환경 변수 설정
+3. Admin 프로젝트에 `NEXT_PUBLIC_APP_TYPE=admin` 필수 설정
+
+#### 주요 파일 변경
+- 신규: `.env.admin.example`, `docs/vercel-deployment-guide.md`, `docs/admin-separation-summary.md`
+- 수정: `next.config.ts`, `package.json`, `src/middleware.ts`
+- 수정: `src/app/api/admin/records/[recordId]/route.ts`, `src/app/admin-dashboard/records/page.tsx`
+
+---
+
+## 최근 세션 작업 내역 (상세)
+
 ### 1. 미션 상세 페이지 개선
 
 #### 1.1 활동 시간 표시 수정

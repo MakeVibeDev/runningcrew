@@ -50,7 +50,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
-    client.auth.getSession().then(({ data, error }) => {
+    client.auth.getSession().then(({ data, error }: { data: { session: Session | null }, error: Error | null }) => {
       if (!isMounted) return;
       if (error) {
         console.error("세션 정보를 가져오지 못했습니다.", error);
@@ -66,7 +66,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
 
     const {
       data: { subscription },
-    } = client.auth.onAuthStateChange((_event, newSession) => {
+    } = client.auth.onAuthStateChange((_event: string, newSession: Session | null) => {
       setSession(newSession);
       if (newSession?.user) {
         loadProfile().catch((error) => {

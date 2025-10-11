@@ -69,9 +69,14 @@ function AuthCallbackContent() {
         // 이미 우리 서버 URL이 있으면 재업로드하지 않음
         const existingAvatarUrl = (existingProfile as { avatar_url?: string | null } | null)?.avatar_url;
         if (!existingAvatarUrl?.includes("supabase.co")) {
-          const uploadedUrl = await uploadAvatarFromUrl(client, externalAvatarUrl, user.id);
-          if (uploadedUrl) {
-            finalAvatarUrl = uploadedUrl;
+          try {
+            const uploadedUrl = await uploadAvatarFromUrl(client, externalAvatarUrl, user.id);
+            if (uploadedUrl) {
+              finalAvatarUrl = uploadedUrl;
+            }
+          } catch (err) {
+            console.error("Avatar upload failed, continuing with external URL:", err);
+            // 업로드 실패해도 계속 진행 - 외부 URL 사용
           }
         } else {
           // 기존에 이미 업로드된 URL 사용
