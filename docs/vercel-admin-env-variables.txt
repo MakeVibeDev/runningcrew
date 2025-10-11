@@ -1,0 +1,96 @@
+# Vercel Admin 프로젝트 환경 변수 설정
+
+## 필수 환경 변수 (복사해서 Vercel에 붙여넣기)
+
+### 1. App Type (Admin 전용 - 가장 중요!)
+NEXT_PUBLIC_APP_TYPE=admin
+
+### 2. Supabase 기본 설정
+NEXT_PUBLIC_SUPABASE_URL=https://blzupvegyrakpkbhxhfp.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsenVwdmVneXJha3BrYmh4aGZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwNjM0MzMsImV4cCI6MjA3NDYzOTQzM30.yGV9PFi5puT4_vAHA5vY83MhHjm01b-UFdF2L0AlmUc
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsenVwdmVneXJha3BrYmh4aGZwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTA2MzQzMywiZXhwIjoyMDc0NjM5NDMzfQ.mrypS22LkyKvl5HoK4WKQZMD26rUuSzGnslyUofDW-I
+SUPABASE_JWT_SECRET=YAIn2b7Sf409eyKl+DzmJ5iE0eAKBawSW+P/id3rgw24aS6hfxOK/1UXPzUF0fVxjacg4re4z4/JEot1NLEmlg==
+
+### 3. Admin 로그인 정보
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=runningcrew2025!
+
+### 4. Site URL (Admin 도메인으로 변경 - 배포 후 업데이트)
+NEXT_PUBLIC_SITE_URL=https://admin.runningcrew.io
+
+### 5. Supabase Edge Function
+SUPABASE_EDGE_FUNCTION_URL=https://blzupvegyrakpkbhxhfp.supabase.co/functions/v1
+NEXT_PUBLIC_SUPABASE_FUNCTION_URL=https://blzupvegyrakpkbhxhfp.supabase.co
+
+### 6. Slack Webhook (선택 사항 - .env.local에서 복사)
+SLACK_WEBHOOK_URL=your-slack-webhook-url
+SLACK_ERROR_WEBHOOK_URL=your-slack-error-webhook-url
+
+### 7. Google/Naver Site Verification (선택 사항)
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=NkI9-dtA4dGqtiHjoh6AW7odfZbNTstPvz1SVJt5NYo
+NEXT_PUBLIC_NAVER_SITE_VERIFICATION=3b0183cd423333cfe7e38facd0f6bf10a14d2bfe
+
+### 8. Supabase Storage Signing (선택 사항)
+SUPABASE_STORAGE_SIGNING_SECRET=storage-signing-secret
+
+### 9. OCR Provider (선택 사항 - Admin에서는 사용 안 함)
+OCR_PROVIDER_API_KEY=ocr-provider-api-key
+
+### 10. Naver Map API (선택 사항 - Admin에서는 사용 안 함)
+NEXT_PUBLIC_NAVER_MAP_CLIENT_ID=naver-map-client-id
+NAVER_MAP_CLIENT_SECRET=naver-map-client-secret
+
+---
+
+## Vercel에서 설정하는 방법
+
+1. Vercel 대시보드 → runningcrew-admin 프로젝트 선택
+2. Settings → Environment Variables
+3. 위의 환경 변수들을 하나씩 추가
+   - Name: 변수명 (예: NEXT_PUBLIC_APP_TYPE)
+   - Value: 값 (예: admin)
+   - Environment: Production, Preview, Development 모두 선택
+4. Save 버튼 클릭
+5. 모든 변수 추가 후 Redeploy 실행
+
+---
+
+## 주의사항
+
+⚠️ **NEXT_PUBLIC_APP_TYPE=admin** 이 변수가 가장 중요합니다!
+   이 변수가 없으면 Admin 앱이 작동하지 않습니다.
+
+⚠️ **NEXT_PUBLIC_SITE_URL** 값을 Admin 도메인으로 변경해야 합니다:
+   - 로컬: http://localhost:3001
+   - 프로덕션: https://admin.runningcrew.io (또는 실제 도메인)
+
+⚠️ Kakao 로그인 관련 변수는 Main 앱에서만 사용되므로 Admin에는 불필요합니다.
+
+---
+
+## 한 번에 복사하기 (Vercel Bulk Add 용)
+
+Vercel에서 "Bulk Add" 기능을 사용하면 한 번에 여러 변수를 추가할 수 있습니다:
+
+```
+NEXT_PUBLIC_APP_TYPE="admin"
+NEXT_PUBLIC_SUPABASE_URL="https://blzupvegyrakpkbhxhfp.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsenVwdmVneXJha3BrYmh4aGZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwNjM0MzMsImV4cCI6MjA3NDYzOTQzM30.yGV9PFi5puT4_vAHA5vY83MhHjm01b-UFdF2L0AlmUc"
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsenVwdmVneXJha3BrYmh4aGZwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTA2MzQzMywiZXhwIjoyMDc0NjM5NDMzfQ.mrypS22LkyKvl5HoK4WKQZMD26rUuSzGnslyUofDW-I"
+SUPABASE_JWT_SECRET="YAIn2b7Sf409eyKl+DzmJ5iE0eAKBawSW+P/id3rgw24aS6hfxOK/1UXPzUF0fVxjacg4re4z4/JEot1NLEmlg=="
+ADMIN_USERNAME="admin"
+ADMIN_PASSWORD="runningcrew2025!"
+NEXT_PUBLIC_SITE_URL="https://admin.runningcrew.io"
+SUPABASE_EDGE_FUNCTION_URL="https://blzupvegyrakpkbhxhfp.supabase.co/functions/v1"
+NEXT_PUBLIC_SUPABASE_FUNCTION_URL="https://blzupvegyrakpkbhxhfp.supabase.co"
+SLACK_WEBHOOK_URL="your-slack-webhook-url"
+SLACK_ERROR_WEBHOOK_URL="your-slack-error-webhook-url"
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION="NkI9-dtA4dGqtiHjoh6AW7odfZbNTstPvz1SVJt5NYo"
+NEXT_PUBLIC_NAVER_SITE_VERIFICATION="3b0183cd423333cfe7e38facd0f6bf10a14d2bfe"
+SUPABASE_STORAGE_SIGNING_SECRET="storage-signing-secret"
+OCR_PROVIDER_API_KEY="ocr-provider-api-key"
+NEXT_PUBLIC_NAVER_MAP_CLIENT_ID="naver-map-client-id"
+NAVER_MAP_CLIENT_SECRET="naver-map-client-secret"
+```
+
+위 내용을 복사해서 Vercel의 "Environment Variables" 페이지에서 사용하세요!

@@ -146,14 +146,27 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* 메인으로 돌아가기 */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => router.push("/")}
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            ← 메인으로 돌아가기
-          </button>
+        {/* 빠른 링크 */}
+        <div className="mt-8 rounded-lg border border-border bg-background p-6">
+          <h3 className="mb-4 font-semibold">빠른 링크</h3>
+          <div className="flex flex-wrap gap-4">
+            <a
+              href="https://runningcrew.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-500 hover:text-blue-600 hover:underline"
+            >
+              🔗 메인 서비스 바로가기
+            </a>
+            <a
+              href="https://blzupvegyrakpkbhxhfp.supabase.co"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-500 hover:text-blue-600 hover:underline"
+            >
+              🗄️ Supabase 대시보드
+            </a>
+          </div>
         </div>
       </main>
     </div>
