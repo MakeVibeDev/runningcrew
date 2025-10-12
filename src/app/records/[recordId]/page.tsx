@@ -62,6 +62,7 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
   const [record, setRecord] = useState<RecordDetail | null>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
+  const [commentsCount, setCommentsCount] = useState(0);
   const [isLiking, setIsLiking] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,10 +102,10 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
 
         const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-        const likesCount = Array.isArray(recordData.record_likes)
+        const initialLikesCount = Array.isArray(recordData.record_likes)
           ? recordData.record_likes[0]?.count ?? 0
           : 0;
-        const commentsCount = Array.isArray(recordData.record_comments)
+        const initialCommentsCount = Array.isArray(recordData.record_comments)
           ? recordData.record_comments[0]?.count ?? 0
           : 0;
 
@@ -120,13 +121,14 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
               ? `${SUPABASE_URL}/storage/v1/object/public/records-raw/${recordData.image_path}`
               : null,
           visibility: recordData.visibility,
-          likesCount,
-          commentsCount,
+          likesCount: initialLikesCount,
+          commentsCount: initialCommentsCount,
           mission: recordData.mission,
           profile: recordData.profile,
         });
 
-        setLikesCount(likesCount);
+        setLikesCount(initialLikesCount);
+        setCommentsCount(initialCommentsCount);
 
         // Check if user has liked
         if (user) {
@@ -319,7 +321,7 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
                   d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                 />
               </svg>
-              <span className="font-medium">{record.commentsCount}</span>
+              <span className="font-medium">{commentsCount}</span>
             </div>
           </div>
         </div>
@@ -327,7 +329,11 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
         {/* Comments Section */}
         <div className="rounded-xl border border-border/60 bg-background p-4">
           <h3 className="mb-4 text-lg font-semibold">댓글</h3>
-          <CommentsSection entityType="record" entityId={resolvedParams.recordId} />
+          <CommentsSection
+            entityType="record"
+            entityId={resolvedParams.recordId}
+            onCountChange={setCommentsCount}
+          />
         </div>
       </main>
 

@@ -23,9 +23,10 @@ interface Comment {
 interface CommentsSectionProps {
   entityType: "record" | "profile" | "crew_intro" | "mission" | "announcement";
   entityId: string;
+  onCountChange?: (count: number) => void;
 }
 
-export function CommentsSection({ entityType, entityId }: CommentsSectionProps) {
+export function CommentsSection({ entityType, entityId, onCountChange }: CommentsSectionProps) {
   const { user } = useSupabase();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +42,9 @@ export function CommentsSection({ entityType, entityId }: CommentsSectionProps) 
       );
       if (response.ok) {
         const data = await response.json();
-        setComments(data.comments || []);
+        const loadedComments = data.comments || [];
+        setComments(loadedComments);
+        onCountChange?.(loadedComments.length);
       }
     } catch (error) {
       console.error("댓글 로드 실패:", error);
@@ -51,11 +54,15 @@ export function CommentsSection({ entityType, entityId }: CommentsSectionProps) 
   };
 
   const handleCommentAdded = (newComment: Comment) => {
-    setComments([newComment, ...comments]);
+    const updatedComments = [newComment, ...comments];
+    setComments(updatedComments);
+    onCountChange?.(updatedComments.length);
   };
 
   const handleCommentDeleted = (commentId: string) => {
-    setComments(comments.filter((c) => c.id !== commentId));
+    const updatedComments = comments.filter((c) => c.id !== commentId);
+    setComments(updatedComments);
+    onCountChange?.(updatedComments.length);
   };
 
   const handleCommentUpdated = (updatedComment: Comment) => {
