@@ -30,17 +30,21 @@ export async function GET(
       .eq("id", mission.crew_id)
       .single();
 
-    // 참가자 목록
+    // 참가자 목록 (simplified - just basic info)
     const { data: participantsData } = await supabase
       .from("mission_participants")
-      .select("user_id, progress, completed, joined_at, profiles(id, username, full_name, avatar_url)")
+      .select("profile_id, joined_at, profiles(id, display_name, avatar_url)")
       .eq("mission_id", id)
-      .order("progress", { ascending: false });
+      .eq("status", "joined")
+      .order("joined_at", { ascending: false });
 
-    const participants = participantsData?.map((p: any) => ({
-      userId: p.user_id,
-      progress: p.progress,
-      completed: p.completed,
+    const participants = participantsData?.map((p: {
+      profile_id: string;
+      joined_at: string;
+      profiles: unknown;
+    }) => ({
+      userId: p.profile_id,
+      progress: 0, // Simplified - no distance tracking in admin view for now
       joinedAt: p.joined_at,
       profile: p.profiles,
     })) || [];
@@ -55,7 +59,7 @@ export async function GET(
       .from("mission_participants")
       .select("*", { count: "exact", head: true })
       .eq("mission_id", id)
-      .eq("completed", true);
+      .eq("status", "completed");
 
     // 전체 진행률 계산
     const totalProgress = participants.reduce((sum, p) => sum + (p.progress || 0), 0);

@@ -8,7 +8,7 @@ import { CommentInput } from "./comment-input";
 interface Comment {
   id: string;
   content: string;
-  mentions: string[];
+  mentions: string[] | null;
   likes_count: number;
   created_at: string;
   updated_at: string;

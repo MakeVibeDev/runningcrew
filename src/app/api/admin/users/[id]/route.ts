@@ -26,14 +26,14 @@ export async function GET(
     // 가입한 크루 목록
     const { data: crews } = await supabase
       .from("crew_members")
-      .select("crews(id, name, avatar_url, created_at)")
-      .eq("user_id", id);
+      .select("crews(id, name, logo_image_url, created_at)")
+      .eq("profile_id", id);
 
     // 등록한 기록 목록 (최근 10개)
     const { data: records } = await supabase
       .from("records")
-      .select("id, title, distance, duration, created_at")
-      .eq("user_id", id)
+      .select("id, title, distance_km, duration_seconds, created_at")
+      .eq("profile_id", id)
       .order("created_at", { ascending: false })
       .limit(10);
 
@@ -48,27 +48,27 @@ export async function GET(
     const { count: totalCrews } = await supabase
       .from("crew_members")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", id);
+      .eq("profile_id", id);
 
     const { count: totalRecords } = await supabase
       .from("records")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", id);
+      .eq("profile_id", id);
 
     // 총 러닝 거리 계산
     const { data: distanceData } = await supabase
       .from("records")
-      .select("distance")
-      .eq("user_id", id);
+      .select("distance_km")
+      .eq("profile_id", id);
 
     const totalDistance = (distanceData || []).reduce(
-      (sum, record) => sum + (record.distance || 0),
+      (sum, record) => sum + (record.distance_km || 0),
       0
     );
 
     return NextResponse.json({
       user,
-      crews: crews?.map((c: any) => c.crews) || [],
+      crews: crews?.map((c: { crews: unknown }) => c.crews) || [],
       records: records || [],
       sanctions: sanctions || [],
       stats: {

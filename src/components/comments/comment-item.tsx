@@ -12,9 +12,10 @@ interface Profile {
 interface Comment {
   id: string;
   content: string;
-  mentions: string[];
+  mentions: string[] | null;
   likes_count: number;
   created_at: string;
+  updated_at: string;
   profiles: Profile;
   isLikedByUser?: boolean;
 }
@@ -44,10 +45,7 @@ export function CommentItem({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isOwner = currentUserId === comment.profiles.id;
-  const displayName =
-    comment.profiles.display_name ||
-    comment.profiles.full_name ||
-    comment.profiles.username;
+  const displayName = comment.profiles.display_name || "Anonymous";
 
   // Close menu when clicking outside
   useEffect(() => {

@@ -18,14 +18,14 @@ export function Pagination({
   const pages = [];
   const maxVisiblePages = 5;
 
-  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+  const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+  const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
-  if (endPage - startPage + 1 < maxVisiblePages) {
-    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-  }
+  const adjustedStartPage = endPage - startPage + 1 < maxVisiblePages
+    ? Math.max(1, endPage - maxVisiblePages + 1)
+    : startPage;
 
-  for (let i = startPage; i <= endPage; i++) {
+  for (let i = adjustedStartPage; i <= endPage; i++) {
     pages.push(i);
   }
 
@@ -74,7 +74,7 @@ export function Pagination({
               ←
             </button>
 
-            {startPage > 1 && (
+            {adjustedStartPage > 1 && (
               <>
                 <button
                   onClick={() => onPageChange(1)}
@@ -82,7 +82,7 @@ export function Pagination({
                 >
                   1
                 </button>
-                {startPage > 2 && (
+                {adjustedStartPage > 2 && (
                   <span className="relative inline-flex items-center border border-border bg-background px-4 py-2 text-sm font-medium">
                     ...
                   </span>

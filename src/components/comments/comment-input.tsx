@@ -9,10 +9,27 @@ interface Profile {
   avatar_url: string | null;
 }
 
+interface Comment {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  profile_id: string;
+  content: string;
+  mentions: string[] | null;
+  likes_count: number;
+  created_at: string;
+  updated_at: string;
+  profiles: {
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+  };
+}
+
 interface CommentInputProps {
   entityType: "record" | "profile" | "crew_intro" | "mission" | "announcement";
   entityId: string;
-  onCommentAdded: (comment: any) => void;
+  onCommentAdded: (comment: Comment) => void;
   placeholder?: string;
 }
 

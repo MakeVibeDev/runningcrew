@@ -52,8 +52,8 @@ export async function GET(request: NextRequest) {
         // 크루장 정보
         const { data: leader } = await supabase
           .from("profiles")
-          .select("username, full_name")
-          .eq("id", crew.leader_id)
+          .select("display_name")
+          .eq("id", crew.owner_id)
           .single();
 
         return {

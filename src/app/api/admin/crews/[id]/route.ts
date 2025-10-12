@@ -26,21 +26,24 @@ export async function GET(
     // 크루장 정보
     const { data: leader } = await supabase
       .from("profiles")
-      .select("id, username, full_name, avatar_url")
-      .eq("id", crew.leader_id)
+      .select("id, display_name, avatar_url")
+      .eq("id", crew.owner_id)
       .single();
 
     // 멤버 목록
     const { data: membersData } = await supabase
       .from("crew_members")
-      .select("user_id, role, joined_at, profiles(id, username, full_name, avatar_url)")
+      .select("profile_id, created_at, profiles(id, display_name, avatar_url)")
       .eq("crew_id", id)
-      .order("joined_at", { ascending: false });
+      .order("created_at", { ascending: false });
 
-    const members = membersData?.map((m: any) => ({
-      userId: m.user_id,
-      role: m.role,
-      joinedAt: m.joined_at,
+    const members = membersData?.map((m: {
+      profile_id: string;
+      created_at: string;
+      profiles: unknown;
+    }) => ({
+      userId: m.profile_id,
+      joinedAt: m.created_at,
       profile: m.profiles,
     })) || [];
 
@@ -73,9 +76,9 @@ export async function GET(
     // 최근 활동 (최근 가입한 멤버 5명)
     const { data: recentMembers } = await supabase
       .from("crew_members")
-      .select("joined_at, profiles(username, full_name)")
+      .select("created_at, profiles(display_name)")
       .eq("crew_id", id)
-      .order("joined_at", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(5);
 
     return NextResponse.json({

@@ -4,7 +4,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { Provider, Session, SupabaseClient, User } from "@supabase/supabase-js";
 
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser-client";
-import type { Database, ProfileRow } from "@/lib/supabase/types";
+import type { Database } from "@/lib/supabase/types";
+
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
 type AuthContextValue = {
   client: SupabaseClient<Database>;

@@ -44,12 +44,15 @@ export function DataTable<T>({
   const sortedData = [...data].sort((a, b) => {
     if (!sortKey) return 0;
 
-    const aValue = (a as any)[sortKey];
-    const bValue = (b as any)[sortKey];
+    const aValue = (a as Record<string, unknown>)[sortKey];
+    const bValue = (b as Record<string, unknown>)[sortKey];
 
     if (aValue === bValue) return 0;
 
-    const comparison = aValue > bValue ? 1 : -1;
+    // Type guard for comparison - convert to string for safe comparison
+    const aStr = String(aValue ?? '');
+    const bStr = String(bValue ?? '');
+    const comparison = aStr > bStr ? 1 : -1;
     return sortOrder === "asc" ? comparison : -comparison;
   });
 
@@ -123,7 +126,7 @@ export function DataTable<T>({
                   <td key={column.key} className="px-4 py-3 text-sm">
                     {column.render
                       ? column.render(item)
-                      : (item as any)[column.key]}
+                      : String((item as Record<string, unknown>)[column.key] ?? '')}
                   </td>
                 ))}
               </tr>

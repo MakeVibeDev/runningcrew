@@ -19,6 +19,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Validate entity type
+    const validEntityTypes = ["record", "profile", "crew_intro", "mission", "announcement"];
+    if (!validEntityTypes.includes(entityType)) {
+      return NextResponse.json(
+        { error: "Invalid entity type" },
+        { status: 400 }
+      );
+    }
+
     // Fetch comments with profile information
     const { data: comments, error } = await supabase
       .from("comments")
@@ -32,7 +41,7 @@ export async function GET(request: NextRequest) {
         )
       `
       )
-      .eq("entity_type", entityType)
+      .eq("entity_type", entityType as "record" | "profile" | "crew_intro" | "mission" | "announcement")
       .eq("entity_id", entityId)
       .order("created_at", { ascending: false });
 
