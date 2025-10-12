@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Heart, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { useSupabase } from "@/components/providers/supabase-provider";
 
 interface Profile {
   id: string;
@@ -35,6 +36,7 @@ export function CommentItem({
   onUpdated,
   onLikeToggle,
 }: CommentItemProps) {
+  const { client } = useSupabase();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [showMenu, setShowMenu] = useState(false);
@@ -70,19 +72,36 @@ export function CommentItem({
     setIsLiking(true);
 
     try {
-      const method = comment.isLikedByUser ? "DELETE" : "POST";
-      const response = await fetch(`/api/comments/${comment.id}/like`, {
-        method,
-        credentials: "include",
-      });
+      const newIsLiked = !comment.isLikedByUser;
+      const newCount = comment.likes_count + (newIsLiked ? 1 : -1);
 
-      if (response.ok) {
-        const newIsLiked = !comment.isLikedByUser;
-        const newCount = comment.likes_count + (newIsLiked ? 1 : -1);
-        onLikeToggle(comment.id, newIsLiked, newCount);
+      if (newIsLiked) {
+        // Add like
+        const { error } = await client.from("comment_likes").insert({
+          comment_id: comment.id,
+          profile_id: currentUserId,
+        });
+
+        if (error) {
+          if (error.code === "23505") {
+            // Already liked, just update UI
+            onLikeToggle(comment.id, true, newCount);
+          } else {
+            throw error;
+          }
+        } else {
+          onLikeToggle(comment.id, newIsLiked, newCount);
+        }
       } else {
-        const error = await response.json();
-        alert(error.error || "좋아요 처리 실패");
+        // Remove like
+        const { error } = await client
+          .from("comment_likes")
+          .delete()
+          .eq("comment_id", comment.id)
+          .eq("profile_id", currentUserId);
+
+        if (error) throw error;
+        onLikeToggle(comment.id, newIsLiked, newCount);
       }
     } catch (error) {
       console.error("좋아요 처리 실패:", error);
