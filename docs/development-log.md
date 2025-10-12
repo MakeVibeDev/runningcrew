@@ -3630,4 +3630,120 @@ export const metadata: Metadata = {
 
 ---
 
-마지막 업데이트: 2025-10-09
+## 2025-10-12: 댓글 시스템 버그 수정
+
+### 수정한 버그
+
+#### 1. 댓글 개수 실시간 업데이트 버그 (commit: 8031a73)
+**문제점:**
+- 댓글을 작성해도 상단의 댓글 개수가 업데이트되지 않음
+- 페이지 새로고침 후에만 개수가 반영됨
+
+**원인 분석:**
+- 기록 상세 페이지에서 `record.commentsCount` 정적 값 사용
+- `CommentsSection` 컴포넌트의 상태 변경이 부모 컴포넌트에 전달되지 않음
+
+**해결 방법:**
+- `CommentsSection`에 `onCountChange` 콜백 prop 추가
+- 댓글 로드/추가/삭제 시 부모 컴포넌트에 개수 변경 알림
+- 기록 상세 페이지에 별도의 `commentsCount` state 추가
+
+**수정된 파일:**
+- `src/components/comments/comments-section.tsx`: 콜백 prop 추가 및 호출
+- `src/app/records/[recordId]/page.tsx`: 동적 댓글 카운트 state 관리
+
+#### 2. 댓글 좋아요 401 Unauthorized 에러 (commit: ff46026)
+**문제점:**
+- 댓글 좋아요 버튼 클릭 시 `POST /api/comments/{id}/like 401` 에러 발생
+- "Unauthorized" 팝업 표시
+
+**원인 분석:**
+- Next.js 15 App Router의 API Routes에서 쿠키 기반 인증 문제
+- 클라이언트의 fetch 요청에서 `credentials: "include"`를 사용해도 쿠키가 제대로 전달되지 않음
+- 서버 측에서 `await cookies()`로 쿠키를 가져와도 인증 정보 누락
+
+**해결 방법:**
+- API Route 호출 대신 클라이언트에서 직접 Supabase client 사용
+- `CommentItem` 컴포넌트에 `useSupabase` hook 추가
+- `fetch('/api/comments/{id}/like')` → `client.from('comment_likes').insert()` 직접 호출로 변경
+
+**수정된 파일:**
+- `src/components/comments/comment-item.tsx`:
+  - `useSupabase` hook import 추가
+  - `handleLikeToggle` 함수에서 직접 Supabase client 사용
+  - API route 우회하여 인증 문제 해결
+
+**기술적 배경:**
+- Next.js 15의 쿠키 처리 방식 변경으로 인한 호환성 문제
+- 댓글 작성(comment-input.tsx)도 동일한 이유로 이미 직접 Supabase client 사용 중
+- API Routes는 서버 간 통신이나 민감한 로직에만 사용하고, 단순 CRUD는 클라이언트에서 직접 처리하는 것이 안정적
+
+#### 3. TypeScript 빌드 에러 수정 (commit: 5f24a35)
+**문제점:**
+- `npm run build` 실행 시 7개의 TypeScript 에러 발생
+- production 빌드 실패
+
+**수정 내역:**
+1. **데이터베이스 스키마 컬럼명 불일치 수정:**
+   - `user_id` → `profile_id` (crew_members, records 테이블)
+   - `distance` → `distance_km` (records 테이블)
+   - `leader_id` → `owner_id` (crews 테이블)
+   - `username`, `full_name` → `display_name` (profiles 테이블)
+
+2. **TypeScript `any` 타입 제거:**
+   - Admin API routes: `Promise<{ id: any }>` → `Promise<{ id: string }>`
+   - data-table.tsx: `as any` → `as Record<string, unknown>`
+   - Comment interfaces: `mentions: string[]` → `mentions: string[] | null`
+
+3. **ESLint 에러 수정:**
+   - pagination.tsx: `let endPage` → `const adjustedStartPage` (prefer-const 규칙 위반 수정)
+
+4. **타입 일관성 개선:**
+   - Comment interface를 3개 파일에서 모두 동기화
+   - ProfileRow 타입을 supabase types에서 직접 추출하도록 수정
+
+**수정된 파일 (11개):**
+- Admin API routes (4개): crews, missions, users 관련 route 파일들
+- Comments 컴포넌트 (3개): comment-input, comment-item, comments-section
+- Admin 컴포넌트 (2개): data-table, pagination
+- Provider: supabase-provider
+- API: comments route
+
+### 개발 프로세스 개선
+
+**올바른 개발 워크플로우 확립:**
+1. `dev` 브랜치에서 기능 개발/버그 수정
+2. 로컬 테스트 및 `npm run build` 실행하여 빌드 성공 확인
+3. dev 브랜치에 커밋
+4. `main` 브랜치로 merge
+5. `main` 브랜치 push
+
+**교훈:**
+- main 브랜치에 직접 push하지 않고 항상 dev 브랜치를 거치도록 함
+- push 전에 반드시 `npm run build` 테스트 수행
+- 빌드 성공 확인 후에만 main으로 merge
+
+### Git 커밋 히스토리
+
+```
+ff46026 fix: resolve comment like 401 Unauthorized error
+8031a73 fix: update comment count dynamically when comments are added or deleted
+5f24a35 fix: resolve TypeScript build errors
+79ef49b feat: add universal comments system with mentions and likes
+```
+
+### 기술 스택 참고사항
+
+**Next.js 15 App Router + Supabase 인증 이슈:**
+- API Routes에서 쿠키 기반 인증이 불안정함
+- 클라이언트 컴포넌트에서는 `useSupabase` hook으로 직접 Supabase client 사용 권장
+- Server Components나 Server Actions에서만 `createClient(cookies())` 사용
+
+**권장 패턴:**
+- 단순 CRUD: 클라이언트에서 직접 Supabase client 사용
+- 복잡한 로직/권한 체크: Server Actions 사용
+- 외부 API 호출: API Routes 사용
+
+---
+
+마지막 업데이트: 2025-10-12
