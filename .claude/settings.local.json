@@ -13,7 +13,11 @@
       "Bash(git merge:*)",
       "Bash(psql:*)",
       "Bash(pkill:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run dev:admin:*)",
+      "Bash(npx supabase:*)",
+      "Bash(find:*)",
+      "Bash(npx tsx:*)"
     ],
     "deny": [],
     "ask": []

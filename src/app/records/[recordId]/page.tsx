@@ -6,18 +6,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { useSupabase } from "@/components/providers/supabase-provider";
-import { toggleRecordLike, checkRecordLike, getRecordComments, createRecordComment, updateRecordComment, deleteRecordComment } from "@/lib/supabase/likes-comments";
+import { toggleRecordLike, checkRecordLike } from "@/lib/supabase/likes-comments";
 import { ImageModal } from "@/components/ui/image-modal";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { CommentsSection } from "@/components/comments/comments-section";
 
 type RecordDetail = {
   id: string;
@@ -41,17 +32,6 @@ type RecordDetail = {
   };
 };
 
-type Comment = {
-  id: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  profile: {
-    id: string;
-    display_name: string;
-    avatar_url: string | null;
-  };
-};
 
 function formatDuration(seconds: number) {
   const hrs = Math.floor(seconds / 3600);
@@ -75,33 +55,14 @@ function formatDate(dateString: string) {
   }).format(new Date(dateString));
 }
 
-function formatRelativeTime(dateString: string) {
-  const now = new Date();
-  const date = new Date(dateString);
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  if (diffInSeconds < 60) return "방금 전";
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}분 전`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}시간 전`;
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}일 전`;
-
-  return formatDate(dateString);
-}
-
 export default function RecordDetailPage({ params }: { params: Promise<{ recordId: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
   const { user, client, loading } = useSupabase();
   const [record, setRecord] = useState<RecordDetail | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [isLiking, setIsLiking] = useState(false);
-  const [commentContent, setCommentContent] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
-  const [editingContent, setEditingContent] = useState("");
-  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -172,18 +133,6 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
           const liked = await checkRecordLike(client, resolvedParams.recordId, user.id);
           setIsLiked(liked);
         }
-
-        // Load comments
-        const { data: commentsData } = await getRecordComments(client, resolvedParams.recordId);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const formattedComments = (commentsData as any[]).map((c: any) => ({
-          id: c.id,
-          content: c.content,
-          created_at: c.created_at,
-          updated_at: c.updated_at,
-          profile: Array.isArray(c.profile) ? c.profile[0] : c.profile,
-        }));
-        setComments(formattedComments);
       } catch (err) {
         console.error("기록 로딩 실패:", err);
         setError("기록을 불러오는 중 오류가 발생했습니다.");
@@ -218,81 +167,6 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
     setIsLiking(false);
   };
 
-  const handleCommentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !commentContent.trim() || isSubmitting) return;
-
-    setIsSubmitting(true);
-
-    const { data, error: commentError } = await createRecordComment(
-      client,
-      resolvedParams.recordId,
-      user.id,
-      commentContent
-    );
-
-    if (commentError) {
-      console.error("댓글 작성 실패:", commentError);
-      alert("댓글 작성에 실패했습니다.");
-    } else if (data) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const commentData = data as any;
-      const newComment: Comment = {
-        id: commentData.id,
-        content: commentData.content,
-        created_at: commentData.created_at,
-        updated_at: commentData.updated_at,
-        profile: Array.isArray(commentData.profile) ? commentData.profile[0] : commentData.profile,
-      };
-      setComments([...comments, newComment]);
-      setCommentContent("");
-      if (record) {
-        setRecord({ ...record, commentsCount: record.commentsCount + 1 });
-      }
-    }
-
-    setIsSubmitting(false);
-  };
-
-  const handleCommentEdit = async (commentId: string) => {
-    if (!editingContent.trim()) return;
-
-    const { data, error: updateError } = await updateRecordComment(client, commentId, editingContent);
-
-    if (updateError) {
-      console.error("댓글 수정 실패:", updateError);
-      alert("댓글 수정에 실패했습니다.");
-    } else if (data) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const commentData = data as any;
-      const updatedComment: Comment = {
-        id: commentData.id,
-        content: commentData.content,
-        created_at: commentData.created_at,
-        updated_at: commentData.updated_at,
-        profile: Array.isArray(commentData.profile) ? commentData.profile[0] : commentData.profile,
-      };
-      setComments(comments.map((c) => (c.id === commentId ? updatedComment : c)));
-      setEditingCommentId(null);
-      setEditingContent("");
-    }
-  };
-
-  const handleCommentDelete = async (commentId: string) => {
-    const { error: deleteError } = await deleteRecordComment(client, commentId);
-
-    if (deleteError) {
-      console.error("댓글 삭제 실패:", deleteError);
-      alert("댓글 삭제에 실패했습니다.");
-    } else {
-      setComments(comments.filter((c) => c.id !== commentId));
-      if (record) {
-        setRecord({ ...record, commentsCount: record.commentsCount - 1 });
-      }
-    }
-
-    setDeletingCommentId(null);
-  };
 
   if (loading) {
     return (
@@ -452,128 +326,8 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
 
         {/* Comments Section */}
         <div className="rounded-xl border border-border/60 bg-background p-4">
-          <h3 className="mb-4 text-lg font-semibold">댓글 {record.commentsCount}개</h3>
-
-          {/* Comment Form */}
-          {user ? (
-            <form onSubmit={handleCommentSubmit} className="mb-6">
-              <textarea
-                value={commentContent}
-                onChange={(e) => setCommentContent(e.target.value)}
-                placeholder="댓글을 입력하세요..."
-                className="w-full rounded-lg border border-border/60 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                rows={3}
-                maxLength={500}
-              />
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{commentContent.length}/500자</span>
-                <button
-                  type="submit"
-                  disabled={!commentContent.trim() || isSubmitting}
-                  className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {isSubmitting ? "작성 중..." : "댓글 작성"}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <p className="mb-6 text-sm text-muted-foreground">댓글을 작성하려면 로그인이 필요합니다.</p>
-          )}
-
-          {/* Comments List */}
-          <div className="space-y-4">
-            {comments.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground">아직 댓글이 없습니다.</p>
-            ) : (
-              comments.map((comment) => (
-                <div key={comment.id} className="rounded-lg border border-border/40 bg-muted/20 p-4">
-                  <div className="mb-2 flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/profile/${comment.profile.id}`}
-                        className="relative h-8 w-8 overflow-hidden rounded-full border border-border/60 bg-muted"
-                      >
-                        {comment.profile.avatar_url ? (
-                          <Image
-                            src={comment.profile.avatar_url}
-                            alt={comment.profile.display_name}
-                            fill
-                            className="object-cover"
-                            sizes="32px"
-                          />
-                        ) : (
-                          <div className="grid h-full w-full place-items-center text-xs font-semibold text-muted-foreground">
-                            {comment.profile.display_name.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </Link>
-                      <div>
-                        <Link href={`/profile/${comment.profile.id}`} className="hover:underline">
-                          <p className="text-sm font-medium text-foreground">{comment.profile.display_name}</p>
-                        </Link>
-                        <p className="text-xs text-muted-foreground">
-                          {formatRelativeTime(comment.created_at)}
-                          {comment.created_at !== comment.updated_at && " (수정됨)"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Edit/Delete buttons for comment owner */}
-                    {user && user.id === comment.profile.id && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            setEditingCommentId(comment.id);
-                            setEditingContent(comment.content);
-                          }}
-                          className="text-xs text-blue-600 hover:underline"
-                        >
-                          수정
-                        </button>
-                        <button
-                          onClick={() => setDeletingCommentId(comment.id)}
-                          className="text-xs text-red-600 hover:underline"
-                        >
-                          삭제
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {editingCommentId === comment.id ? (
-                    <div>
-                      <textarea
-                        value={editingContent}
-                        onChange={(e) => setEditingContent(e.target.value)}
-                        className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        rows={3}
-                        maxLength={500}
-                      />
-                      <div className="mt-2 flex gap-2">
-                        <button
-                          onClick={() => handleCommentEdit(comment.id)}
-                          className="rounded bg-orange-600 px-3 py-1 text-xs font-medium text-white hover:bg-orange-700"
-                        >
-                          저장
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditingCommentId(null);
-                            setEditingContent("");
-                          }}
-                          className="rounded bg-gray-200 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-300"
-                        >
-                          취소
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="whitespace-pre-wrap text-sm text-foreground">{comment.content}</p>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
+          <h3 className="mb-4 text-lg font-semibold">댓글</h3>
+          <CommentsSection entityType="record" entityId={resolvedParams.recordId} />
         </div>
       </main>
 
@@ -586,27 +340,6 @@ export default function RecordDetailPage({ params }: { params: Promise<{ recordI
           alt="기록 사진"
         />
       )}
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deletingCommentId} onOpenChange={() => setDeletingCommentId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>댓글 삭제</AlertDialogTitle>
-            <AlertDialogDescription>
-              이 댓글을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deletingCommentId && handleCommentDelete(deletingCommentId)}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              삭제
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
