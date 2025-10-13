@@ -297,9 +297,9 @@ export function CommentItem({
                     comment.isLikedByUser ? "fill-current" : ""
                   }`}
                 />
-                <span className={comment.likes_count === 0 ? "text-muted-foreground/60" : ""}>
-                  {comment.likes_count}
-                </span>
+                {comment.likes_count > 0 && (
+                  <span>{comment.likes_count}</span>
+                )}
               </button>
             </div>
           </>
