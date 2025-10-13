@@ -27,24 +27,62 @@ interface CommentsSectionProps {
 }
 
 export function CommentsSection({ entityType, entityId, onCountChange }: CommentsSectionProps) {
-  const { user } = useSupabase();
+  const { user, client } = useSupabase();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadComments();
-  }, [entityType, entityId]);
+  }, [entityType, entityId, user]);
 
   const loadComments = async () => {
     try {
-      const response = await fetch(
-        `/api/comments?entityType=${entityType}&entityId=${entityId}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        const loadedComments = data.comments || [];
-        setComments(loadedComments);
-        onCountChange?.(loadedComments.length);
+      // Fetch comments with profile information
+      const { data: commentsData, error } = await client
+        .from("comments")
+        .select(
+          `
+          *,
+          profiles:profile_id (
+            id,
+            display_name,
+            avatar_url
+          )
+        `
+        )
+        .eq("entity_type", entityType)
+        .eq("entity_id", entityId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      if (!commentsData) {
+        setComments([]);
+        onCountChange?.(0);
+        return;
+      }
+
+      // If user is logged in, check which comments they liked
+      if (user) {
+        const commentIds = commentsData.map((c) => c.id);
+        const { data: userLikes } = await client
+          .from("comment_likes")
+          .select("comment_id")
+          .in("comment_id", commentIds)
+          .eq("profile_id", user.id);
+
+        const likedCommentIds = new Set(userLikes?.map((l) => l.comment_id) || []);
+
+        const commentsWithLikeStatus = commentsData.map((c) => ({
+          ...c,
+          isLikedByUser: likedCommentIds.has(c.id),
+        }));
+
+        setComments(commentsWithLikeStatus);
+        onCountChange?.(commentsWithLikeStatus.length);
+      } else {
+        setComments(commentsData);
+        onCountChange?.(commentsData.length);
       }
     } catch (error) {
       console.error("댓글 로드 실패:", error);
