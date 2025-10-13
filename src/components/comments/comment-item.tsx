@@ -290,15 +290,16 @@ export function CommentItem({
                     ? "text-red-500"
                     : "text-muted-foreground hover:text-red-500"
                 } disabled:opacity-50`}
+                title={currentUserId ? "좋아요" : "로그인이 필요합니다"}
               >
                 <Heart
                   className={`w-4 h-4 ${
                     comment.isLikedByUser ? "fill-current" : ""
                   }`}
                 />
-                {comment.likes_count > 0 && (
-                  <span>{comment.likes_count}</span>
-                )}
+                <span className={comment.likes_count === 0 ? "text-muted-foreground/60" : ""}>
+                  {comment.likes_count}
+                </span>
               </button>
             </div>
           </>

@@ -54,7 +54,7 @@ export function CommentsSection({ entityType, entityId, onCountChange }: Comment
   };
 
   const handleCommentAdded = (newComment: Comment) => {
-    const updatedComments = [newComment, ...comments];
+    const updatedComments = [...comments, newComment];
     setComments(updatedComments);
     onCountChange?.(updatedComments.length);
   };

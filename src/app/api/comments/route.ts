@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       )
       .eq("entity_type", entityType as "record" | "profile" | "crew_intro" | "mission" | "announcement")
       .eq("entity_id", entityId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: true });
 
     if (error) throw error;
 
