@@ -92,6 +92,61 @@ redirects: {
 
 ---
 
+### 2025-10-13: Claude Code 커뮤니케이션 가이드 추가
+
+#### 작업 배경
+이전 세션들에서 Claude가 영어로 응답하는 문제가 반복적으로 발생했습니다. 사용자가 여러 번 한글 커뮤니케이션을 요청했음에도 계속 영어로 피드백을 제공하는 이슈가 있었습니다.
+
+#### 구현 내용
+
+**1. Claude Code 설정 문서 생성**
+- 파일: [.claude/instructions.md](../.claude/instructions.md)
+- 목적: Claude Code 세션 간 일관된 개발 워크플로우와 커뮤니케이션 규칙 제공
+
+**2. 문서 구성**
+
+**커뮤니케이션 언어**
+```markdown
+**중요: 모든 커뮤니케이션은 한글로 진행합니다.**
+
+- 사용자와의 모든 대화는 한국어로 작성
+- 코드 설명, 에러 메시지 해석, 작업 진행 상황 등 모든 피드백을 한글로 제공
+- 커밋 메시지, 문서 업데이트 등도 한글 우선 (필요시 영문 병기)
+- 예외: 코드 자체(변수명, 함수명, 주석 등)는 영어 사용 가능
+```
+
+**개발 워크플로우**
+- Git 브랜치 전략: dev → test → main → push
+- 절대 규칙: main 직접 push 금지, build 테스트 없이 커밋 금지
+- 빌드 전 체크리스트: TypeScript 에러, ESLint 경고, npm run build, 기능 테스트
+
+**프로젝트 특성**
+- 데이터베이스 스키마 주의사항 (profile_id, display_name, distance_km 등)
+- Next.js 15 패턴 (API Routes 인증 이슈와 해결 방법)
+- 코드 스타일 (TypeScript any 금지, ESLint 준수)
+
+**문서화 규칙**
+- 주요 기능 추가/수정 시 development-log.md 업데이트
+- 버그 수정 내용, 원인, 해결 방법 상세 기록
+- Lessons Learned 섹션에 반복 방지 인사이트 추가
+
+#### 기대 효과
+1. **일관된 커뮤니케이션**: 모든 Claude Code 세션에서 한글로 통일
+2. **개발 워크플로우 준수**: dev → test → main → push 프로세스 자동화
+3. **반복 실수 방지**: 데이터베이스 스키마, Next.js 패턴 등 프로젝트 특성 문서화
+4. **세션 간 지식 공유**: 새 세션 시작 시 프로젝트 컨텍스트 즉시 파악
+
+#### 주요 파일
+- 신규: `.claude/instructions.md`
+
+#### Git 커밋
+```bash
+git add .claude/instructions.md
+git commit -m "docs: add Claude Code communication guidelines and workflow rules"
+```
+
+---
+
 ## 최근 세션 작업 내역 (상세)
 
 ### 1. 미션 상세 페이지 개선
