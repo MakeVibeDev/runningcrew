@@ -54,11 +54,6 @@ export const releases: Release[] = [
         title: "다크/라이트 테마 지원",
         description: "순위 공유 이미지가 현재 사용 중인 테마(다크/라이트)에 맞춰 자동으로 생성됩니다.",
       },
-      {
-        emoji: "📐",
-        title: "크루 로고 디자인 통일",
-        description: "순위 공유 이미지의 크루 로고가 다른 페이지와 동일한 둥근 사각형 스타일로 통일되었습니다.",
-      },
     ],
     fixes: [
       {
