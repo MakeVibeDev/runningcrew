@@ -6,6 +6,7 @@ import { Suspense, useEffect, useMemo, useState, useTransition } from "react";
 
 import { KakaoLoginButton } from "@/components/ui/oauth-button";
 import { useSupabase } from "@/components/providers/supabase-provider";
+import { ImageModal } from "@/components/ui/image-modal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -211,6 +212,7 @@ function RecordUploadPageContent() {
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [notes, setNotes] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [storagePath, setStoragePath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hideGuide, setHideGuide] = useState<boolean>(() => {
@@ -713,7 +715,12 @@ function RecordUploadPageContent() {
               <p className="text-xs text-muted-foreground">
                 PNG/JPG/JPEG/WEBP, 최대 {MAX_IMAGE_MB}MB. 업로드 후 자동 분석이 시작
               </p>
-              <div className="relative mt-2 h-48 w-full overflow-hidden rounded-xl border border-border/60 bg-muted">
+              <button
+                type="button"
+                onClick={() => imagePreview && setIsImageModalOpen(true)}
+                disabled={!imagePreview}
+                className="relative mt-2 h-48 w-full overflow-hidden rounded-xl border border-border/60 bg-muted transition hover:ring-2 hover:ring-foreground/20 disabled:cursor-default disabled:hover:ring-0"
+              >
                 {imagePreview ? (
                   <Image
                     src={imagePreview}
@@ -733,7 +740,7 @@ function RecordUploadPageContent() {
                     OCR 분석 중...
                   </div>
                 ) : null}
-              </div>
+              </button>
             </div>
 
             <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
@@ -845,6 +852,16 @@ function RecordUploadPageContent() {
           </button>
         </div>
       </form>
+
+      {/* Image Modal */}
+      {imagePreview && (
+        <ImageModal
+          isOpen={isImageModalOpen}
+          onClose={() => setIsImageModalOpen(false)}
+          imageSrc={imagePreview}
+          alt="기록 이미지 미리보기"
+        />
+      )}
       </div>
     </>
   );

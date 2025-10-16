@@ -28,6 +28,7 @@ export function RankingCard({
 }: RankingCardProps) {
   return (
     <div
+      data-ranking-card
       className={`relative overflow-hidden rounded-xl border border-border/60 shadow-sm transition hover:shadow-md ${
         compact ? "p-2 text-sm" : "p-3"
       }`}
@@ -62,6 +63,7 @@ export function RankingCard({
 
       {/* 순위 표시 - 최상단 좌측 모서리 */}
       <div
+        data-rank
         className={`absolute left-0 top-0 z-10 flex items-center justify-center rounded-br-lg text-xs font-bold ${
           compact ? "h-7 w-7" : "h-8 w-8"
         } ${
@@ -92,11 +94,13 @@ export function RankingCard({
         >
           {stat.profile?.avatar_url ? (
             <Image
+              data-avatar
               src={stat.profile.avatar_url}
               alt={stat.profile.display_name ?? "프로필"}
               fill
               className="object-cover"
               sizes={compact ? "48px" : "56px"}
+              crossOrigin="anonymous"
             />
           ) : (
             <div
@@ -112,6 +116,7 @@ export function RankingCard({
         <div className="flex-1 min-w-0">
           <Link href={`/profile/${stat.profileId}`} className="hover:underline">
             <h3
+              data-name
               className={`font-semibold text-foreground ${
                 compact ? "text-sm" : "text-base"
               }`}
@@ -138,7 +143,7 @@ export function RankingCard({
           <p className={compact ? "text-[0.65rem]" : "text-[1rem] text-muted-foreground"}>
             총 거리
           </p>
-          <p className={`font-bold text-foreground ${compact ? "text-base" : "text-xl"}`}>
+          <p data-distance className={`font-bold text-foreground ${compact ? "text-base" : "text-xl"}`}>
             {stat.totalDistanceKm.toFixed(2)}
             {compact && " KM"}
           </p>
@@ -147,7 +152,7 @@ export function RankingCard({
           <p className={compact ? "text-[0.65rem]" : "text-[1rem] text-muted-foreground"}>
             총 시간
           </p>
-          <p className={`font-bold text-foreground ${compact ? "text-base" : "text-xl"}`}>
+          <p data-duration className={`font-bold text-foreground ${compact ? "text-base" : "text-xl"}`}>
             {formatDuration(stat.totalDurationSeconds)}
           </p>
         </div>
@@ -155,7 +160,7 @@ export function RankingCard({
           <p className={compact ? "text-[0.65rem]" : "text-[1rem] text-muted-foreground"}>
             평균 페이스
           </p>
-          <p className={`font-bold text-foreground ${compact ? "text-base" : "text-xl"}`}>
+          <p data-pace className={`font-bold text-foreground ${compact ? "text-base" : "text-xl"}`}>
             {formatPace(stat.avgPaceSecondsPerKm)}
           </p>
         </div>

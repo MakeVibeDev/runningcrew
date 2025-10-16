@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { fetchMissionById, fetchMissionStats } from "@/lib/supabase/rest";
 import { RankingCard } from "@/components/mission/ranking-card";
+import { ShareRankingsButton } from "@/components/mission/share-rankings-button";
 
 export const revalidate = 0;
 
@@ -47,13 +48,21 @@ export default async function MissionRankingsPage({
           >
             ← 미션으로 돌아가기
           </Link>
-          <h1 className="text-2xl font-bold">{mission.title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">전체 순위 (누적 거리)</p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold">{mission.title}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">전체 순위 (누적 거리)</p>
+            </div>
+            <ShareRankingsButton
+              missionTitle={mission.title}
+              mission={mission}
+            />
+          </div>
         </div>
       </header>
 
       {/* 순위 리스트 */}
-      <main className="mx-auto max-w-4xl px-4 py-6">
+      <main className="mx-auto max-w-4xl px-4 py-6" data-rankings>
         <div className="space-y-3">
           {stats.length === 0 ? (
             <div className="rounded-2xl border border-border/60 bg-card p-8 text-center">
